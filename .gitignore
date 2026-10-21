@@ -15,3 +15,7 @@ agent-status.json
 intelmq-cross.py.disabled
 __pycache__/
 state.json
+misp1930-ips.txt
+blocklist-2026-09-02.txt
+summary-2026-09-02.json
+high-signal-2026-09-02.txt
