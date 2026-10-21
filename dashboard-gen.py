@@ -187,6 +187,19 @@ def main():
 
     OUT.mkdir(exist_ok=True)
     (OUT / "data.json").write_text(json.dumps(data, indent=1))
+
+    # publish EDL (docs/blocklist.txt) for firewall consumption
+    bl = BASE / "soc_blocklist.txt"
+    if bl.exists():
+        ips = [l.strip() for l in bl.read_text().splitlines() if l.strip() and not l.startswith("#")]
+        edl = [
+            "# kit-cloud SoC EDL — attacker IPs from Wazuh (MISP event 1932)",
+            "# format: one IPv4 per line | regenerated every pipeline run",
+            "# contact: admin@kit-cloud.com | https://misp.kit-ai.net/events/view/1932",
+            "",
+        ] + ips
+        (OUT / "blocklist.txt").write_text("\n".join(edl) + "\n")
+        print(f"blocklist.txt written {len(ips)} IPs")
     print("data.json written", len(json.dumps(data)), "bytes")
     print(json.dumps({k: (v if not isinstance(v, dict) else list(v.keys())) for k, v in data.items()}, indent=1)[:400])
 
