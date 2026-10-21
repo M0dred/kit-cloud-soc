@@ -25,6 +25,20 @@ CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
 
 
+
+def _is_private(ip):
+    import ipaddress
+    try:
+        a = ipaddress.ip_address(ip)
+        return a.is_private or a.is_loopback or a.is_link_local
+    except ValueError:
+        return True
+
+
+def _pub(b):
+    return (b["key"], b["doc_count"])
+
+
 def wazuh_7d():
     cfg = BASE.joinpath("config.yaml").read_text()
     u = re.search(r'indexer_user:\s*"([^"]+)"', cfg).group(1)
@@ -47,7 +61,7 @@ def wazuh_7d():
     return {
         "total_7d": sum(b["doc_count"] for b in ag["agents"]["buckets"]),
         "by_agent": [(b["key"], b["doc_count"]) for b in ag["agents"]["buckets"]],
-        "top_src": [(b["key"], b["doc_count"]) for b in ag["src"]["buckets"]],
+        "top_src": [_pub(b) for b in ag["src"]["buckets"] if _pub(b)],
         "by_day": [(b["key_as_string"][:10], b["doc_count"]) for b in ag["days"]["buckets"]],
     }
 
