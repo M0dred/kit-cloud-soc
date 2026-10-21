@@ -25,8 +25,8 @@ Work resumed from this handover file + wire.jsonl.
 - root@10.0.0.86 Aliyun
 - kowalski@10.147.20.88 boxhezi
 - kowalski@10.0.0.105 kowalski-pc
-- kowalski@10.0.0.11 raspberrypi (pass 221221)
-- kowalski@10.0.0.150 sonar-mini (pass 221221)
+- kowalski@10.0.0.11 raspberrypi (pass REDACTED)
+- kowalski@10.0.0.150 sonar-mini (pass REDACTED)
 
 **Still no shell:**
 - my-test-0 — still no shell (root/kowalski, previous + new passwords all denied on ZT/vpncloud)
@@ -86,12 +86,12 @@ Work resumed from this handover file + wire.jsonl.
 
 | Service | Key/Pass | Note |
 |---------|----------|------|
-| SSH (.86/.88/.50) | `Pwdn0s@fe;` | User: root or kowalski |
-| Wazuh Indexer | `admin` / `L4B4qGU2JyBQ.` | `10.0.0.1:9200` |
-| Wazuh Manager API | `wazuh-wui` / `+FMBD0AOTReg+ivkhp5Z8uSORtsZp*L8` | `10.0.0.1:55000` |
-| MISP | `k0AkWOjFybei1uHbMjlliDTElYF58FXLCkdTt0LV` | `https://misp.kit-ai.net` |
-| VirusTotal | `775b92d0d7b3bee7c1eec32df37798b2b1548fec874080a561850237cd15c597` | Free tier (daily quota) |
-| Telegram Bot | `8146281560:AAH2bTjr7fphVdZyNH5D_2AanHOPxUYwiy0` | Bot: @hey_max_intel_bot |
+| SSH (.86/.88/.50) | `REDACTED` | User: root or kowalski |
+| Wazuh Indexer | `admin` / `REDACTED` | `10.0.0.1:9200` |
+| Wazuh Manager API | `wazuh-wui` / `REDACTED` | `10.0.0.1:55000` |
+| MISP | `REDACTED` | `https://misp.kit-ai.net` |
+| VirusTotal | `REDACTED` | Free tier (daily quota) |
+| Telegram Bot | `REDACTED` | Bot: @hey_max_intel_bot |
 | Telegram Chat ID | `8780233201` | User: Max |
 
 ---
@@ -125,7 +125,7 @@ Work resumed from this handover file + wire.jsonl.
 ```yaml
 telegram:
   enabled: true
-  bot_token: "8146281560:AAH2bTjr7fphVdZyNH5D_2AanHOPxUYwiy0"
+  bot_token: "REDACTED"
   chat_id: 8780233201
   notify_on: "always"  # always | new_iocs | new_misp | never
 
@@ -280,7 +280,7 @@ pipeline:
 - **VT quota is exhausted** — do not attempt VT lookups/comments until tomorrow.
 - **MISP Event 1930** is the central IOC repository. It has grown large; consider creating a new event or pruning.
 - **The `john` cron was removed** from `/etc/cron.d/john`. Do not reinstall unless specifically needed.
-- **Remote SSH access** uses password `Pwdn0s@fe;` with `sshpass`. No key-based auth is set up.
+- **Remote SSH access** uses password `REDACTED` with `sshpass`. No key-based auth is set up.
 - **Telegram notifications** are active on `notify_on: always`. Change to `new_misp` to reduce noise.
 - **web-app-security-assessment** was copied from .50 to sensor-syd but not yet tested locally.
 

@@ -12,3 +12,6 @@ summaries/
 summaries/
 dashboard/
 agent-status.json
+intelmq-cross.py.disabled
+__pycache__/
+state.json
