@@ -1,0 +1,257 @@
+{
+ "34.34.169.159": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 43,
+   "cc": "BE",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "104.197.25.169": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 46,
+   "cc": "US",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "35.198.60.29": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "Brazil",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 118,
+   "cc": "BR",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "185.177.72.9": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 49,
+   "cc": "United Kingdom of Great Britain ",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 3210,
+   "cc": "FR",
+   "isp": "FBW NETWORKS SAS",
+   "http": 200
+  }
+ },
+ "185.177.72.56": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 50,
+   "cc": "United Kingdom of Great Britain ",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 3449,
+   "cc": "FR",
+   "isp": "FBW NETWORKS SAS",
+   "http": 200
+  }
+ },
+ "34.47.4.185": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 51,
+   "cc": "CA",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "34.85.217.40": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 2,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 133,
+   "cc": "US",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "34.187.119.56": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 118,
+   "cc": "NL",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "34.82.51.69": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 2,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 127,
+   "cc": "US",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "45.225.47.25": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 15,
+   "cc": "Ecuador",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 164,
+   "cc": "EC",
+   "isp": "NEGOCIOS Y TELEFONIA NEDETEL S.A.",
+   "http": 200
+  }
+ },
+ "35.245.130.222": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 63,
+   "reports": 11,
+   "cc": "US",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "34.26.225.1": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 44,
+   "cc": "US",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "34.90.246.60": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 0,
+   "cc": "Netherlands",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 86,
+   "cc": "NL",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "34.39.248.94": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 1,
+   "cc": "United States of America",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 118,
+   "cc": "BR",
+   "isp": "Google LLC",
+   "http": 200
+  }
+ },
+ "14.53.202.223": {
+  "gn": {
+   "_rate_limited": true
+  },
+  "otx": {
+   "pulses": 18,
+   "cc": "Korea, Republic of",
+   "http": 200
+  },
+  "aipdb": {
+   "score": 100,
+   "reports": 2784,
+   "cc": "KR",
+   "isp": "Korea Telecom",
+   "http": 200
+  }
+ }
+}

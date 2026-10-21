@@ -111,6 +111,64 @@ def health():
     return {"agents_down": agents or "none", "checked": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
 
 
+
+def enrich_meta_for(ips):
+    """ASN/geo/GN/AIPDB/OTX per IP from local threat DB (offline, no API calls)."""
+    import sqlite3, json as _json
+    db = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
+    if not db.exists():
+        return {}
+    con = sqlite3.connect(db)
+    con.row_factory = sqlite3.Row
+    out = {}
+    for ip in ips:
+        out[ip] = {}
+    con.close()
+    # primary source: orchestrator enrich cache (GN/OTX/AIPDB live results)
+    cache_path = Path.home() / ".config/soc-orchestrator/enrich-cache.json"
+    if cache_path.exists():
+        cache = _json.loads(cache_path.read_text() or "{}")
+        for ip in ips:
+            c = cache.get(ip) or {}
+            meta = {}
+            gn = c.get("gn") or {}
+            if isinstance(gn, dict) and gn.get("classification"):
+                meta["gn"] = str(gn["classification"])[:12]
+                if gn.get("name"):
+                    meta["org"] = str(gn["name"])[:28]
+            otx = c.get("otx") or {}
+            if isinstance(otx, dict) and otx.get("pulses") is not None:
+                meta["otx"] = otx.get("pulses")
+                if otx.get("cc"):
+                    meta["country"] = str(otx["cc"])[:2].upper()
+            ab = c.get("aipdb") or {}
+            if isinstance(ab, dict) and ab.get("score") is not None:
+                meta["aip"] = ab.get("score")
+                if ab.get("isp"):
+                    meta["asn"] = str(ab["isp"])[:30]
+                if ab.get("cc"):
+                    meta.setdefault("country", str(ab["cc"])[:2].upper())
+            if meta:
+                out.setdefault(ip, {}).update(meta)
+    # fallback: VT AS/country from threat DB evidence
+    db = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
+    if db.exists():
+        con = sqlite3.connect(db)
+        con.row_factory = sqlite3.Row
+        for ip in ips:
+            if out.get(ip, {}).get("asn"):
+                continue
+            row = con.execute("select evidence from iocs where ip=?", (ip,)).fetchone()
+            if row:
+                ev = _json.loads(row["evidence"] or "{}")
+                if ev.get("as_owner"):
+                    out.setdefault(ip, {})["asn"] = str(ev["as_owner"])[:30]
+                if ev.get("country"):
+                    out.setdefault(ip, {}).setdefault("country", ev["country"][:2].upper())
+        con.close()
+    return out
+
+
 def main():
     data = {"generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
     for key, fn in [("wazuh", wazuh_7d), ("misp", misp_1932), ("vt", vt_ledger), ("health", health)]:
@@ -119,6 +177,11 @@ def main():
         except Exception as e:
             data[key] = {"error": str(e)[:120]}
     data["runs"] = runs()
+    try:
+        top = [x[0] for x in (data.get("wazuh") or {}).get("top_src") or []][:20]
+        data["enrich_meta"] = enrich_meta_for(top)
+    except Exception as e:
+        data["enrich_meta"] = {"error": str(e)[:100]}
     bl = BASE / "soc_blocklist.txt"
     data["blocklist_n"] = len([l for l in bl.read_text().splitlines() if l.strip() and not l.startswith("#")]) if bl.exists() else 0
 

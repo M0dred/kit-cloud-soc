@@ -1,39 +1,39 @@
 {
- "generated": "2026-10-21 06:21 UTC",
+ "generated": "2026-10-21 07:59 UTC",
  "wazuh": {
-  "total_7d": 214097,
+  "total_7d": 213970,
   "by_agent": [
    [
     "sensor-02",
-    117571
+    117618
    ],
    [
     "sensor-syd",
-    79655
+    79455
    ],
    [
     "kowalski-debian",
-    7365
+    7378
    ],
    [
     "my-test-0",
-    2555
+    2547
    ],
    [
     "wazuh-ubuntu-2C4G",
-    2467
+    2488
    ],
    [
     "kowalski-mac",
-    1680
+    1678
    ],
    [
     "kowalski-pc",
-    1004
+    1005
    ],
    [
     "win-lab-pve",
-    742
+    739
    ],
    [
     "raspberrypi",
@@ -41,7 +41,7 @@
    ],
    [
     "win-home-lab",
-    502
+    506
    ]
   ],
   "top_src": [
@@ -83,7 +83,7 @@
    ],
    [
     "45.225.47.25",
-    1644
+    1662
    ],
    [
     "35.245.130.222",
@@ -107,25 +107,25 @@
    ],
    [
     "213.209.159.228",
-    1256
+    1258
    ],
    [
     "20.193.50.139",
     1243
    ],
    [
-    "213.209.159.236",
-    1217
+    "192.253.248.223",
+    1242
    ],
    [
-    "192.253.248.229",
-    1216
+    "192.253.248.226",
+    1234
    ]
   ],
   "by_day": [
    [
     "2026-10-14",
-    13363
+    12739
    ],
    [
     "2026-10-15",
@@ -153,7 +153,7 @@
    ],
    [
     "2026-10-21",
-    10597
+    11125
    ]
   ]
  },
@@ -320,7 +320,7 @@
  },
  "health": {
   "agents_down": "win-lite=disconnected",
-  "checked": "2026-10-21 06:21 UTC"
+  "checked": "2026-10-21 07:59 UTC"
  },
  "runs": [
   {
@@ -524,5 +524,101 @@
    "why": ""
   }
  ],
+ "enrich_meta": {
+  "34.34.169.159": {
+   "otx": 0,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "104.197.25.169": {
+   "otx": 0,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "35.198.60.29": {
+   "otx": 0,
+   "country": "BR",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "185.177.72.9": {
+   "otx": 49,
+   "country": "UN",
+   "aip": 100,
+   "asn": "FBW NETWORKS SAS"
+  },
+  "185.177.72.56": {
+   "otx": 50,
+   "country": "UN",
+   "aip": 100,
+   "asn": "FBW NETWORKS SAS"
+  },
+  "34.47.4.185": {
+   "otx": 0,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "34.85.217.40": {
+   "otx": 2,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "34.187.119.56": {
+   "otx": 0,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "34.82.51.69": {
+   "otx": 2,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "45.225.47.25": {
+   "otx": 15,
+   "country": "EC",
+   "aip": 100,
+   "asn": "NEGOCIOS Y TELEFONIA NEDETEL S"
+  },
+  "35.245.130.222": {
+   "otx": 0,
+   "country": "UN",
+   "aip": 63,
+   "asn": "Google LLC"
+  },
+  "34.26.225.1": {
+   "otx": 0,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "34.90.246.60": {
+   "otx": 0,
+   "country": "NE",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "34.39.248.94": {
+   "otx": 1,
+   "country": "UN",
+   "aip": 100,
+   "asn": "Google LLC"
+  },
+  "14.53.202.223": {
+   "otx": 18,
+   "country": "KO",
+   "aip": 100,
+   "asn": "Korea Telecom"
+  },
+  "213.209.159.228": {},
+  "20.193.50.139": {},
+  "192.253.248.223": {},
+  "192.253.248.226": {}
+ },
  "blocklist_n": 112
 }
