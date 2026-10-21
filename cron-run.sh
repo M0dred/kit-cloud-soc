@@ -51,6 +51,14 @@ if ! /usr/bin/python3 "$ORCH" run --skip-vt >>"$LOG" 2>&1; then
   echo "$(date -u +%FT%TZ) orchestrator FAIL" >>"$LOG"
   FAILS+=("orchestrator exited non-zero")
 fi
+
+# rotate summary snapshot (keep 30)
+S=/root/.config/soc-orchestrator/summaries
+mkdir -p "$S"
+if [ -f "$S/summary.json" ]; then
+  cp "$S/summary.json" "$S/$(date -u +%Y%m%d-%H%M).json"
+  ls -1t "$S"/20*.json 2>/dev/null | tail -n +31 | xargs -r rm --
+fi
 if ! timeout 5 bash -c 'echo >/dev/tcp/10.0.1.1/9200'; then
   FAILS+=("Wazuh indexer 10.0.1.1:9200 unreachable")
 else
@@ -69,6 +77,11 @@ if [ "${IPS:-x}" = "0" ]; then
 fi
 
 # IntelMQ removed from stack (2026-10-21): step disabled.
+
+echo "$(date -u +%FT%TZ) --- NDR cross vs 1932 ---" >>"$LOG"
+if ! /usr/bin/python3 /root/.config/soc-orchestrator/ndr-cross.py >>"$LOG" 2>&1; then
+  echo "$(date -u +%FT%TZ) ndr-cross FAIL (non-fatal)" >>"$LOG"
+fi
 
 echo "$(date -u +%FT%TZ) --- local /var/log hunt ---" >>"$LOG"
 if [ -f "$HUNT" ]; then

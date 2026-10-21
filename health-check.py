@@ -70,6 +70,8 @@ def agent_states(user, password):
 
 
 def main():
+    # Laptop/desktop agents that routinely sleep: report as WARN, never FAIL.
+    SOFT = {"win-lite", "kowalski-mac", "kowalski-pc", "raspberrypi", "sonar-mini"}
     text = _cfg()
     shards, ts, age = indexer_facts(_grab(text, "indexer_user"), _grab(text, "indexer_pass"))
     print(f"shards={shards}")
@@ -101,7 +103,12 @@ def main():
     if first:
         print("agent_baseline=created")
     if newly_down:
-        print("FAIL agent down: " + ", ".join(newly_down))
+        hard = [x for x in newly_down if x.split("=")[0] not in SOFT]
+        soft = [x for x in newly_down if x.split("=")[0] in SOFT]
+        if hard:
+            print("FAIL agent down: " + ", ".join(hard))
+        if soft:
+            print("WARN agent down (soft target): " + ", ".join(soft))
     if recovered:
         print("NOTE agent recovered: " + ", ".join(recovered))
     down = [f"{n}={s}" for n, s in sorted(current.items()) if s != "active"]
