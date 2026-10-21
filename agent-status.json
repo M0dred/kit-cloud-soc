@@ -1,0 +1,15 @@
+{
+  "kowalski-debian": "active",
+  "kowalski-mac": "active",
+  "kowalski-pc": "active",
+  "my-test-0": "active",
+  "raspberrypi": "active",
+  "sensor-02": "active",
+  "sensor-melb": "active",
+  "sensor-syd": "active",
+  "sonar-mini": "active",
+  "wazuh-ubuntu-2C4G": "active",
+  "win-home-lab": "active",
+  "win-lab-pve": "active",
+  "win-lite": "disconnected"
+}

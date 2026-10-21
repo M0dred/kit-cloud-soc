@@ -1,0 +1,154 @@
+# SOC Orchestrator Configuration
+# Place at ~/.config/soc-orchestrator/config.yaml
+
+# ---------------------------------------------------------------------------
+# Wazuh
+# ---------------------------------------------------------------------------
+wazuh:
+  indexer_host: "10.0.1.1"  # Netbird; proxy on wazuh -> 10.0.0.1:9200. Do not change wazuh-indexer bind.
+  indexer_user: "admin"
+  indexer_pass: "CHANGE_ME"
+  manager_url: "https://10.147.20.1:55000"
+  manager_user: "wazuh-wui"
+  manager_pass: "CHANGE_ME"
+  verify_tls: false
+
+# ---------------------------------------------------------------------------
+# MISP
+# ---------------------------------------------------------------------------
+misp:
+  url: "https://misp.kit-ai.net"
+  api_key: "CHANGE_ME"
+  verify_tls: false
+  # MISP event to update (null = auto-create)
+  event_id: 1932  # curated high-signal; 1930 frozen
+  # Tags applied to managed events
+  tags:
+    - "auto-sync"
+    - "soc-orchestrator"
+    - "wazuh"
+
+# ---------------------------------------------------------------------------
+# VirusTotal
+# ---------------------------------------------------------------------------
+virustotal:
+  api_key: "CHANGE_ME"
+  # Max IPs to check per run (rate limit: 4/min = 240/hour)
+  max_checks_per_run: 10
+  # Seconds to wait between VT requests
+  delay_seconds: 30
+  cooldown_hours: 24
+  # Auto-vote on VT after checking
+  auto_vote:
+    enabled: true
+    # Only vote if VT malicious + suspicious >= this
+    min_vt_score: 2
+    # Only vote if Wazuh alert count >= this
+    min_wazuh_count: 100
+    # Vote verdict: malicious | suspicious | harmless
+    verdict: "malicious"
+    # Add comment explaining detection
+    add_comment: true
+
+# ---------------------------------------------------------------------------
+# Pipeline thresholds
+# ---------------------------------------------------------------------------
+pipeline:
+  # Lookback window for Wazuh alerts
+  lookback_hours: 24
+  
+  # Minimum Wazuh rule level to include
+  min_wazuh_level: 5
+  
+  # VT threshold: push to MISP if malicious+suspicious >= this
+  vt_push_threshold: 2
+  
+  # Wazuh count threshold: push if count >= this (even without VT)
+  wazuh_count_threshold: 200
+  
+  # Auto-block via Wazuh active response
+  auto_block:
+    enabled: false
+    # Only block if VT malicious >= this AND Wazuh count >= this
+    min_vt_malicious: 3
+    min_wazuh_count: 500
+    command: "firewalld-drop"
+    target_agents: "!0"  # "!0" = all agents, or specific ID
+
+# ---------------------------------------------------------------------------
+# Local DB
+# ---------------------------------------------------------------------------
+database:
+  # Path to threat DB (null = use skill default)
+  path: null
+  
+  # Cooldown before re-checking an IP with VT
+  vt_cooldown_hours: 24
+
+# ---------------------------------------------------------------------------
+# Notifications
+# ---------------------------------------------------------------------------
+notifications:
+  # Print summary to stdout (always true)
+  stdout: true
+  
+  # Write JSON summary to file
+  summary_json: "/root/.config/soc-orchestrator/summary.json"
+
+# ---------------------------------------------------------------------------
+# Clear NDR (Scirius) — Netbird. Do not use :443 (closed).
+# ---------------------------------------------------------------------------
+ndr:
+  url: "https://10.0.1.50:8443"
+  username: "clearndr"
+  password: "CHANGE_ME"
+  verify_tls: false
+
+# ---------------------------------------------------------------------------
+# GreyNoise (community v3) — header: key
+# ---------------------------------------------------------------------------
+greynoise:
+  enabled: true
+  api_key: "CHANGE_ME"
+  api_url: "https://api.greynoise.io/v3/community"
+
+# ---------------------------------------------------------------------------
+# AlienVault OTX
+# ---------------------------------------------------------------------------
+otx:
+  enabled: true
+  api_key: "CHANGE_ME"
+
+# ---------------------------------------------------------------------------
+# AbuseIPDB
+# ---------------------------------------------------------------------------
+abuseipdb:
+  enabled: true
+  api_key: "CHANGE_ME"
+
+shodan:
+  enabled: true
+  api_key: "CHANGE_ME"
+
+ipinfo:
+  enabled: true
+  token: "CHANGE_ME"
+
+securitytrails:
+  enabled: true
+  api_key: "CHANGE_ME"
+
+driftnet:
+  enabled: true  # GET /v1/scan/protocols?ip=  Authorization: Bearer
+  api_key: "CHANGE_ME"
+
+# ---------------------------------------------------------------------------
+# Telegram
+# ---------------------------------------------------------------------------
+telegram:
+  enabled: true
+  bot_token: "CHANGE_ME"
+  # Your Telegram chat ID (numeric). Message @hey_max_intel_bot to get it.
+  chat_id: 000000000
+  # Send on every run, or only when new IOCs/MISP attributes are found?
+  notify_on: "new_misp"  # only when Event 1932 gains attributes
