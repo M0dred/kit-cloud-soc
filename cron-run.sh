@@ -115,7 +115,10 @@ if awk -v m="$MARK" '$0 ~ m {p=1} p && /429 quota/ {found=1} END {exit !found}' 
 fi
 
 if [ ${#FAILS[@]} -eq 0 ]; then
-  echo "$(date -u +%FT%TZ) END ok" >>"$LOG"
+  echo "$(date -u +%FT%TZ) --- dashboard ---" >>"$LOG"
+/usr/bin/python3 /root/.config/soc-orchestrator/dashboard-gen.py >>"$LOG" 2>&1 || echo "$(date -u +%FT%TZ) dashboard gen FAIL (non-fatal)" >>"$LOG"
+
+echo "$(date -u +%FT%TZ) END ok" >>"$LOG"
 else
   echo "$(date -u +%FT%TZ) END FAIL: ${FAILS[*]}" >>"$LOG"
   notify_fail

@@ -10,3 +10,5 @@ vt-commented.txt
 intelmq-hits.json
 summaries/
 summaries/
+dashboard/
+agent-status.json

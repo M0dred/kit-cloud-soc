@@ -1,0 +1,532 @@
+{
+ "generated": "2026-10-21 03:49 UTC",
+ "wazuh": {
+  "total_7d": 212901,
+  "by_agent": [
+   [
+    "sensor-02",
+    117145
+   ],
+   [
+    "sensor-syd",
+    79402
+   ],
+   [
+    "kowalski-debian",
+    7328
+   ],
+   [
+    "my-test-0",
+    2536
+   ],
+   [
+    "wazuh-ubuntu-2C4G",
+    2425
+   ],
+   [
+    "kowalski-mac",
+    1680
+   ],
+   [
+    "kowalski-pc",
+    996
+   ],
+   [
+    "win-lab-pve",
+    742
+   ],
+   [
+    "win-home-lab",
+    495
+   ],
+   [
+    "sensor-melb",
+    152
+   ]
+  ],
+  "top_src": [
+   [
+    "34.34.169.159",
+    25220
+   ],
+   [
+    "104.197.25.169",
+    24940
+   ],
+   [
+    "35.198.60.29",
+    18744
+   ],
+   [
+    "185.177.72.9",
+    5980
+   ],
+   [
+    "185.177.72.56",
+    2638
+   ],
+   [
+    "34.47.4.185",
+    2155
+   ],
+   [
+    "34.85.217.40",
+    2093
+   ],
+   [
+    "10.0.1.50",
+    2066
+   ],
+   [
+    "34.187.119.56",
+    1724
+   ],
+   [
+    "34.82.51.69",
+    1724
+   ],
+   [
+    "45.225.47.25",
+    1614
+   ],
+   [
+    "35.245.130.222",
+    1462
+   ],
+   [
+    "34.26.225.1",
+    1293
+   ],
+   [
+    "34.90.246.60",
+    1293
+   ],
+   [
+    "34.39.248.94",
+    1277
+   ],
+   [
+    "14.53.202.223",
+    1268
+   ],
+   [
+    "213.209.159.228",
+    1253
+   ],
+   [
+    "20.193.50.139",
+    1243
+   ],
+   [
+    "192.253.248.223",
+    1231
+   ],
+   [
+    "192.253.248.226",
+    1220
+   ]
+  ],
+  "by_day": [
+   [
+    "2026-10-14",
+    14527
+   ],
+   [
+    "2026-10-15",
+    26836
+   ],
+   [
+    "2026-10-16",
+    26014
+   ],
+   [
+    "2026-10-17",
+    33311
+   ],
+   [
+    "2026-10-18",
+    36646
+   ],
+   [
+    "2026-10-19",
+    24238
+   ],
+   [
+    "2026-10-20",
+    43419
+   ],
+   [
+    "2026-10-21",
+    8148
+   ]
+  ]
+ },
+ "misp": {
+  "total": 516,
+  "cidrs": [
+   "213.209.159.0/24"
+  ],
+  "recent_14d": [
+   {
+    "ip": "163.192.216.4",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 06:01 UTC\nIOC: 163.192.216[.]4\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 631 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.152.58.234",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 06:01 UTC\nIOC: 34.152.58[.]234\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.156.188.158",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 06:01 UTC\nIOC: 34.156.188[.]158\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "34.181.236.80",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 06:01 UTC\nIOC: 34.181.236[.]80\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "163.192.209.190",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 06:01 UTC\nIOC: 163.192.209[.]190\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 274 alerts, level 5. AS: ?"
+   },
+   {
+    "ip": "154.57.216.142",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 06:01 UTC\nIOC: 154.57.216[.]142\nType: IPv4 attacker (ip-src)\nCategory: Brute Force\nConfidence: Medium\nPorts: 22/tcp (SSH)\nObserved Behavior: Wazuh 40 alerts, level 10. AS: ? (?). Rule"
+   },
+   {
+    "ip": "34.34.169.159",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 22:01 UTC\nIOC: 34.34.169[.]159\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 15968 alerts, level 5. AS: ?"
+   },
+   {
+    "ip": "164.152.30.189",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 22:01 UTC\nIOC: 164.152.30[.]189\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 629 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "34.178.235.123",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 22:01 UTC\nIOC: 34.178.235[.]123\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "34.80.254.44",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 22:01 UTC\nIOC: 34.80.254[.]44\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? (?"
+   },
+   {
+    "ip": "34.87.26.215",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 22:01 UTC\nIOC: 34.87.26[.]215\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? (?"
+   },
+   {
+    "ip": "20.211.36.82",
+    "date": "10-20",
+    "comment": "Date: 2026-10-20 22:01 UTC\nIOC: 20.211.36[.]82\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 226 alerts, level 5. AS: ? (?"
+   },
+   {
+    "ip": "34.179.150.252",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 06:01 UTC\nIOC: 34.179.150[.]252\nType: IPv4 attacker (ip-src)\nCategory: Reconnaissance\nConfidence: High\nPorts: any (recon)\nObserved Behavior: Wazuh 446 alerts, level 5. AS: ? (?). Rule"
+   },
+   {
+    "ip": "185.177.72.70",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 185.177.72[.]70\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 673 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.146.157.194",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.146.157[.]194\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "34.159.70.147",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.159.70[.]147\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.168.228.28",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.168.228[.]28\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.178.215.179",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.178.215[.]179\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "34.19.241.240",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.19.241[.]240\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.7.77.17",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.7.77[.]17\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? (?)."
+   },
+   {
+    "ip": "34.159.148.122",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 34.159.148[.]122\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 443 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "87.58.199.133",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 87.58.199[.]133\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 441 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "45.148.10.246",
+    "date": "10-19",
+    "comment": "Date: 2026-10-19 22:02 UTC\nIOC: 45.148.10[.]246\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 335 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "34.152.25.53",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 06:00 UTC\nIOC: 34.152.25[.]53\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 862 alerts, level 5. AS: ? (?"
+   },
+   {
+    "ip": "34.47.4.185",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 06:00 UTC\nIOC: 34.47.4[.]185\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 431 alerts, level 5. AS: ? (?)"
+   },
+   {
+    "ip": "34.47.51.191",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 06:00 UTC\nIOC: 34.47.51[.]191\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 431 alerts, level 5. AS: ? (?"
+   },
+   {
+    "ip": "34.12.3.183",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 34.12.3[.]183\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 431 alerts, level 5. AS: ? (?)"
+   },
+   {
+    "ip": "52.187.230.78",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 52.187.230[.]78\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 351 alerts, level 5. AS: ? ("
+   },
+   {
+    "ip": "92.118.39.50",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 92.118.39[.]50\nType: IPv4 attacker (ip-src)\nCategory: Brute Force\nConfidence: High\nPorts: 22/tcp (SSH)\nObserved Behavior: Wazuh 261 alerts, level 5. AS: ? (?). Rule: ss"
+   },
+   {
+    "ip": "20.196.199.78",
+    "date": "10-18",
+    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 20.196.199[.]78\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 224 alerts, level 5. AS: ? ("
+   }
+  ]
+ },
+ "vt": {
+  "posted_total": 62
+ },
+ "health": {
+  "agents_down": "win-lite=disconnected",
+  "checked": "2026-10-21 03:49 UTC"
+ },
+ "runs": [
+  {
+   "ts": "2026-10-01T22:03:54Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-02T06:02:23Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-02T22:02:45Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-03T06:01:47Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-03T22:02:22Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-04T06:01:35Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-04T22:02:05Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-05T02:25:25Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-05T06:01:45Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-05T22:02:45Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-06T06:01:52Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-06T22:02:09Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-07T06:02:49Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-07T22:02:34Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-08T06:02:29Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-08T22:02:14Z",
+   "status": "fail",
+   "why": " agent down: win-lite=disconnected"
+  },
+  {
+   "ts": "2026-10-09T06:01:31Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-09T22:02:24Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-10T06:01:40Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-10T22:02:00Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-11T06:01:23Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-11T22:01:25Z",
+   "status": "fail",
+   "why": " agent down: sensor-melb=disconnected"
+  },
+  {
+   "ts": "2026-10-12T06:01:45Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-12T22:01:35Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-13T06:02:14Z",
+   "status": "fail",
+   "why": " Wazuh indexer 10.0.1.1:9200 unreachable IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-13T22:01:25Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-14T06:01:25Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-14T22:01:23Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-15T06:01:37Z",
+   "status": "fail",
+   "why": " agent down: win-lite=disconnected IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-15T22:02:51Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-16T06:04:12Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-16T22:01:56Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-17T06:03:32Z",
+   "status": "fail",
+   "why": " Wazuh indexer 10.0.1.1:9200 unreachable IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-17T22:01:29Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-18T06:01:27Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-18T22:01:36Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-19T06:01:50Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-19T22:03:32Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-20T06:02:11Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-20T22:01:43Z",
+   "status": "fail",
+   "why": " IntelMQ cross-check failed"
+  }
+ ],
+ "blocklist_n": 123
+}
