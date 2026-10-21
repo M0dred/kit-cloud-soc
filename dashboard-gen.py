@@ -61,7 +61,7 @@ def wazuh_7d():
     return {
         "total_7d": sum(b["doc_count"] for b in ag["agents"]["buckets"]),
         "by_agent": [(b["key"], b["doc_count"]) for b in ag["agents"]["buckets"]],
-        "top_src": [_pub(b) for b in ag["src"]["buckets"] if _pub(b)],
+        "top_src": [(b["key"], b["doc_count"]) for b in ag["src"]["buckets"] if not _is_private(b["key"])],
         "by_day": [(b["key_as_string"][:10], b["doc_count"]) for b in ag["days"]["buckets"]],
     }
 
