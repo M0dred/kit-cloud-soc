@@ -26,6 +26,15 @@
   .sec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px}
   .sec h2{font-size:12px;color:var(--dim);margin-bottom:10px}
   .cmt{color:var(--dim);font-size:11px;max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sec{overflow-x:auto}
+  table{min-width:480px}
+  @media(max-width:600px){
+    body{padding:12px}
+    .big{font-size:22px}
+    .grid{grid-template-columns:repeat(2,1fr);gap:8px}
+    .bars{height:50px}
+    .bar span{font-size:8px}
+  }
   footer{color:var(--dim);font-size:11px;margin-top:24px;border-top:1px solid var(--border);padding-top:12px}
   a{color:var(--acc);text-decoration:none}
 </style>

@@ -152,3 +152,8 @@ telegram:
   chat_id: 000000000
   # Send on every run, or only when new IOCs/MISP attributes are found?
   notify_on: "new_misp"  # only when Event 1932 gains attributes
+
+sensor_public_ips:
+  sensor-syd: "203.0.113.10"
+  sensor-melb: "198.51.100.20"
+  sensor-02: "192.0.2.30"

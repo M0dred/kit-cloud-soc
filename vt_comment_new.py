@@ -30,10 +30,12 @@ DELAY = 16  # 4/min
 DAILY_CAP = 50
 
 SENSOR = {
-    "sensor-syd": "149.28.165.53",
-    "sensor-melb": "67.219.110.185",
-    "sensor-02": "45.78.31.128",
+    # public sensor IPs are read from config.yaml at runtime; do not hardcode here
 }
+
+
+def sensor_map(cfg):
+    return cfg.get("sensor_public_ips") or {}
 
 
 def mask2(ip: str) -> str:
@@ -185,6 +187,8 @@ def main():
     ap.add_argument("--days", type=int, default=7)
     args = ap.parse_args()
     cfg, vt = load_cfg()
+    global SENSOR
+    SENSOR = sensor_map(cfg)
     used = daily_used()
     room = max(0, DAILY_CAP - used)
     limit = min(args.max, room)
