@@ -1,27 +1,27 @@
 {
- "generated": "2026-10-21 03:51 UTC",
+ "generated": "2026-10-21 06:21 UTC",
  "wazuh": {
-  "total_7d": 212760,
+  "total_7d": 214097,
   "by_agent": [
    [
     "sensor-02",
-    116993
+    117571
    ],
    [
     "sensor-syd",
-    79397
+    79655
    ],
    [
     "kowalski-debian",
-    7333
+    7365
    ],
    [
     "my-test-0",
-    2536
+    2555
    ],
    [
     "wazuh-ubuntu-2C4G",
-    2428
+    2467
    ],
    [
     "kowalski-mac",
@@ -29,19 +29,19 @@
    ],
    [
     "kowalski-pc",
-    997
+    1004
    ],
    [
     "win-lab-pve",
     742
    ],
    [
-    "win-home-lab",
-    495
+    "raspberrypi",
+    556
    ],
    [
-    "sensor-melb",
-    159
+    "win-home-lab",
+    502
    ]
   ],
   "top_src": [
@@ -83,7 +83,7 @@
    ],
    [
     "45.225.47.25",
-    1614
+    1644
    ],
    [
     "35.245.130.222",
@@ -107,25 +107,25 @@
    ],
    [
     "213.209.159.228",
-    1253
+    1256
    ],
    [
     "20.193.50.139",
     1243
    ],
    [
-    "192.253.248.223",
-    1231
+    "213.209.159.236",
+    1217
    ],
    [
-    "192.253.248.226",
-    1222
+    "192.253.248.229",
+    1216
    ]
   ],
   "by_day": [
    [
     "2026-10-14",
-    14340
+    13363
    ],
    [
     "2026-10-15",
@@ -153,16 +153,31 @@
    ],
    [
     "2026-10-21",
-    8193
+    10597
    ]
   ]
  },
  "misp": {
-  "total": 516,
+  "total": 519,
   "cidrs": [
    "213.209.159.0/24"
   ],
   "recent_14d": [
+   {
+    "ip": "34.133.232.249",
+    "date": "10-21",
+    "comment": "Date: 2026-10-21 06:01 UTC\nIOC: 34.133.232[.]249\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 447 alerts, level 5. AS: ? "
+   },
+   {
+    "ip": "35.187.15.4",
+    "date": "10-21",
+    "comment": "Date: 2026-10-21 06:01 UTC\nIOC: 35.187.15[.]4\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 446 alerts, level 6. AS: ? (?)"
+   },
+   {
+    "ip": "163.52.135.170",
+    "date": "10-21",
+    "comment": "Date: 2026-10-21 06:01 UTC\nIOC: 163.52.135[.]170\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 270 alerts, level 5. AS: ? "
+   },
    {
     "ip": "163.192.216.4",
     "date": "10-20",
@@ -297,21 +312,6 @@
     "ip": "34.12.3.183",
     "date": "10-18",
     "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 34.12.3[.]183\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 431 alerts, level 5. AS: ? (?)"
-   },
-   {
-    "ip": "52.187.230.78",
-    "date": "10-18",
-    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 52.187.230[.]78\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 351 alerts, level 5. AS: ? ("
-   },
-   {
-    "ip": "92.118.39.50",
-    "date": "10-18",
-    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 92.118.39[.]50\nType: IPv4 attacker (ip-src)\nCategory: Brute Force\nConfidence: High\nPorts: 22/tcp (SSH)\nObserved Behavior: Wazuh 261 alerts, level 5. AS: ? (?). Rule: ss"
-   },
-   {
-    "ip": "20.196.199.78",
-    "date": "10-18",
-    "comment": "Date: 2026-10-18 22:01 UTC\nIOC: 20.196.199[.]78\nType: IPv4 attacker (ip-src)\nCategory: Web Attack\nConfidence: High\nPorts: 80/tcp, 443/tcp (HTTP/S)\nObserved Behavior: Wazuh 224 alerts, level 5. AS: ? ("
    }
   ]
  },
@@ -320,19 +320,9 @@
  },
  "health": {
   "agents_down": "win-lite=disconnected",
-  "checked": "2026-10-21 03:51 UTC"
+  "checked": "2026-10-21 06:21 UTC"
  },
  "runs": [
-  {
-   "ts": "2026-10-01T22:03:54Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-02T06:02:23Z",
-   "status": "ok",
-   "why": ""
-  },
   {
    "ts": "2026-10-02T22:02:45Z",
    "status": "ok",
@@ -522,7 +512,17 @@
    "ts": "2026-10-20T22:01:43Z",
    "status": "fail",
    "why": " IntelMQ cross-check failed"
+  },
+  {
+   "ts": "2026-10-21T06:03:29Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-21T06:21:42Z",
+   "status": "ok",
+   "why": ""
   }
  ],
- "blocklist_n": 123
+ "blocklist_n": 112
 }
