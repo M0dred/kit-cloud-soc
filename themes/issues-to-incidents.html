@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Issues → Incidents | kit-cloud SoC (private concept)</title>
+<style>
+:root{color-scheme:light;--ink:#20223d;--muted:#67708e;--surface:#fff;--bg:#f6f7fc;--line:#e6e9f3;--purple:#694cf6;--lavender:#f2efff;--teal:#0a877b;--yellow:#ad6400;--shadow:0 20px 54px rgba(35,31,81,.055)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer} .app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+.sidebar{background:#171b33;color:#c2c8df;display:flex;flex-direction:column;padding:26px 16px;gap:24px}.brand{display:flex;align-items:center;gap:10px;font-weight:780;color:white;font-size:16px;padding:0 10px}.brand-mark{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(140deg,#a58bff,#6448ec);font-size:13px;box-shadow:0 6px 18px #7f6aff40}.nav-title,.micro{font-size:10px;text-transform:uppercase;letter-spacing:.16em;font-weight:750;color:#9da7c6;padding:0 12px}.nav{display:grid;gap:5px}.nav a{display:flex;gap:12px;align-items:center;padding:10px 13px;border-radius:10px;font-weight:560}.nav a:hover,.nav a.active{background:#332c64;color:#fff}.nav span{opacity:.72;width:19px;text-align:center}.sidebar-foot{margin-top:auto;background:#272d4a;border:1px solid #363e60;border-radius:12px;padding:15px;color:#d3d6e5;font-size:12px}.sidebar-foot b{display:block;color:#fff;margin-bottom:6px}
+main{padding:28px clamp(18px,3.5vw,52px) 70px;max-width:1720px;width:100%;margin:auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:26px}.breadcrumbs{color:var(--muted);font-size:12px}.breadcrumbs strong{color:var(--purple)}.private{background:var(--lavender);color:#5242ac;border:1px solid #e1d9ff;border-radius:100px;padding:7px 13px;font-size:11px;font-weight:700}.hero{position:relative;overflow:hidden;background:linear-gradient(114deg,#252454,#46339d 58%,#6952c9);color:white;border-radius:20px;padding:30px 34px 31px;box-shadow:var(--shadow)}.hero:after{content:"";position:absolute;width:300px;height:300px;right:-60px;top:-130px;border-radius:50%;border:35px solid #ffffff1c}.eyebrow{font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.14em;color:#c9c2ff}.hero h1{font-size:clamp(24px,2.7vw,37px);line-height:1.15;letter-spacing:-.035em;margin:9px 0}.hero p{max-width:730px;color:#e0def6;margin:0}.hero .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:22px;font-size:11px;font-weight:700}.flow span{padding:6px 10px;border-radius:7px;background:#ffffff23;border:1px solid #ffffff26}.flow i{font-style:normal;color:#c9c2ff}.hero .note{font-size:11px;margin-top:18px;color:#d8d4f8}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:29px 0 13px}.section-head h2{font-size:18px;letter-spacing:-.025em;margin:0}.section-head p{color:var(--muted);font-size:12px;margin:2px 0 0}.label{color:var(--muted);font-size:11px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.card{padding:18px}.card .name{font-size:11px;color:var(--muted);font-weight:700}.card .value{font-weight:780;font-size:28px;letter-spacing:-.03em;margin:6px 0 0;line-height:1.2}.card .explain{font-size:11px;color:var(--muted);margin-top:9px}.card.warn .value{color:var(--yellow)}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(310px,1fr);gap:16px}.panel{overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line)}.panel-head h3{margin:0;font-size:14px}.panel-head small{display:block;color:var(--muted);font-weight:450;margin-top:4px}.search{border:1px solid var(--line);border-radius:9px;background:#fafaff;padding:8px 10px;outline:0;min-width:140px;max-width:180px;color:var(--ink)}.search:focus{border-color:var(--purple);box-shadow:0 0 0 3px #694cf618}.table-wrap{max-height:575px;overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th{font-size:10px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:12px 16px;position:sticky;top:0;background:#fafbfe;z-index:1}td{padding:12px 16px;border-top:1px solid var(--line);font-size:12px}tbody tr{cursor:pointer}tbody tr:hover,tbody tr.selected{background:#f5f2ff}tbody tr:focus-visible{outline:2px solid var(--purple);outline-offset:-2px}.mono{font:600 12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.chip{border-radius:100px;padding:4px 8px;font-size:10px;font-weight:730;white-space:nowrap;display:inline-block}.chip.review{color:#9b5400;background:#fff1d9}.chip.watch{color:#3c4c78;background:#eef2fb}.chip.link{color:#0a726b;background:#e5f7f3}.chip.gray{color:#67708e;background:#f0f2f8}.empty{padding:25px;color:var(--muted)}
+.detail{padding:21px}.detail .tag{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:750;color:var(--purple)}.detail h3{font:700 18px ui-monospace,SFMono-Regular,Menlo,monospace;margin:7px 0}.detail .subtitle{font-size:12px;color:var(--muted);margin-bottom:19px}.detail h4{font-size:12px;margin:23px 0 10px}.evidence{position:relative;display:grid;gap:9px;margin:0;padding:0;list-style:none}.evidence li{display:grid;grid-template-columns:20px 1fr;gap:10px;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}.dot{width:9px;height:9px;border-radius:50%;background:#aab2c9;margin:5px auto}.dot.fact{background:var(--teal)}.dot.context{background:var(--purple)}.evidence strong{font-size:11px}.evidence p{margin:3px 0 0;color:var(--muted);font-size:11px;word-break:break-word}.gate{background:#f7f5ff;border:1px solid #e9e4ff;border-radius:11px;padding:14px;margin-top:17px;font-size:12px;color:#4e4388}.gate strong{display:block;color:#38287a;margin-bottom:4px}.gate ul{margin:7px 0 0 15px;padding:0}.gate li{margin:3px 0}.linklike{color:var(--purple);font-size:11px;font-weight:650}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.workflow{padding:18px 21px}.step{display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--line);font-size:12px}.step:last-child{border-bottom:none}.number{width:25px;height:25px;border-radius:9px;background:var(--lavender);color:var(--purple);display:grid;place-items:center;flex:none;font-weight:780}.step b{display:block}.step small{display:block;color:var(--muted);line-height:1.45;margin-top:2px}.runs{list-style:none;margin:0;padding:10px 20px}.runs li{display:flex;gap:10px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);font-size:11px;padding:10px 0}.runs li:last-child{border:0}.runs time{color:var(--muted)}.footer{margin-top:25px;color:var(--muted);font-size:11px}
+@media(max-width:1160px){.grid{grid-template-columns:1fr}.detail{min-height:280px}}@media(max-width:840px){.app{grid-template-columns:1fr}.sidebar{padding:12px 18px;flex-direction:row;align-items:center;justify-content:space-between}.sidebar .micro,.sidebar-foot{display:none}.nav{display:flex;gap:4px}.nav a{padding:7px 8px;font-size:11px}.nav span{display:none}main{padding:22px 16px 48px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.brand{font-size:13px}.nav a{font-size:10px}.nav a:nth-child(n+3){display:none}.hero{padding:24px}.kpis,.two{grid-template-columns:1fr}th,td{padding:10px 8px}.search{min-width:110px;max-width:125px}.table-wrap{overflow-x:auto}table{min-width:530px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">kC</div><div>kit-cloud SoC</div></div>
+  <div><div class="micro">Private workspace</div><nav class="nav" aria-label="Workspace"><a class="active" href="#overview"><span>◫</span>Overview</a><a href="#issues"><span>◈</span>Issues</a><a href="#workflow"><span>↗</span>Incident path</a></nav></div>
+  <div class="sidebar-foot"><b>Coverage note</b>This snapshot is not a case-management system. Missing evidence is shown as missing—not as an all-clear.</div>
+</aside>
+<main id="overview">
+  <div class="topbar"><div class="breadcrumbs">Security / <strong>Issues → Incidents</strong> / Investigation workspace</div><span class="private">PRIVATE PROTOTYPE · NOT GITHUB PAGES</span></div>
+  <div class="hero"><div class="eyebrow">Evidence before escalation</div><h1>From an issue to an incident.</h1><p>Unify Wazuh observations, MISP context, and available enrichment. Promote only when the same asset and time window support a defensible incident narrative—not because an IP has a high score or many alerts.</p>
+    <div class="flow" aria-label="Investigation workflow"><span>Observed signal</span><i>→</i><span>Issue to review</span><i>→</i><span>Correlated evidence</span><i>→</i><span>Analyst-confirmed incident</span></div>
+    <div class="note" id="snapshot">Reading local snapshot…</div>
+  </div>
+  <div class="kpis" aria-label="Snapshot metrics">
+    <div class="card"><div class="name">Sources in top-20 snapshot</div><div id="source-count" class="value">—</div><div class="explain">7-day Wazuh aggregate; not a total issue count</div></div>
+    <div class="card"><div class="name">Event 1932 attributes</div><div id="misp-count" class="value">—</div><div class="explain">Mixed legacy types; not incident count</div></div>
+    <div class="card warn"><div class="name">Confirmed incidents</div><div class="value">N/A</div><div class="explain">Case/analyst decisions not yet ingested</div></div>
+    <div class="card"><div class="name">Latest pipeline result</div><div id="last-run" class="value" style="font-size:19px">—</div><div class="explain">Twice-daily batch, not real-time</div></div>
+  </div>
+  <div class="section-head" id="issues"><div><h2>Issues to review</h2><p>Observed source IPs, not confirmed attackers. Priority here means review order—not threat severity.</p></div><span class="label" id="row-status"></span></div>
+  <div class="grid">
+    <section class="panel" aria-label="Observed sources"><div class="panel-head"><div><h3>Source observations</h3><small>Click a row for evidence and limitations</small></div><input class="search" id="search" type="search" placeholder="Find an IP" aria-label="Filter by source IP"></div><div class="table-wrap"><table><thead><tr><th>Source IP</th><th>Wazuh · 7d</th><th>Enrichment</th><th>Review order</th></tr></thead><tbody id="rows"><tr><td colspan="4">Loading local data…</td></tr></tbody></table></div></section>
+    <section class="panel" aria-label="Evidence details"><div id="detail" class="detail"><h3>Select a source</h3><p class="subtitle">No incident will be inferred from summary data alone.</p></div></section>
+  </div>
+  <div class="section-head" id="workflow"><div><h2>Path to a defensible incident</h2><p>Current data supports investigation; asset- and time-linked outcome evidence is needed to confirm an incident.</p></div></div>
+  <div class="two">
+    <section class="panel workflow"><div class="step"><span class="number">1</span><div><b>Observe an issue</b><small>Wazuh source IP, rule, agent, UTC time, and raw alert references.</small></div></div><div class="step"><span class="number">2</span><div><b>Correlate independently</b><small>Link NDR and firewall/auth events to the same asset and bounded time window; enrichment is context, not proof.</small></div></div><div class="step"><span class="number">3</span><div><b>Check the outcome</b><small>Look for successful authentication, executed process or other validated impact—not an HTTP 400 or alert count.</small></div></div><div class="step"><span class="number">4</span><div><b>Record the decision</b><small>Analyst assigns owner, evidence, severity, status and rationale; containment stays manual.</small></div></div></section>
+    <section class="panel"><div class="panel-head"><div><h3>Pipeline heartbeat</h3><small>Past runs are operational health, not incidents</small></div></div><ul id="runs" class="runs"><li>Loading…</li></ul></section>
+  </div>
+  <div class="footer">kit-cloud SoC · Private, read-only design preview · No live VT/MISP queries, case writes, or automatic blocks. Do not serve this directory publicly.</div>
+</main>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const asNumber = v => Number.isFinite(Number(v)) ? Number(v) : 0;
+const defang = ip => { const pos=ip.lastIndexOf('.'); return pos < 0 ? ip : ip.slice(0,pos)+'[.]'+ip.slice(pos+1); };
+const validIp = ip => typeof ip==='string' && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip) && ip.split('.').every(x=>+x>=0 && +x<=255);
+const put = (parent, tag, text, className='') => { const el=document.createElement(tag); el.textContent=String(text); if(className)el.className=className; parent.appendChild(el); return el; };
+let snapshot=null, items=[], selectedIp=null;
+function enrichLabel(meta){
+  const parts=[];
+  if(meta.gn)parts.push('GN '+String(meta.gn));
+  if(meta.aip!==undefined)parts.push('AIP '+String(meta.aip));
+  if(meta.otx!==undefined)parts.push('OTX '+String(meta.otx));
+  return parts.length ? parts.join(' · ') : 'No cached context';
+}
+function priority(item){return item.count>=200 ? 'Review volume' : (item.meta?.gn==='malicious' || asNumber(item.meta?.aip)>=80) ? 'Review context' : 'Monitor';}
+function evidence(list, title, message, type){const li=put(list,'li','');put(li,'span','',`dot ${type}`);const box=put(li,'div','');put(box,'strong',title);put(box,'p',message);}
+function detail(item){
+  selectedIp=item.ip;const root=$('detail');root.replaceChildren();
+  put(root,'div','OBSERVED SOURCE · NOT AN INCIDENT','tag');put(root,'h3',defang(item.ip));
+  put(root,'p','Priority: '+priority(item)+' · Counts cover a 7-day aggregate; no per-alert timeline or verified outcome is present in this snapshot.','subtitle');
+  put(root,'h4','Evidence & missing links');const list=put(root,'ol','','evidence');
+  evidence(list,'Wazuh observation',`${item.count.toLocaleString()} alerts in the 7-day source-IP aggregation. Rules and destination asset are not linked in this feed.`, 'fact');
+  const m=item.meta || {};evidence(list,'Reputation context',enrichLabel(m)+'. External classifications/reports guide review; they do not establish exploitation or attribution.',Object.keys(m).length ? 'context' : '');
+  const recent=(snapshot.misp?.recent_14d||[]).some(x=>x.ip===item.ip);
+  evidence(list,'MISP 1932',recent ? 'Seen among up to 30 most-recent attributes in this local snapshot. This is a catalog entry, not independent incident evidence.' : 'Not in the limited recent-attribute slice. Full Event 1932 membership is unknown here.',recent?'context':'');
+  evidence(list,'Clear NDR / outcome','NDR is integrated into the pipeline, but this dashboard has no structured, per-IP/asset/time NDR evidence or validated outcome to attach.','');
+  const box=put(root,'div','','gate');put(box,'strong','Promotion gate · not met by this summary');const ul=put(box,'ul','');
+  ['Identify the affected asset and matching UTC event window.','Attach independently correlated NDR/auth/firewall evidence.','Verify an outcome and have an analyst document the decision.'].forEach(text=>put(ul,'li',text));
+  const hint=put(root,'p','Investigate in Wazuh/MISP/Clear NDR before creating an incident. Containment requires a separate human decision.','subtitle');hint.style.marginTop='16px';
+  document.querySelectorAll('#rows tr').forEach(row=>row.classList.toggle('selected',row.dataset.ip===item.ip));
+}
+function renderRows(){
+  const q=$('search').value.trim().toLowerCase();const matches=items.filter(x=>x.ip.includes(q) || String(x.meta?.asn||'').toLowerCase().includes(q));
+  const body=$('rows');body.replaceChildren();$('row-status').textContent=`${matches.length} of ${items.length} top sources`;
+  if(!matches.length){const tr=put(body,'tr','');const td=put(tr,'td','No sources in this snapshot match the filter.','empty');td.colSpan=4;return;}
+  for(const item of matches){const tr=put(body,'tr','');tr.dataset.ip=item.ip;tr.tabIndex=0;tr.setAttribute('role','button');tr.setAttribute('aria-label','Inspect '+item.ip);
+    put(tr,'td',defang(item.ip),'mono');put(tr,'td',item.count.toLocaleString());put(tr,'td',enrichLabel(item.meta));
+    const t=put(tr,'td','');const p=priority(item);put(t,'span',p,`chip ${p.startsWith('Review')?'review':'watch'}`);
+    tr.addEventListener('click',()=>detail(item));tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();detail(item);}});
+    if(item.ip===selectedIp)tr.classList.add('selected');
+  }
+}
+async function load(){
+  try{
+    const res=await fetch('../dashboard/data.json',{cache:'no-store'});if(!res.ok)throw new Error('local snapshot unavailable (HTTP '+res.status+')');
+    const data=await res.json();if(!Array.isArray(data.wazuh?.top_src))throw new Error('Wazuh source data missing; cannot show a reliable queue');
+    snapshot=data;items=data.wazuh.top_src.filter(x=>Array.isArray(x)&&validIp(x[0])).map(([ip,count])=>({ip,count:asNumber(count),meta:data.enrich_meta?.[ip]||{}}));
+    $('snapshot').textContent='Snapshot generated '+(data.generated||'unknown UTC')+' · Wazuh top sources 7d · private local file · not real-time';
+    $('source-count').textContent=items.length.toLocaleString();$('misp-count').textContent=Number.isFinite(Number(data.misp?.total))?Number(data.misp.total).toLocaleString():'N/A';
+    const last=(data.runs||[]).at(-1);$('last-run').textContent=last?String(last.status).toUpperCase():'Not available';
+    const runs=$('runs');runs.replaceChildren();for(const run of (data.runs||[]).slice(-6).reverse()){const li=put(runs,'li','');put(li,'time',run.ts||'Unknown time');put(li,'span',run.status==='ok'?'OK':'CHECK',`chip ${run.status==='ok'?'link':'review'}`);}
+    if(!runs.children.length)put(runs,'li','No pipeline run history in snapshot.');renderRows();if(items.length)detail(items[0]);
+    else $('detail').querySelector('.subtitle').textContent='No Wazuh source observations are available in this snapshot.';
+  }catch(e){$('snapshot').textContent='No live data shown: '+e.message+'. Run dashboard-gen.py and serve the repository on localhost.';$('rows').replaceChildren();const tr=put($('rows'),'tr','');const td=put(tr,'td','No observation data.');td.colSpan=4;}
+}
+$('search').addEventListener('input',renderRows);load();
+</script>
+</body>
+</html>
