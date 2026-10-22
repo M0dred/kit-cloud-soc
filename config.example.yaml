@@ -19,7 +19,7 @@ wazuh:
 misp:
   url: "https://misp.kit-ai.net"
   api_key: "CHANGE_ME"
-  verify_tls: false
+  verify_tls: true  # public certificate; keep verification enabled
   # MISP event to update (null = auto-create)
   event_id: 1932  # curated high-signal; 1930 frozen
   # Tags applied to managed events
@@ -40,7 +40,7 @@ virustotal:
   cooldown_hours: 24
   # Auto-vote on VT after checking
   auto_vote:
-    enabled: true
+    enabled: false  # Comments use the separately capped VT job; no automatic voting
     # Only vote if VT malicious + suspicious >= this
     min_vt_score: 2
     # Only vote if Wazuh alert count >= this
@@ -93,7 +93,7 @@ notifications:
   stdout: true
   
   # Write JSON summary to file
-  summary_json: "/root/.config/soc-orchestrator/summary.json"
+  summary_json: "/root/.config/soc-orchestrator/summaries/summary.json"
 
 # ---------------------------------------------------------------------------
 # Clear NDR (Scirius) — Netbird. Do not use :443 (closed).

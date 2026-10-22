@@ -1,4 +1,7 @@
 config.yaml
+enrich-cache.json
+vt-comment.lock
+vt-comment-daily.tmp
 *.log
 vt-comment-daily.json
 soc_blocklist.txt

@@ -4,6 +4,7 @@
 Prints HIT lines when an IOC appears in NDR logstash-alert-* src/dst.
 Exit 0 always unless the NDR API itself fails (rc=1).
 """
+import ipaddress
 import json
 import re
 import ssl
@@ -31,6 +32,17 @@ def ndr_es(opener, csrf, index, body):
     )
     resp = opener.open(req, timeout=60)
     return json.loads(resp.read().decode())
+
+
+def ioc_hits(aggregations, chunk):
+    """Return only the IOC-side buckets; never label the other endpoint an IOC."""
+    matches = set(chunk)
+    hits = []
+    for field, side in (("src", "src"), ("dst", "dst")):
+        for bucket in (aggregations.get(field) or {}).get("buckets", []):
+            if bucket["key"] in matches:
+                hits.append((bucket["key"], side, bucket["doc_count"]))
+    return hits
 
 
 def main():
@@ -62,9 +74,22 @@ def main():
     opener.open(login, timeout=20)
     csrf = [c.value for c in cj if c.name == "csrftoken"][0]
 
-    misp = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"], verify_tls=False)
-    attrs = (misp.get_event(1932).get("Event") or {}).get("Attribute") or []
-    ips = sorted({a["value"] for a in attrs if a.get("type") == "ip-dst" and "/" not in a.get("value", "")})
+    misp = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"],
+                      verify_tls=cfg["misp"].get("verify_tls", True))
+    event = misp.get_event(cfg["misp"].get("event_id", 1932))
+    if event.get("_error") or not isinstance(event.get("Event"), dict):
+        raise RuntimeError("MISP fetch failed; NDR cross-check not performed")
+    attrs = event["Event"].get("Attribute") or []
+    def valid_source(a):
+        if a.get("type") not in ("ip-src", "ip-dst"):
+            return False  # ip-dst entries were historically mis-typed inbound sources
+        try:
+            addr = ipaddress.ip_address(a.get("value") or "")
+            return addr.version == 4 and addr.is_global
+        except ValueError:
+            return False
+
+    ips = sorted({a["value"] for a in attrs if valid_source(a)})
     print(f"iocs={len(ips)}")
 
     hits = []
@@ -84,11 +109,7 @@ def main():
             },
         }
         d = ndr_es(opener, csrf, "logstash-alert-*", body)
-        ag = d.get("aggregations") or {}
-        for b in (ag.get("src") or {}).get("buckets", []):
-            hits.append((b["key"], "src", b["doc_count"]))
-        for b in (ag.get("dst") or {}).get("buckets", []):
-            hits.append((b["key"], "dst", b["doc_count"]))
+        hits.extend(ioc_hits(d.get("aggregations") or {}, chunk))
 
     if hits:
         for ip, side, n in sorted(hits):

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Post VT comments for new MISP 1932 IOCs. Quota-capped.
+"""Publish a few vetted SSH-source observations from MISP 1932 to VT.
 
-Free VT tier is about 500 requests/day and 4/minute.
-This job does writes only (no lookups). Default 25 per run.
-Cron runs twice a day, daily cap 50 — still under the free 500/day quota.
+Uses the SAME renderer as MISP; never votes or auto-blocks. The local daily
+cap is a safety limit, NOT a statement about the VT account's actual quota.
 """
 from __future__ import annotations
 
 import argparse
+import fcntl
+import ipaddress
 import json
+import os
 import re
-import ssl
 import sys
 import time
 import urllib.error
@@ -18,237 +19,188 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+import yaml
+from ioc_comment import render_comment
+
 sys.path.insert(0, str(Path.home() / ".config/agents/skills/soc-connector/scripts"))
 from misp_client import MISPClient  # noqa: E402
-import yaml  # noqa: E402
 
 BASE = Path.home() / ".config/soc-orchestrator"
 LEDGER = BASE / "vt-commented.txt"
 DAILY = BASE / "vt-comment-daily.json"
 CONFIG = BASE / "config.yaml"
-DELAY = 16  # 4/min
-DAILY_CAP = 50
-
-SENSOR = {
-    # public sensor IPs are read from config.yaml at runtime; do not hardcode here
-}
+CACHE = BASE / "enrich-cache.json"
+DAILY_CAP = 6
+DELAY = 20  # less than four VT writes per minute
 
 
-def sensor_map(cfg):
-    return cfg.get("sensor_public_ips") or {}
+def parse_comment(text: str) -> dict:
+    """Read both the former one-line MISP notes and our structured comments."""
+    def grab(pattern, default=""):
+        hit = re.search(pattern, text or "", flags=re.I)
+        return hit.group(1).strip() if hit else default
+
+    return {
+        "count": int(grab(r"Wazuh:\s*(\d+)x") or grab(r"Wazuh\s+(\d+)\s+alerts") or 0),
+        "level": int(grab(r"lvl=(\d+)") or grab(r"alerts,\s*level\s+(\d+)") or 0),
+        "rule": grab(r"\bRule:\s*([^\n]+)", ""),
+        "agent": grab(r"\bTarget:\s*([\w-]+)", ""),
+        "otx": int(grab(r"(?:OTX:\s*)?pulses=(\d+)") or 0),
+        "aip": int(grab(r"(?:AIPDB:\s*score|AbuseIPDB)=(\d+)") or 0),
+        "gn": grab(r"GreyNoise=([\w-]+)", ""),
+        "isp": grab(r"isp=([^|\n]+)", ""),
+    }
 
 
-def mask2(ip: str) -> str:
-    p = (ip or "").split(".")
-    return f"{p[0]}.{p[1]}.*.*" if len(p) == 4 else "?.?.*.*"
+def cloud_range(ip: str) -> bool:
+    """Conservative skip for broadly cloud-associated IPv4 ranges."""
+    a, b = [int(x) for x in ip.split(".")[:2]]
+    return (a in (13, 20, 34, 35, 40, 52) or
+            a == 104 and 16 <= b <= 31 or
+            a == 172 and 64 <= b <= 71 or
+            (a, b) in ((162, 158), (141, 101), (108, 162)))
 
 
-def cloud(ip: str) -> bool:
+def public_ip(value: str) -> bool:
     try:
-        a, b = [int(x) for x in ip.split(".")[:2]]
-    except Exception:
+        addr = ipaddress.ip_address(value)
+        return addr.version == 4 and addr.is_global
+    except ValueError:
         return False
-    return (
-        a in (13, 20, 34, 35, 40, 52)
-        or (a == 104 and 16 <= b <= 31)
-        or (a == 172 and 64 <= b <= 71)
-        or (a, b) in ((162, 158), (141, 101), (108, 162))
-    )
 
 
-def load_cfg():
-    text = CONFIG.read_text()
-    cfg = yaml.safe_load(text)
-    vt = re.search(r'api_key:\s*"([^"]+)"', text.split("virustotal")[1]).group(1)
-    return cfg, vt
-
-
-def ledger() -> set[str]:
-    if not LEDGER.exists():
-        return set()
-    return {ln.strip() for ln in LEDGER.read_text().splitlines() if ln.strip()}
-
-
-def remember(ip: str) -> None:
-    with LEDGER.open("a") as fh:
-        fh.write(ip + "\n")
+def eligible(ip: str, meta: dict, intel: dict) -> bool:
+    """Only SSH auth-failure evidence corroborated independently; no cloud/web 400."""
+    if not public_ip(ip) or cloud_range(ip):
+        return False
+    rule = meta["rule"].lower()
+    if not ("sshd" in rule or ("ssh" in rule and any(word in rule for word in ("failed", "invalid", "brute", "auth")))):
+        return False
+    if meta["count"] < 20 or meta["level"] < 10:
+        return False
+    ab = intel.get("aipdb") or {}
+    gn = intel.get("gn") or {}
+    otx = intel.get("otx") or {}
+    isp = str(ab.get("isp") or meta.get("isp") or "").lower()
+    if any(word in isp for word in ("google", "microsoft", "azure", "amazon", "cloudflare", "oracle")):
+        return False
+    if gn.get("riot") is True or gn.get("classification") == "benign":
+        return False
+    return (str(gn.get("classification") or meta["gn"]).lower() == "malicious"
+            or int(ab.get("score") or meta["aip"] or 0) >= 80
+            or int(otx.get("pulses") or meta["otx"] or 0) >= 5)
 
 
 def daily_used() -> int:
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if not DAILY.exists():
         return 0
-    data = json.loads(DAILY.read_text())
-    if data.get("date") != today:
+    d = json.loads(DAILY.read_text())
+    if d.get("date") != datetime.now(timezone.utc).strftime("%Y-%m-%d"):
         return 0
-    return int(data.get("used") or 0)
+    return int(d.get("used") or 0)
 
 
-def daily_add(n: int) -> None:
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    used = daily_used() + n
-    DAILY.write_text(json.dumps({"date": today, "used": used}))
+def mark_sent(ip: str) -> None:
+    with LEDGER.open("a") as fh:
+        fh.write(ip + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+    tmp = DAILY.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                               "used": daily_used() + 1}))
+    tmp.replace(DAILY)
 
 
-def parse(cmt: str) -> dict:
-    def grab(pat, default="0"):
-        m = re.search(pat, cmt or "")
-        return m.group(1) if m else default
-    return {
-        "count": grab(r"Wazuh:\s*(\d+)x"),
-        "lvl": grab(r"lvl=(\d+)"),
-        "otx": grab(r"pulses=(\d+)"),
-        "aip": grab(r"AIPDB:\s*score=(\d+)"),
-        "isp": grab(r"isp=([^|]+)", "").strip(),
-    }
-
-
-def worth(ip: str, meta: dict) -> bool:
-    if "/" in ip:
-        return False
-    lvl = int(meta["lvl"] or 0)
-    otx = int(meta["otx"] or 0)
-    aip = int(meta["aip"] or 0)
-    isp = (meta["isp"] or "").lower()
-    googleish = any(x in isp for x in ("google", "microsoft", "azure", "amazon"))
-    if cloud(ip) and lvl < 10 and googleish and not (otx >= 5 or aip >= 80 and "google" not in isp):
-        return False
-    if cloud(ip) and lvl < 10 and "google" in isp:
-        return False
-    return lvl >= 10 or otx >= 5 or (aip >= 80 and "google" not in isp)
-
-
-def defang(ip: str) -> str:
-    head, _, last = (ip or "").rpartition(".")
-    return f"{head}[.]{last}" if last else (ip or "")
-
-
-def comment_text(ip, meta, date, agent="sensor-syd"):
-    lvl = int(meta["lvl"] or 0)
-    count = int(meta["count"] or 0)
-    if lvl >= 10 and count < 30:
-        cat, ttp = "Reconnaissance", "T1046 Network Service Discovery"
-        ports, what = "any (recon)", "inbound connections or packets from this IP to exposed services"
-    elif int(meta["aip"] or 0) >= 80 and lvl >= 10:
-        cat, ttp = "Brute Force", "T1110 Brute Force"
-        ports, what = "22/tcp (SSH)", "SSH/auth failures (failed password, invalid user) with this IP as source"
-    else:
-        cat, ttp = "Web Attack", "T1190 Exploit Public-Facing Application"
-        ports, what = "80/tcp, 443/tcp (HTTP/S)", "HTTP(S) requests from this IP (error floods, scanners, exploit probes)"
-    conf = "High" if lvl >= 10 or int(meta["otx"] or 0) >= 5 or int(meta["aip"] or 0) >= 80 else "Medium"
-    fang = defang(ip)
-    target = f"{agent} ({mask2(SENSOR[agent])})" if agent in SENSOR else agent
-    return (
-        f"Date: {date}\n"
-        f"IOC: {fang}\n"
-        f"Type: IPv4 attacker (ip-src)\n"
-        f"Category: {cat}\n"
-        f"Confidence: {conf}\n"
-        f"Ports: {ports}\n"
-        f"Observed Behavior: Wazuh {meta['count']} alerts, level {meta['lvl']}. "
-        f"OTX pulses={meta['otx']}. AbuseIPDB={meta['aip']}. {meta['isp']}\n"
-        f"Target: {target}  [host prefix only; not a victim PII]\n"
-        f"Source: Wazuh Indexer (SOC Orchestrator)\n"
-        f"TTPs: {ttp}\n"
-        f"Hunt: source IP = {fang}\n"
-        f"Fields: src_ip | source.ip | client.ip | c-ip\n"
-        f"What: {what}\n"
-        f"Also: firewall drops / IDS / auth fail from same IP\n"
-        f"Refs:\n"
-        f"  VT https://www.virustotal.com/gui/ip-address/{ip}\n"
-        f"  AbuseIPDB https://www.abuseipdb.com/check/{ip}\n"
-        f"  GreyNoise https://viz.greynoise.io/ip/{ip}\n"
-        f"Via: kit-cloud SoC (Kowalski, analysis)\n"
-        f"Contact: admin@kit-cloud.com for more context on this IOC."
-    )
-
-
-def post(vt, ip, text):
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+def post(vt_key: str, ip: str, text: str) -> tuple[int, str]:
     body = json.dumps({"data": {"type": "comment", "attributes": {"text": text}}}).encode()
     req = urllib.request.Request(
         f"https://www.virustotal.com/api/v3/ip_addresses/{ip}/comments",
-        data=body,
-        headers={"x-apikey": vt, "User-Agent": "soc-orchestrator/1.0", "Content-Type": "application/json"},
-        method="POST",
-    )
+        data=body, headers={"x-apikey": vt_key, "Content-Type": "application/json",
+                            "User-Agent": "kit-cloud-soc/2.0"}, method="POST")
     try:
-        with urllib.request.urlopen(req, context=ctx, timeout=30) as r:
-            return r.status, "ok"
-    except urllib.error.HTTPError as e:
-        return e.code, e.read().decode()[:160]
+        with urllib.request.urlopen(req, timeout=30) as response:  # verify public TLS certificate
+            return response.status, "ok"
+    except urllib.error.HTTPError as exc:
+        return exc.code, exc.read().decode(errors="replace")[:160]
 
 
-def main():
+def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--max", type=int, default=25, help="max comments this run")
+    ap.add_argument("--max", type=int, default=3, help="maximum comments in this invocation")
     ap.add_argument("--days", type=int, default=7)
+    ap.add_argument("--dry-run", action="store_true", help="preview candidates, no posts or ledger changes")
     args = ap.parse_args()
-    cfg, vt = load_cfg()
-    global SENSOR
-    SENSOR = sensor_map(cfg)
-    used = daily_used()
-    room = max(0, DAILY_CAP - used)
-    limit = min(args.max, room)
-    print(f"daily_used={used} cap={DAILY_CAP} this_run={limit}")
-    if limit <= 0:
-        print("daily VT comment cap reached")
-        return
-    m = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"], verify_tls=False)
-    attrs = (m.get_event(1932).get("Event") or {}).get("Attribute") or []
-    cut = datetime.now(timezone.utc) - timedelta(days=args.days)
-    done = ledger()
-    todo = []
-    for a in attrs:
-        ts = int(a.get("timestamp") or 0)
-        if not ts:
-            continue
-        dt = datetime.fromtimestamp(ts, timezone.utc)
-        if dt < cut:
-            continue
-        ip = a.get("value") or ""
-        if ip in done or "/" in ip:
-            continue
-        meta = parse_safe(a.get("comment") or "")
-        if not worth(ip, meta):
-            continue
-        todo.append((dt, ip, meta))
-    todo.sort()
-    print(f"candidates={len(todo)} posting={min(limit, len(todo))}")
-    posted = 0
-    for dt, ip, meta in todo[:limit]:
-        text = comment_text(ip, meta, dt.strftime("%Y-%m-%d"))
-        status, msg = post(vt, ip, text)
-        if status == 429:
-            print("429 quota/rate — stop")
-            time.sleep(5)
-            break
-        if status in (200, 201) or (status in (400, 409) and "already" in msg.lower()):
-            remember(ip)
-            posted += 1
-            print(f"OK {ip}")
-        else:
-            print(f"ERR {ip} {status} {msg[:100]}")
-        time.sleep(DELAY)
-    if posted:
-        daily_add(posted)
-    print(f"posted={posted}")
-
-
-def parse_safe(cmt):
-    def grab(pat, default="0"):
-        m = re.search(pat, cmt or "")
-        return m.group(1) if m else default
-    return {
-        "count": grab(r"Wazuh:\s*(\d+)x"),
-        "lvl": grab(r"lvl=(\d+)"),
-        "otx": grab(r"pulses=(\d+)"),
-        "aip": grab(r"AIPDB:\s*score=(\d+)"),
-        "isp": grab(r"isp=([^|]+)", "").strip(),
-    }
+    if args.max < 0 or args.days < 0:
+        ap.error("--max and --days must be non-negative")
+    cfg = yaml.safe_load(CONFIG.read_text())
+    lock = BASE / "vt-comment.lock"
+    with lock.open("a+") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        done = set(LEDGER.read_text().splitlines()) if LEDGER.exists() else set()
+        used = daily_used()
+        limit = min(args.max, max(0, DAILY_CAP - used))
+        print(f"daily_used={used} local_cap={DAILY_CAP} this_run={limit}")
+        if limit == 0:
+            return 0
+        misp = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"],
+                          verify_tls=cfg["misp"].get("verify_tls", True))
+        event = misp.get_event(cfg["misp"].get("event_id", 1932))
+        if event.get("_error") or not isinstance(event.get("Event"), dict):
+            raise RuntimeError("MISP event fetch failed; not treating errors as zero candidates")
+        cache = json.loads(CACHE.read_text()) if CACHE.exists() else {}
+        cutoff = datetime.now(timezone.utc) - timedelta(days=args.days)
+        todo = []
+        for attr in event["Event"].get("Attribute", []):
+            if attr.get("type") not in ("ip-src", "ip-dst"):
+                continue  # old Event 1932 records used ip-dst for inbound sources
+            ip = attr.get("value") or ""
+            if ip in done or not public_ip(ip):
+                continue
+            ts = int(attr.get("timestamp") or 0)
+            if not ts or datetime.fromtimestamp(ts, timezone.utc) < cutoff:
+                continue
+            meta = parse_comment(attr.get("comment") or "")
+            intel = cache.get(ip) or {}
+            if not eligible(ip, meta, intel):
+                continue
+            todo.append((ts, ip, meta, intel))
+        todo.sort(reverse=True)
+        print(f"candidates={len(todo)} posting={min(limit, len(todo))}")
+        for _, ip, meta, _ in todo[:min(limit, len(todo))]:
+            print(f"candidate {ip} count={meta['count']} level={meta['level']} rule={meta['rule'][:75]}")
+        if args.dry_run or not todo:
+            return 0
+        key = cfg["virustotal"]["api_key"]
+        failed = 0
+        posted = 0
+        for _, ip, meta, intel in todo[:limit]:
+            text = render_comment(ip, meta["count"], meta["agent"], meta["rule"],
+                                  intel=intel, level=meta["level"],
+                                  sensor_public_ips=cfg.get("sensor_public_ips"))
+            code, message = post(key, ip, text)
+            if code in (200, 201):
+                mark_sent(ip)
+                posted += 1
+                print(f"OK {ip}")
+            elif code in (400, 409) and "already" in message.lower():
+                mark_sent(ip)
+                print(f"already posted {ip}")
+            elif code == 429:
+                print("429 quota/rate — stopped", file=sys.stderr)
+                failed = 1
+                break
+            else:
+                print(f"ERR {ip} HTTP {code}", file=sys.stderr)
+                failed = 1
+            if posted < limit:
+                time.sleep(DELAY)
+        print(f"posted={posted}")
+        return failed
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        sys.exit(main())
+    except Exception as exc:
+        print(f"VT comment job failed: {type(exc).__name__}: {str(exc)[:120]}", file=sys.stderr)
+        sys.exit(1)

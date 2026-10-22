@@ -89,7 +89,7 @@
   <div class="scrollx"><table id="agents-t"></table></div>
 </div>
 
-<div class="sec"><h2>Top attacker sources · 7 days</h2>
+<div class="sec"><h2>Top observed source IPs · 7 days</h2>
   <div class="scrollx"><table id="src">
     <tr><th>ip</th><th>asn / org</th><th>geo</th><th class=num>alerts</th><th class=num>1932</th><th>enrich</th></tr>
   </table></div>
@@ -118,7 +118,7 @@
 
 </main>
 <footer>
-  <div>Attacker IPs only, defanged in UI · no internal identifiers · <a href="https://misp.kit-ai.net/events/view/1932">MISP 1932</a> · <a href="https://github.com/M0dred/kit-cloud-soc">GitHub</a></div>
+  <div>Observed source IPs for investigation, not confirmed attackers. No victim IPs or internal names. <a href="https://misp.kit-ai.net/events/view/1932">MISP 1932</a> · <a href="https://github.com/M0dred/kit-cloud-soc">GitHub</a></div>
   <div>kit-cloud SoC (Kowalski, analysis) · admin@kit-cloud.com</div>
 </footer>
 
@@ -127,9 +127,8 @@ const defang = ip => ip.replace(/\./g,"[.]");
 const FLAGS={US:"🇺🇸",NL:"🇳🇱",CN:"🇨🇳",RU:"🇷🇺",DE:"🇩🇪",GB:"🇬🇧",FR:"🇫🇷",JP:"🇯🇵",SG:"🇸🇬",HK:"🇭🇰",AU:"🇦🇺",IN:"🇮🇳",BR:"🇧🇷",VN:"🇻🇳",KR:"🇰🇷",IR:"🇮🇷",UA:"🇺🇦",TR:"🇹🇷",MX:"🇲🇽",ID:"🇮🇩",TH:"🇹🇭",MY:"🇲🇾",CA:"🇨🇦",IT:"🇮🇹",ES:"🇪🇸",SE:"🇸🇪",PL:"🇵🇱",RO:"🇷🇴",BG:"🇧🇬",BE:"🇧🇪",EC:"🇪🇨"};
 
 fetch("data.json").then(r=>r.json()).then(d=>{
-  document.getElementById("gen").textContent = "generated " + d.generated + " UTC";
-  const down=(d.health&&d.health.agents_down)||"none";
-  document.getElementById("agents").innerHTML = "agents down: " + (down==="none" ? '<span class="ok">none</span>' : '<span class="warn">'+down+'</span>');
+  document.getElementById("gen").textContent = "generated " + d.generated;
+  document.getElementById("agents").textContent = "Agent health: private";
 
   const k=d.wazuh||{}, m=d.misp||{};
   const lastRun=(d.runs||[]).slice(-1)[0];
@@ -140,9 +139,9 @@ fetch("data.json").then(r=>r.json()).then(d=>{
 
   const cards=[
     ["Alerts · 7d",(k.total_7d||0).toLocaleString(),(k.by_agent||[]).slice(0,3).map(a=>a[0]+" "+a[1].toLocaleString()).join(" · ")],
-    ["MISP 1932 IOCs",(m.total||0).toLocaleString(),((m.cidrs||[]).length)+" CIDR ranges · published"],
+    ["MISP 1932 IOCs",(m.total||0).toLocaleString(),"observed indicators; review context"],
     ["VT comments",(d.vt&&d.vt.posted_total)||0,"community ledger, quota-capped"],
-    ["EDL blocklist",d.blocklist_n||0,"one IP / line"],
+    ["Public watchlist",d.blocklist_n||0,"review-only, not an automatic blocklist"],
   ];
   document.getElementById("kpis").innerHTML=cards.map(c=>
     `<div class="card"><h2>${c[0]}</h2><div class="big">${c[1]}</div><div class="ksub">${c[2]}</div></div>`).join("");
@@ -180,8 +179,8 @@ fetch("data.json").then(r=>r.json()).then(d=>{
     runs.map(r=>`<tr><td>${r.ts.replace("T"," ").replace("Z","")}</td><td class="${r.status==="ok"?"ok":"bad"}">${r.status.toUpperCase()}</td><td>${(r.why||"").replace(/</g,"&lt;")}</td></tr>`).join("");
 
   const feeds=[
-    ["EDL — plain IP list ✓",
-     `<a href="https://raw.githubusercontent.com/M0dred/kit-cloud-soc/main/docs/blocklist.txt">raw…/docs/blocklist.txt</a><br>One IPv4 / line · pfBlocker, hosts.deny, firewall address-lists.`],
+    ["Review-only IP watchlist",
+     `<a href="https://raw.githubusercontent.com/M0dred/kit-cloud-soc/main/docs/blocklist.txt">raw…/docs/blocklist.txt</a><br>Corroborated SSH source candidates; validate locally before taking action.`],
     ["CSV export ✓",
      `POST <code>misp.kit-ai.net/attributes/restSearch</code><br><code>{"eventid":1932,"returnFormat":"csv"}</code> + API key header.`],
     ["JSON export ✓",
@@ -197,9 +196,6 @@ fetch("data.json").then(r=>r.json()).then(d=>{
     ["AlienVault OTX","pulse correlation"],
     ["AbuseIPDB","abuse confidence"],
     ["VirusTotal","engines + community"],
-    ["CISA KEV","known exploited"],
-    ["FIRST EPSS","exploit probability"],
-    ["ExploitDB","public exploits"],
     ["bgp.he.net","ASN ownership"],
   ];
   document.getElementById("srcs").innerHTML=sources.map(s=>

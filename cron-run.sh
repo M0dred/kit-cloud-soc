@@ -40,7 +40,7 @@ if ! flock -n 9; then
   echo "$(date -u +%FT%TZ) skip: previous run still holding lock" >>"$LOG"
   FAILS+=("previous run still holding lock")
   notify_fail
-  exit 0
+  exit 1
 fi
 
 MARK=$(date -u +%FT%TZ)
@@ -80,7 +80,8 @@ fi
 
 echo "$(date -u +%FT%TZ) --- NDR cross vs 1932 ---" >>"$LOG"
 if ! /usr/bin/python3 /root/.config/soc-orchestrator/ndr-cross.py >>"$LOG" 2>&1; then
-  echo "$(date -u +%FT%TZ) ndr-cross FAIL (non-fatal)" >>"$LOG"
+  echo "$(date -u +%FT%TZ) ndr-cross FAIL" >>"$LOG"
+  FAILS+=("NDR cross-check failed")
 fi
 
 echo "$(date -u +%FT%TZ) --- local /var/log hunt ---" >>"$LOG"
@@ -106,7 +107,7 @@ else
 fi
 
 echo "$(date -u +%FT%TZ) --- VT comments (capped) ---" >>"$LOG"
-if ! /usr/bin/python3 /root/.config/soc-orchestrator/vt_comment_new.py --max 25 --days 7 >>"$LOG" 2>&1; then
+if ! /usr/bin/python3 /root/.config/soc-orchestrator/vt_comment_new.py --max 3 --days 7 >>"$LOG" 2>&1; then
   echo "$(date -u +%FT%TZ) vt-comment FAIL" >>"$LOG"
   FAILS+=("VT comment job failed")
 fi
@@ -116,10 +117,16 @@ fi
 
 if [ ${#FAILS[@]} -eq 0 ]; then
   echo "$(date -u +%FT%TZ) --- dashboard ---" >>"$LOG"
-/usr/bin/python3 /root/.config/soc-orchestrator/dashboard-gen.py >>"$LOG" 2>&1 || echo "$(date -u +%FT%TZ) dashboard gen FAIL (non-fatal)" >>"$LOG"
-
-echo "$(date -u +%FT%TZ) END ok" >>"$LOG"
+  if ! /usr/bin/python3 /root/.config/soc-orchestrator/dashboard-gen.py >>"$LOG" 2>&1; then
+    FAILS+=("dashboard generation failed")
+  elif ! /bin/bash /root/.config/soc-orchestrator/github-sync.sh >>"$LOG" 2>&1; then
+    FAILS+=("GitHub docs sync failed")
+  fi
+fi
+if [ ${#FAILS[@]} -eq 0 ]; then
+  echo "$(date -u +%FT%TZ) END ok" >>"$LOG"
 else
   echo "$(date -u +%FT%TZ) END FAIL: ${FAILS[*]}" >>"$LOG"
   notify_fail
+  exit 1
 fi

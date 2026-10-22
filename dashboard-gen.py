@@ -4,6 +4,7 @@
 No server, no JS deps beyond vanilla — reads local SoC state and writes JSON + HTML.
 Secrets are never included: only counts, IPs (public attackers), and run history.
 """
+import ipaddress
 import json
 import re
 import ssl
@@ -19,7 +20,8 @@ from misp_client import MISPClient  # noqa: E402
 import yaml  # noqa: E402
 
 BASE = Path.home() / ".config/soc-orchestrator"
-OUT = BASE / "dashboard"
+OUT = BASE / "dashboard"  # local detailed dashboard
+PUBLIC = BASE / "docs"  # restricted, review-only public GitHub Pages data
 CTX = ssl.create_default_context()
 CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
@@ -30,7 +32,7 @@ def _is_private(ip):
     import ipaddress
     try:
         a = ipaddress.ip_address(ip)
-        return a.is_private or a.is_loopback or a.is_link_local
+        return a.version != 4 or not a.is_global
     except ValueError:
         return True
 
@@ -68,19 +70,33 @@ def wazuh_7d():
 
 def misp_1932():
     cfg = yaml.safe_load(BASE.joinpath("config.yaml").read_text())
-    m = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"], verify_tls=False)
-    attrs = (m.get_event(1932).get("Event") or {}).get("Attribute") or []
-    ips = [a for a in attrs if a.get("type") == "ip-dst"]
+    m = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"],
+                   verify_tls=cfg["misp"].get("verify_tls", True))
+    event = m.get_event(cfg["misp"].get("event_id", 1932))
+    if event.get("_error") or not isinstance(event.get("Event"), dict):
+        raise RuntimeError("MISP event fetch failed")
+    attrs = event["Event"].get("Attribute") or []
+    ips = [a for a in attrs if a.get("type") in ("ip-src", "ip-dst")]
     cidrs = [a["value"] for a in ips if "/" in a.get("value", "")]
     recent = []
     now = datetime.now(timezone.utc)
-    for a in attrs:
+    for a in ips:
         ts = int(a.get("timestamp") or 0)
-        if ts and (now - datetime.fromtimestamp(ts, timezone.utc)).days <= 14:
+        if ts and (now - datetime.fromtimestamp(ts, timezone.utc)).days <= 14 and not _is_private(a.get("value") or ""):
             recent.append({"ip": a["value"], "date": datetime.fromtimestamp(ts, timezone.utc).strftime("%m-%d"),
                            "comment": (a.get("comment") or "")[:200]})
     recent.sort(key=lambda x: x["date"], reverse=True)
-    return {"total": len(ips), "cidrs": cidrs, "recent_14d": recent[:30]}
+    # Public watchlist is smaller than the internal blocklist: require corroborated SSH evidence.
+    from vt_comment_new import eligible, parse_comment
+    cache_file = BASE / "enrich-cache.json"
+    cache = json.loads(cache_file.read_text()) if cache_file.exists() else {}
+    sensor_ips = set((cfg.get("sensor_public_ips") or {}).values())
+    watchlist = sorted({a["value"] for a in ips if a.get("to_ids") in (True, 1, "1") and
+                        a.get("value") not in sensor_ips and
+                        eligible(a["value"], parse_comment(a.get("comment") or ""),
+                                 cache.get(a["value"]) or {})})
+    return {"total": len(ips), "cidrs": cidrs, "recent_14d": recent[:30],
+            "watchlist": watchlist}
 
 
 def runs():
@@ -188,19 +204,49 @@ def main():
     OUT.mkdir(exist_ok=True)
     (OUT / "data.json").write_text(json.dumps(data, indent=1))
 
-    # publish EDL (docs/blocklist.txt) for firewall consumption
-    bl = BASE / "soc_blocklist.txt"
-    if bl.exists():
-        ips = [l.strip() for l in bl.read_text().splitlines() if l.strip() and not l.startswith("#")]
-        edl = [
-            "# kit-cloud SoC EDL — attacker IPs from Wazuh (MISP event 1932)",
-            "# format: one IPv4 per line | regenerated every pipeline run",
-            "# contact: admin@kit-cloud.com | https://misp.kit-ai.net/events/view/1932",
-            "",
-        ] + ips
-        (OUT / "blocklist.txt").write_text("\n".join(edl) + "\n")
-        print(f"blocklist.txt written {len(ips)} IPs")
-    print("data.json written", len(json.dumps(data)), "bytes")
+    # Nothing sensitive or unreviewed from local health, notes or alert comments
+    # should be mirrored to the public GitHub Pages folder.
+    if not isinstance(data.get("wazuh", {}).get("top_src"), list) or not isinstance(data.get("misp", {}).get("watchlist"), list):
+        raise RuntimeError("dashboard inputs incomplete; refusing to publish stale/unsafe data")
+    waz = data["wazuh"]
+    misp = data["misp"]
+    sensor_ips = set((yaml.safe_load((BASE / "config.yaml").read_text()).get("sensor_public_ips") or {}).values())
+    public_src = [(ip, n) for ip, n in waz["top_src"] if ip not in sensor_ips and not _is_private(ip)]
+    top = {ip for ip, _ in public_src}
+    public = {
+        "generated": data["generated"],
+        "wazuh": {
+            "total_7d": waz.get("total_7d", 0),
+            "by_agent": [[f"Sensor {i+1}", n] for i, (_, n) in enumerate(waz.get("by_agent", []))],
+            "top_src": public_src, "by_day": waz.get("by_day", []),
+        },
+        "misp": {
+            "total": misp["total"], "cidrs": [],
+            "recent_14d": [{"ip": x["ip"], "date": x["date"], "comment": "Observed source; review locally"}
+                           for x in misp["recent_14d"] if x["ip"] not in sensor_ips],
+        },
+        "vt": data.get("vt", {}),
+        "health": {"agents_down": "withheld"},
+        "runs": [{"ts": x["ts"], "status": x["status"], "why": ""} for x in data["runs"]],
+        "blocklist_n": len(misp["watchlist"]),
+        "enrich_meta": {
+            ip: {k: (re.sub(r"[^\w .,/()\-]", "", str(v))[:35] if isinstance(v, str) else v)
+                 for k, v in (meta or {}).items() if k in ("gn", "otx", "aip", "asn", "country", "org")}
+            for ip, meta in (data.get("enrich_meta") or {}).items() if ip in top
+        },
+    }
+    PUBLIC.mkdir(exist_ok=True)
+    (PUBLIC / "data.json").write_text(json.dumps(public, indent=1) + "\n")
+    edl = [
+        "# kit-cloud SoC public watchlist — REVIEW BEFORE BLOCKING; not proof of compromise",
+        "# Observed IPv4 sources with SSH authentication-failure evidence and independent reports",
+        "# Derived from curated MISP Event 1932; excludes unreviewed internal blocklist entries",
+        "# contact: admin@kit-cloud.com",
+        "",
+    ] + misp["watchlist"]
+    (PUBLIC / "blocklist.txt").write_text("\n".join(edl) + "\n")
+    print(f"public watchlist written {len(misp['watchlist'])} IPs")
+    print("public data.json written", len(json.dumps(public)), "bytes")
     print(json.dumps({k: (v if not isinstance(v, dict) else list(v.keys())) for k, v in data.items()}, indent=1)[:400])
 
 
