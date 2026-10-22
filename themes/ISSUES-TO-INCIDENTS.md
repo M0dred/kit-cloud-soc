@@ -1,17 +1,17 @@
 # Issue → Incident: alternative kit-cloud SoC workspace
 
-**Status:** private, read-only design prototype. Wiz-inspired investigation flow, not a copy of Wiz branding/components and **not** an incident-detection system. The existing dashboard, cron, GitHub Pages and alerting are unchanged.
+**Status:** private, read-only evidence workspace. Wiz-inspired investigation flow, not a copy of Wiz branding/components and **not** an incident-detection system. Public GitHub Pages gets only allowlisted source summary; no private evidence or incidents are published.
 
 ## What our current data actually supports
 
 | Integration | Available now | Do not infer |
 |---|---|---|
-| Wazuh Indexer | 7-day top source-IP alert counts, per-agent aggregate totals and run health; pipeline has rule description/agent sample in its own fetch | A per-source asset link, exploit success, compromise or complete timeline from dashboard aggregates |
+| Wazuh Indexer | Exact 7-day alert total, top source-IP counts; private snapshot includes at most three alerts per displayed source with UTC timestamp, rule and agent/destination | A complete timeline, an exploit outcome or a proven asset relation from only three samples |
 | Local threat DB | Source IP observations, evidence and VT result cache | The identity of an affected application or a verified attack path |
-| GN / OTX / AbuseIPDB | Cached reputation context on a subset of IPs; coverage has rate limits | Independent confirmation of an incident or attribution |
-| MISP Event 1932 | Catalog of indicators (legacy `ip-dst`, new `ip-src`); dashboard contains only 30 recent attribute previews | Every cataloged IP was recently seen or is malicious; absence from the preview means absence from MISP |
+| GN / OTX / AbuseIPDB | Cached context with lookup time/status for new results; legacy cache entries have unknown age; existing request caps remain | Independent confirmation of an incident, benign verdict from a missing GN record, or attribution |
+| MISP Event 1932 | Full membership for displayed source IPs (legacy `ip-dst`, new `ip-src`); a separate 30-attribute recent preview | Catalog membership proves compromise or a missing row in the preview means absence from MISP |
 | VT | Total comments posted; separate, strictly capped IOC publishing | A per-source VT verdict from `dashboard/data.json` or confirmation of exploitation |
-| Clear NDR | A 24-hour IOC cross-check runs in the pipeline | A durable, per-asset/per-time evidence link in the existing dashboard JSON |
+| Clear NDR | A 24-hour MISP-IOC cross-check retains up to three matching alert samples per IOC side in root-only `ndr-evidence.json` | A verified join to Wazuh's affected asset/time, complete NDR coverage, or compromise from matching an IP |
 | Case management | No case/incident state store | A zero count of actual incidents: **not tracked** is the honest label |
 
 ## Design
@@ -19,9 +19,9 @@
 ```text
 Overview                    Issues to review                       Evidence panel
  ├─ top source snapshot      ├─ source IP, 7d count, enrichment    ├─ observed Wazuh count
- ├─ MISP catalog size        └─ review order (not severity)       ├─ MISP: recent catalog presence only
+ ├─ MISP catalog size        └─ review order (not severity)       ├─ MISP: full catalog membership
  ├─ case count: N/A                                                ├─ GN/OTX/Abuse: context only
- └─ latest cron status                                             ├─ NDR/asset/outcome: missing link
+ └─ latest cron status                                             ├─ sampled Wazuh/NDR alerts; join/outcome missing
                                                                     └─ promotion checklist
 
 Observed signal → issue to review → corroborated, asset/time-linked evidence
@@ -60,4 +60,4 @@ python3 -m http.server --bind 127.0.0.1 --directory "$preview" 8765
 # Ctrl-C then rm -rf -- "$preview"
 ```
 
-The page labels cases **N/A** because no analyst case store is integrated. Before enabling private live incident views: collect per-alert Wazuh asset/time references; persist structured NDR matches (source/destination, timestamp, signature, asset mapping); add a reviewed case state store; test joins and false-positive handling; then add authentication/audit logging. No new platform is required for the prototype.
+The page labels cases **N/A** because no analyst case store is integrated. Private samples are bounded (Wazuh top three over 7d; NDR matches from Event 1932 over 24h), not a full search or verified outcome. Before enabling incident creation: define/test source+asset+UTC correlation, attach successful-auth/host outcome evidence, add a reviewed case state store, and protect a private service with authentication/audit logging. No new platform is required for this prototype.

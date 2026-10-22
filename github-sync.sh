@@ -16,22 +16,41 @@ b=Path('/root/.config/soc-orchestrator')
 files=[b/'docs/data.json',b/'docs/blocklist.txt']
 d=json.loads(files[0].read_text())
 c=yaml.safe_load((b/'config.yaml').read_text())
+assert set(d)=={'generated','wazuh','misp','vt','health','runs','blocklist_n','enrich_meta'}
+assert set(d['wazuh'])=={'total_7d','top_src','by_day','by_agent'}
+assert d['wazuh']['by_agent']==[]
+assert set(d['misp'])=={'total','cidrs','recent_14d','membership_scope','top_source_membership'}
+assert d['misp']['cidrs']==[]
 assert d['health']=={'agents_down':'withheld'}
-assert all(n.startswith('Sensor ') for n,_ in d['wazuh']['by_agent'])
-assert all(x['comment']=='Observed source; review locally' for x in d['misp']['recent_14d'])
+assert all(set(x)=={'ip','date','comment'} and x['comment']=='Observed source; review locally' for x in d['misp']['recent_14d'])
+assert set(d['misp']['top_source_membership'])=={ip for ip,_ in d['wazuh']['top_src']}
+assert all(type(value) is bool for value in d['misp']['top_source_membership'].values())
+assert all(set(meta)<= {'gn','otx','aip','country','org','provider','sources'} for meta in d['enrich_meta'].values())
+assert all(set(meta.get('sources',{}))== {'gn','otx','aipdb'} for meta in d['enrich_meta'].values())
 assert all(not x['why'] for x in d['runs'])
 ips=[line for line in files[1].read_text().splitlines() if line and not line.startswith('#')]
 assert all(ipaddress.ip_address(ip).version==4 and ipaddress.ip_address(ip).is_global for ip in ips)
 assert set(ips).isdisjoint(set((c.get('sensor_public_ips') or {}).values()))
 assert all(not any(ip in path.read_text() for path in files) for ip in (c.get('sensor_public_ips') or {}).values())
-for group in (c.get('wazuh') or {},c.get('misp') or {},c.get('virustotal') or {},
-              c.get('telegram') or {},c.get('ndr') or {},c.get('otx') or {},
-              c.get('abuseipdb') or {},c.get('greynoise') or {}):
- for key,value in group.items():
-  if any(word in key.lower() for word in ('pass','api_key','token')) and isinstance(value,str) and len(value)>12:
-   assert not any(value in path.read_text() for path in files), 'credential in public docs'
+def scan_credentials(obj):
+ if isinstance(obj,dict):
+  for key,value in obj.items():
+   if any(word in str(key).lower() for word in ('pass','api_key','token')) and isinstance(value,str) and len(value)>12:
+    assert not any(value in path.read_text() for path in files), 'credential in public docs'
+   else: scan_credentials(value)
+ elif isinstance(obj,list):
+  for value in obj: scan_credentials(value)
+scan_credentials(c)
 print('GitHub public docs privacy gate passed')
 PY
+if [ "${1:-}" = "--check-only" ]; then
+  echo 'GitHub sync check-only: no commit or push'
+  exit 0
+fi
+if [ "$#" -ne 0 ]; then
+  echo 'usage: github-sync.sh [--check-only]' >&2
+  exit 2
+fi
 # Never update a branch someone else advanced; do not auto-publish unreviewed code.
 if ! git fetch --quiet origin main >/dev/null 2>&1; then
   echo 'GitHub sync failed: fetch origin/main' >&2; exit 1

@@ -28,9 +28,13 @@ def greynoise(ip: str, api_key: str) -> dict:
         {"key": api_key, "Accept": "application/json", "User-Agent": "soc-connector/1.0"},
     )
     if code == 429:
-        return {"_rate_limited": True}
+        return {"_rate_limited": True, "http": code}
+    if code not in (200, 404):
+        return {"_error": True, "http": code}
     return {
-        "classification": data.get("classification") or data.get("message"),
+        # A 404's API message is not a classification and must not imply benign.
+        "classification": data.get("classification") if code == 200 else None,
+        "_not_found": code == 404,
         "noise": data.get("noise"),
         "riot": data.get("riot"),
         "name": data.get("name") or "",
@@ -59,7 +63,7 @@ def abuseipdb(ip: str, api_key: str) -> dict:
         {"Key": api_key, "Accept": "application/json", "User-Agent": "soc-connector/1.0"},
     )
     if code == 429:
-        return {"_rate_limited": True}
+        return {"_rate_limited": True, "http": code}
     d = data.get("data") or {}
     if not d:
         return {"_error": True, "http": code}
@@ -75,7 +79,7 @@ def abuseipdb(ip: str, api_key: str) -> dict:
 def format_comment(intel: dict) -> str:
     parts = []
     gn = intel.get("gn") or {}
-    if gn and not gn.get("_rate_limited") and not gn.get("_error"):
+    if gn and not gn.get("_rate_limited") and not gn.get("_error") and not gn.get("_not_found"):
         parts.append(
             f"GN: class={gn.get('classification')} noise={gn.get('noise')} "
             f"riot={gn.get('riot')} last={gn.get('last_seen')}"

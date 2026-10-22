@@ -1,5 +1,7 @@
 config.yaml
 enrich-cache.json
+ndr-evidence.json
+ndr-evidence.tmp
 vt-comment.lock
 vt-comment-daily.tmp
 *.log

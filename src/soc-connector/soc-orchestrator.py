@@ -395,6 +395,36 @@ class Orchestrator:
         self.summary["stage_results"]["vt_voted"] = voted
         self.summary["stage_results"]["vt_commented"] = commented
 
+    @staticmethod
+    def _merge_enrichment_cache(cache, updates):
+        """Preserve the last success; record failed/limited attempts separately."""
+        for ip, rec in updates.items():
+            if not any(name in rec for name in ("gn", "otx", "aipdb")):
+                continue
+            prev = cache.setdefault(ip, {})
+            lookups = prev.setdefault("_lookups", {})
+            for name in ("gn", "otx", "aipdb"):
+                if name not in rec:
+                    continue
+                value = rec[name] or {}
+                when = rec.get(f"{name}_checked_at")
+                history = lookups.setdefault(name, {})
+                history["last_attempt_at"] = when
+                history["http"] = value.get("http")
+                if value.get("_rate_limited"):
+                    history["status"] = "rate_limited"
+                elif value.get("_error"):
+                    history["status"] = "error"
+                elif value.get("_not_found"):
+                    history["status"] = "not_found"
+                    history["checked_at"] = when
+                    prev[name] = value  # clear any stale malicious classification
+                else:
+                    history["status"] = "ok"
+                    history["checked_at"] = when
+                    prev[name] = value
+        return cache
+
     def stage_enrich_intel(self, wazuh_ips):
         """GreyNoise / OTX / AbuseIPDB. Caps per source; stop a source on 429."""
         self.log("\n[STAGE 3c] Enrichment (GreyNoise / OTX / AbuseIPDB)...")
@@ -414,6 +444,7 @@ class Orchestrator:
             rec = out.setdefault(ip, {})
             if not gn_stop and gn_n < gn_max:
                 rec["gn"] = intel_enrich.greynoise(ip, gn_cfg["api_key"])
+                rec["gn_checked_at"] = datetime.now(timezone.utc).isoformat()
                 if rec["gn"].get("_rate_limited"):
                     gn_stop = True
                     self.log("    GreyNoise rate-limited, skipping rest")
@@ -422,10 +453,12 @@ class Orchestrator:
                     time.sleep(0.25)
             if not otx_stop and otx_n < otx_max:
                 rec["otx"] = intel_enrich.otx(ip, otx_cfg["api_key"])
+                rec["otx_checked_at"] = datetime.now(timezone.utc).isoformat()
                 otx_n += 1
                 time.sleep(0.15)
             if not ab_stop and ab_n < ab_max:
                 rec["aipdb"] = intel_enrich.abuseipdb(ip, ab_cfg["api_key"])
+                rec["aipdb_checked_at"] = datetime.now(timezone.utc).isoformat()
                 if rec["aipdb"].get("_rate_limited"):
                     ab_stop = True
                     self.log("    AbuseIPDB rate-limited, skipping rest")
@@ -440,14 +473,13 @@ class Orchestrator:
             if cache_path.exists():
                 import json as _j
                 cache = _j.loads(cache_path.read_text() or "{}")
-            for ip, rec in out.items():
-                if rec:
-                    prev = cache.get(ip) or {}
-                    prev.update({k: v for k, v in rec.items() if v and not str(v).startswith("_")})
-                    cache[ip] = prev
-            cache_path.write_text(json.dumps(cache, indent=1))
+            self._merge_enrichment_cache(cache, out)
+            tmp = cache_path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(cache, indent=1))
+            tmp.chmod(0o600)
+            tmp.replace(cache_path)
         except Exception as e:
-            self.log(f"    enrich cache write failed: {e}")
+            raise RuntimeError("enrichment cache update failed") from e
         self.summary["stage_results"]["enrich_gn"] = gn_n
         self.summary["stage_results"]["enrich_otx"] = otx_n
         self.summary["stage_results"]["enrich_aipdb"] = ab_n

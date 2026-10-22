@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate a static SOC dashboard (docs/index.html + data.json) for GitHub Pages.
+"""Generate a private SOC snapshot and an allowlisted public GitHub Pages view.
 
-No server, no JS deps beyond vanilla — reads local SoC state and writes JSON + HTML.
-Secrets are never included: only counts, IPs (public attackers), and run history.
+Never publish asset-level evidence, raw events, victim addresses or secrets.
+Source IPs are observations for investigation, not verified attackers.
 """
 import ipaddress
 import json
@@ -11,7 +11,6 @@ import ssl
 import sys
 import urllib.request
 import base64
-from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -37,8 +36,53 @@ def _is_private(ip):
         return True
 
 
-def _pub(b):
-    return (b["key"], b["doc_count"])
+def utc_timestamp(raw):
+    if not isinstance(raw, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return parsed.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC") if parsed.tzinfo else None
+    except ValueError:
+        return None
+
+
+def parse_wazuh_rollup(d):
+    """Use OpenSearch's exact hit total, never a sum of truncated top-N buckets."""
+    if d.get("timed_out") or (d.get("_shards") or {}).get("failed", 0):
+        raise RuntimeError("Wazuh aggregation timed out or had failed shards")
+    total = d["hits"]["total"]
+    if isinstance(total, dict):
+        if total.get("relation") != "eq":
+            raise ValueError("Wazuh hit count is a lower bound, not an exact total")
+        total = total["value"]
+    ag = d["aggregations"]
+    source_samples = {}
+    for bucket in ag["src"]["buckets"]:
+        ip = bucket["key"]
+        if _is_private(ip):
+            continue
+        samples = []
+        for hit in ((bucket.get("sample") or {}).get("hits") or {}).get("hits", []):
+            doc = hit.get("_source") or {}
+            data = doc.get("data") or {}
+            if data.get("srcip") != ip:
+                continue
+            rule = doc.get("rule") or {}
+            agent = doc.get("agent") or {}
+            samples.append({"time_utc": utc_timestamp(doc.get("timestamp")),
+                            "event_id": str(hit.get("_id") or "")[:128],
+                            "source_ip": ip, "destination_ip": data.get("dstip"),
+                            "destination_port": data.get("dstport"), "agent_id": agent.get("id"),
+                            "agent_name": agent.get("name"), "rule_id": rule.get("id"),
+                            "rule_level": rule.get("level"), "rule": str(rule.get("description") or "")[:180]})
+        source_samples[ip] = samples
+    return {
+        "total_7d": int(total),
+        "by_agent": [(b["key"], b["doc_count"]) for b in ag["agents"]["buckets"]],
+        "top_src": [(b["key"], b["doc_count"]) for b in ag["src"]["buckets"] if not _is_private(b["key"])],
+        "by_day": [(b["key_as_string"][:10], b["doc_count"]) for b in ag["days"]["buckets"]],
+        "samples_by_source": source_samples,  # private only; never copy into docs/
+    }
 
 
 def wazuh_7d():
@@ -48,10 +92,15 @@ def wazuh_7d():
     auth = "Basic " + base64.b64encode(f"{u}:{p}".encode()).decode()
     body = json.dumps({
         "size": 0,
+        "track_total_hits": True,
         "query": {"range": {"timestamp": {"gte": "now-7d"}}},
         "aggs": {
             "agents": {"terms": {"field": "agent.name", "size": 10}},
-            "src": {"terms": {"field": "data.srcip", "size": 20}},
+            "src": {"terms": {"field": "data.srcip", "size": 20},
+                    "aggs": {"sample": {"top_hits": {"size": 3,
+                        "sort": [{"timestamp": {"order": "desc"}}],
+                        "_source": ["timestamp", "data.srcip", "data.dstip", "data.dstport",
+                                    "agent.id", "agent.name", "rule.id", "rule.level", "rule.description"]}}}},
             "days": {"date_histogram": {"field": "timestamp", "calendar_interval": "day"}},
         },
     }).encode()
@@ -59,13 +108,7 @@ def wazuh_7d():
         "https://10.0.1.1:9200/wazuh-alerts-4.x-*/_search",
         data=body, headers={"Authorization": auth, "Content-Type": "application/json"}, method="POST")
     d = json.loads(urllib.request.urlopen(req, context=CTX, timeout=40).read())
-    ag = d["aggregations"]
-    return {
-        "total_7d": sum(b["doc_count"] for b in ag["agents"]["buckets"]),
-        "by_agent": [(b["key"], b["doc_count"]) for b in ag["agents"]["buckets"]],
-        "top_src": [(b["key"], b["doc_count"]) for b in ag["src"]["buckets"] if not _is_private(b["key"])],
-        "by_day": [(b["key_as_string"][:10], b["doc_count"]) for b in ag["days"]["buckets"]],
-    }
+    return parse_wazuh_rollup(d)
 
 
 def misp_1932():
@@ -78,14 +121,16 @@ def misp_1932():
     attrs = event["Event"].get("Attribute") or []
     ips = [a for a in attrs if a.get("type") in ("ip-src", "ip-dst")]
     cidrs = [a["value"] for a in ips if "/" in a.get("value", "")]
+    # Full event membership is known; recent_14d below is only a 30-row preview.
+    members = {a["value"] for a in ips if not _is_private(a.get("value") or "")}
     recent = []
     now = datetime.now(timezone.utc)
     for a in ips:
         ts = int(a.get("timestamp") or 0)
-        if ts and (now - datetime.fromtimestamp(ts, timezone.utc)).days <= 14 and not _is_private(a.get("value") or ""):
-            recent.append({"ip": a["value"], "date": datetime.fromtimestamp(ts, timezone.utc).strftime("%m-%d"),
-                           "comment": (a.get("comment") or "")[:200]})
-    recent.sort(key=lambda x: x["date"], reverse=True)
+        if ts and (now - datetime.fromtimestamp(ts, timezone.utc)) <= timedelta(days=14) and not _is_private(a.get("value") or ""):
+            recent.append({"ip": a["value"], "date": datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%d"),
+                           "updated_at": ts, "comment": (a.get("comment") or "")[:200]})
+    recent.sort(key=lambda x: x["updated_at"], reverse=True)
     # Public watchlist is smaller than the internal blocklist: require corroborated SSH evidence.
     from vt_comment_new import eligible, parse_comment
     cache_file = BASE / "enrich-cache.json"
@@ -96,7 +141,7 @@ def misp_1932():
                         eligible(a["value"], parse_comment(a.get("comment") or ""),
                                  cache.get(a["value"]) or {})})
     return {"total": len(ips), "cidrs": cidrs, "recent_14d": recent[:30],
-            "watchlist": watchlist}
+            "watchlist": watchlist, "member_ips": sorted(members)}
 
 
 def runs():
@@ -128,57 +173,116 @@ def health():
 
 
 
+def lookup_freshness(entry, name, now=None, ttl_hours=48):
+    """Differentiate fresh, stale and never-timestamped reputation results."""
+    now = now or datetime.now(timezone.utc)
+    history = (entry.get("_lookups") or {}).get(name) or {}
+    checked = history.get("checked_at")
+    attempt = history.get("status")
+    state = "unknown_age" if entry.get(name) else "not_queried"
+    if checked:
+        try:
+            age = (now - datetime.fromisoformat(checked.replace("Z", "+00:00"))).total_seconds()
+            if 0 <= age <= ttl_hours * 3600:
+                state = ("fresh" if attempt == "ok" else
+                         "not_observed" if attempt == "not_found" else "cached")
+            else:
+                state = "stale"
+        except (ValueError, TypeError):
+            state = "unknown_age"
+    if checked and state != "unknown_age":
+        checked = datetime.fromisoformat(checked.replace("Z", "+00:00")).astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    else:
+        checked = None
+    return {"state": state, "checked_at": checked, "last_attempt": attempt or "unknown"}
+
+
+def public_enrichment(meta):
+    """Allow only non-sensitive reputation fields and canonical freshness labels."""
+    out = {}
+    for key in ("gn", "country", "org", "provider"):
+        value = (meta or {}).get(key)
+        if value is not None:
+            out[key] = re.sub(r"[^\w .,/()\-]", "", str(value))[:35]
+    for key in ("otx", "aip"):
+        value = (meta or {}).get(key)
+        if isinstance(value, (int, float)) and 0 <= value <= 100000:
+            out[key] = value
+    out["sources"] = {}
+    for name in ("gn", "otx", "aipdb"):
+        source = ((meta or {}).get("sources") or {}).get(name) or {}
+        state = source.get("state")
+        if state not in ("fresh", "cached", "stale", "not_observed", "unknown_age", "not_queried"):
+            state = "unknown_age"
+        checked = source.get("checked_at")
+        out["sources"][name] = {
+            "state": state,
+            "checked_at": checked if isinstance(checked, str) and re.fullmatch(r"\d{4}-\d\d-\d\d \d\d:\d\d UTC", checked) else None,
+            "last_attempt": source.get("last_attempt") if source.get("last_attempt") in ("ok", "not_found", "error", "rate_limited") else "unknown",
+        }
+    return out
+
+
+def read_ndr_evidence(ips, now=None):
+    """Read locally retained matched alerts; never expose them to GitHub Pages."""
+    now = now or datetime.now(timezone.utc)
+    path = BASE / "ndr-evidence.json"
+    if not path.exists():
+        return {"status": "not_collected", "checked_at": None, "window_hours": 24, "matches": []}
+    try:
+        d = json.loads(path.read_text())
+        checked = datetime.fromisoformat(d["checked_at"].replace("Z", "+00:00"))
+        if checked.tzinfo is None or d.get("status") != "ok" or d.get("schema_version") != 1:
+            raise ValueError("invalid NDR evidence schema")
+        age = (now - checked).total_seconds()
+        status = "ok" if 0 <= age <= 30 * 3600 else "stale"
+        matches = [m for m in d.get("matches", []) if m.get("ip") in set(ips)]
+        return {"status": status, "checked_at": checked.astimezone(timezone.utc).isoformat(),
+                "window_hours": 24, "matches": matches}
+    except (OSError, ValueError, TypeError, KeyError):
+        return {"status": "invalid", "checked_at": None, "window_hours": 24, "matches": []}
+
+
 def enrich_meta_for(ips):
-    """ASN/geo/GN/AIPDB/OTX per IP from local threat DB (offline, no API calls)."""
-    import sqlite3, json as _json
-    db = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
-    if not db.exists():
-        return {}
-    con = sqlite3.connect(db)
-    con.row_factory = sqlite3.Row
+    """GN/OTX/AbuseIPDB with provenance; no lookups or secrets are exported."""
+    import sqlite3
+    cache_path = BASE / "enrich-cache.json"
+    cache = json.loads(cache_path.read_text() or "{}") if cache_path.exists() else {}
     out = {}
     for ip in ips:
-        out[ip] = {}
-    con.close()
-    # primary source: orchestrator enrich cache (GN/OTX/AIPDB live results)
-    cache_path = Path.home() / ".config/soc-orchestrator/enrich-cache.json"
-    if cache_path.exists():
-        cache = _json.loads(cache_path.read_text() or "{}")
-        for ip in ips:
-            c = cache.get(ip) or {}
-            meta = {}
-            gn = c.get("gn") or {}
-            if isinstance(gn, dict) and gn.get("classification"):
-                meta["gn"] = str(gn["classification"])[:12]
-                if gn.get("name"):
-                    meta["org"] = str(gn["name"])[:28]
-            otx = c.get("otx") or {}
-            if isinstance(otx, dict) and otx.get("pulses") is not None:
-                meta["otx"] = otx.get("pulses")
-                if otx.get("cc"):
-                    meta["country"] = str(otx["cc"])[:2].upper()
-            ab = c.get("aipdb") or {}
-            if isinstance(ab, dict) and ab.get("score") is not None:
-                meta["aip"] = ab.get("score")
-                if ab.get("isp"):
-                    meta["asn"] = str(ab["isp"])[:30]
-                if ab.get("cc"):
-                    meta.setdefault("country", str(ab["cc"])[:2].upper())
-            if meta:
-                out.setdefault(ip, {}).update(meta)
-    # fallback: VT AS/country from threat DB evidence
+        c = cache.get(ip) or {}
+        meta = {"sources": {name: lookup_freshness(c, name) for name in ("gn", "otx", "aipdb")}}
+        gn = c.get("gn") or {}
+        if isinstance(gn, dict) and not gn.get("_error") and str(gn.get("classification") or "").lower() in ("malicious", "benign", "unknown"):
+            meta["gn"] = str(gn["classification"]).lower()
+            if gn.get("name"):
+                meta["org"] = str(gn["name"])[:28]
+        otx = c.get("otx") or {}
+        if isinstance(otx, dict) and not otx.get("_error") and otx.get("pulses") is not None:
+            meta["otx"] = otx.get("pulses")
+            if otx.get("cc"):
+                meta["country"] = str(otx["cc"])[:2].upper()
+        ab = c.get("aipdb") or {}
+        if isinstance(ab, dict) and not ab.get("_error") and ab.get("score") is not None:
+            meta["aip"] = ab.get("score")
+            if ab.get("isp"):
+                meta["provider"] = str(ab["isp"])[:30]
+            if ab.get("cc"):
+                meta.setdefault("country", str(ab["cc"])[:2].upper())
+        out[ip] = meta
+    # Legacy VT AS/country from DB is a fallback, with no claim of freshness.
     db = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
     if db.exists():
         con = sqlite3.connect(db)
         con.row_factory = sqlite3.Row
         for ip in ips:
-            if out.get(ip, {}).get("asn"):
+            if out.get(ip, {}).get("provider"):
                 continue
             row = con.execute("select evidence from iocs where ip=?", (ip,)).fetchone()
             if row:
                 ev = _json.loads(row["evidence"] or "{}")
                 if ev.get("as_owner"):
-                    out.setdefault(ip, {})["asn"] = str(ev["as_owner"])[:30]
+                    out.setdefault(ip, {})["provider"] = str(ev["as_owner"])[:30]
                 if ev.get("country"):
                     out.setdefault(ip, {}).setdefault("country", ev["country"][:2].upper())
         con.close()
@@ -200,6 +304,10 @@ def main():
         data["enrich_meta"] = {"error": str(e)[:100]}
     bl = BASE / "soc_blocklist.txt"
     data["blocklist_n"] = len([l for l in bl.read_text().splitlines() if l.strip() and not l.startswith("#")]) if bl.exists() else 0
+    private_ips = [x[0] for x in (data.get("wazuh") or {}).get("top_src", [])]
+    data["evidence"] = {"wazuh_top_samples": (data.get("wazuh") or {}).get("samples_by_source", {}),
+                        "ndr": read_ndr_evidence(private_ips),
+                        "limitations": "Top three Wazuh alerts per source (7d); NDR 24h MISP-only; no confirmed outcome."}
 
     OUT.mkdir(exist_ok=True)
     (OUT / "data.json").write_text(json.dumps(data, indent=1))
@@ -217,21 +325,22 @@ def main():
         "generated": data["generated"],
         "wazuh": {
             "total_7d": waz.get("total_7d", 0),
-            "by_agent": [[f"Sensor {i+1}", n] for i, (_, n) in enumerate(waz.get("by_agent", []))],
+            "by_agent": [],  # private agent distribution; rank-based labels were misleading
             "top_src": public_src, "by_day": waz.get("by_day", []),
         },
         "misp": {
             "total": misp["total"], "cidrs": [],
             "recent_14d": [{"ip": x["ip"], "date": x["date"], "comment": "Observed source; review locally"}
                            for x in misp["recent_14d"] if x["ip"] not in sensor_ips],
+            "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
+            "top_source_membership": {ip: ip in set(misp["member_ips"]) for ip in top},
         },
         "vt": data.get("vt", {}),
         "health": {"agents_down": "withheld"},
         "runs": [{"ts": x["ts"], "status": x["status"], "why": ""} for x in data["runs"]],
         "blocklist_n": len(misp["watchlist"]),
         "enrich_meta": {
-            ip: {k: (re.sub(r"[^\w .,/()\-]", "", str(v))[:35] if isinstance(v, str) else v)
-                 for k, v in (meta or {}).items() if k in ("gn", "otx", "aip", "asn", "country", "org")}
+            ip: public_enrichment(meta)
             for ip, meta in (data.get("enrich_meta") or {}).items() if ip in top
         },
     }

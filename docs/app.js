@@ -1,0 +1,155 @@
+"use strict";
+// GitHub Pages is an allowlisted public summary, never a private case workspace.
+const byId = id => document.getElementById(id);
+const add = (parent, tag, text, className="") => {
+  const element = document.createElement(tag);
+  element.textContent = String(text);
+  if (className) element.className = className;
+  parent.appendChild(element);
+  return element;
+};
+const number = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+const defang = ip => {const i=ip.lastIndexOf("."); return i<0 ? ip : ip.slice(0,i)+"[.]"+ip.slice(i+1);};
+const validIP = ip => typeof ip==="string" && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip)
+  && ip.split(".").every(o=>Number(o)<=255);
+const sourceState = (meta, name) => meta?.sources?.[name]?.state || "unknown_age";
+const stateLabel = state => ({fresh:"fresh",cached:"cached; latest attempt failed",stale:"stale (>48h)",
+  not_observed:"not observed in lookup",unknown_age:"lookup age unknown",not_queried:"not queried"})[state] || "unknown";
+const context = (meta, field, source) => {
+  if (meta?.[field]===undefined || meta[field]===null || meta[field]==="") return `${source}: no result`;
+  return `${source}: ${meta[field]} (${stateLabel(sourceState(meta, source))})`;
+};
+let sourceRows=[], snapshot=null;
+
+function addRow(table, values, classes=[]) {
+  const row=add(table,"tr","");
+  values.forEach((value,index)=>add(row,"td",value,classes[index]||""));
+  return row;
+}
+function addHeading(table, headings){
+  const row=add(table,"tr","");
+  headings.forEach(text=>add(row,"th",text));
+}
+function renderCards(d){
+  const cards=byId("kpis"); cards.replaceChildren();
+  const items=[
+    ["Wazuh alerts · 7d",number(d.wazuh?.total_7d).toLocaleString(),"Exact query total; batch snapshot"],
+    ["MISP 1932 attributes",number(d.misp?.total).toLocaleString(),"Legacy ip-dst and new ip-src; not incidents"],
+    ["VT comments logged",number(d.vt?.posted_total).toLocaleString(),"Local ledger; not a per-IP verdict"],
+    ["Public watchlist",number(d.blocklist_n).toLocaleString(),"Review-only; never auto-block"],
+  ];
+  for (const [name,value,explain] of items) {
+    const card=add(cards,"div","","card");add(card,"h2",name);add(card,"div",value,"big");add(card,"div",explain,"ksub");
+  }
+}
+function renderDaily(d){
+  const days=Array.isArray(d.wazuh?.by_day)?d.wazuh.by_day:[];
+  const root=byId("days");root.replaceChildren();
+  const max=Math.max(1,...days.map(x=>number(x[1])));
+  for(const [day,count] of days){
+    const bar=add(root,"div","","bar");bar.style.height=`${Math.max(3,Math.round(78*number(count)/max))}%`;
+    bar.title=`${String(day)}: ${number(count).toLocaleString()} alerts`;
+    add(bar,"span",String(day).slice(5));
+  }
+  byId("agent-privacy").textContent="Per-agent totals and host identities are private. Data shown is a 7-day batch, not live detection.";
+}
+function renderDetail(ip,count,meta,membership){
+  const root=byId("ioc-detail");root.hidden=false;root.replaceChildren();
+  add(root,"h2",`Source ${defang(ip)} · evidence limits`);
+  add(root,"p",`${number(count).toLocaleString()} Wazuh alerts over 7 days. A source IP and alert volume alone do not prove attack success.`);
+  const memberText=membership===true?"Present in full MISP Event 1932 (catalog, not incident evidence)":
+    membership===false?"Not present in full MISP Event 1932 snapshot":"Full MISP membership unavailable";
+  add(root,"p",memberText);
+  const list=add(root,"ul","");
+  const items=[["GreyNoise",meta?.gn,"gn"],["AbuseIPDB",meta?.aip,"aipdb"],["OTX pulses",meta?.otx,"otx"]];
+  for(const [label,value,key] of items){
+    const status=meta?.sources?.[key]||{};
+    const present=value!==undefined && value!==null && value!=="";
+    const line=`${label}: ${present?value:"no result"} · ${stateLabel(status.state||"not_queried")}`+
+      (status.checked_at?` · checked ${status.checked_at}`:"");
+    add(list,"li",line);
+  }
+  add(root,"p","This public view has no victim IPs, asset links, NDR evidence, successful-auth outcomes, or analyst case decisions. Confirm locally before responding.","dim");
+  const refs=add(root,"div","Public lookups: ","refs");
+  for(const [label,prefix] of [["VT","https://www.virustotal.com/gui/ip-address/"],
+    ["AbuseIPDB","https://www.abuseipdb.com/check/"],["GreyNoise","https://viz.greynoise.io/ip/"]]){
+    const link=add(refs,"a",label);link.href=prefix+ip;link.target="_blank";link.rel="noopener noreferrer";
+  }
+}
+function renderSources(d){
+  const table=byId("src");const rows=Array.isArray(d.wazuh?.top_src)?d.wazuh.top_src:[];
+  sourceRows=rows.filter(x=>Array.isArray(x)&&validIP(x[0]));
+  const memberMap=d.misp?.top_source_membership||{};
+  const metaMap=d.enrich_meta||{};
+  function draw(){
+    const q=byId("source-filter").value.trim().toLowerCase();table.replaceChildren();
+    addHeading(table,["Source IP","Provider / org","Country","7d alerts","In 1932?","Enrichment coverage"]);
+    let shown=0;
+    for(const [ip,count] of sourceRows){
+      const meta=metaMap[ip]||{};
+      if(!ip.includes(q) && !String(meta.provider||meta.org||"").toLowerCase().includes(q))continue;
+      const membership=Object.hasOwn(memberMap,ip)?memberMap[ip]:null;
+      const presence=membership===true?"Yes":membership===false?"No":"Unknown";
+      const coverage=[['GN','gn','gn'],['AIP','aipdb','aip'],['OTX','otx','otx']]
+        .map(([label,key,val])=>`${label}: ${meta[val]===undefined?'—':stateLabel(sourceState(meta,key))}`).join(" · ");
+      const row=addRow(table,[defang(ip),meta.provider||meta.org||"Not provided",meta.country||"—",
+        number(count).toLocaleString(),presence,coverage],["mono","wrap","","num","","wrap"]);
+      row.tabIndex=0;row.setAttribute("role","button");row.setAttribute("aria-label",`Inspect ${ip}`);
+      row.addEventListener("click",()=>renderDetail(ip,count,meta,membership));
+      row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();renderDetail(ip,count,meta,membership);}});
+      shown++;
+    }
+    byId("source-scope").textContent=`${shown} of ${sourceRows.length} top global IPv4 sources · membership checked against full Event 1932`;
+  }
+  byId("source-filter").addEventListener("input",draw);
+  draw();
+}
+function renderMisp(d){
+  const table=byId("misp");table.replaceChildren();addHeading(table,["Observed source","Attribute updated (UTC)","Context"]);
+  const recent=Array.isArray(d.misp?.recent_14d)?d.misp.recent_14d:[];
+  for(const x of recent.slice(0,12))if(validIP(x.ip))addRow(table,[defang(x.ip),x.date||"unknown","Catalog entry; investigate locally"],["mono","","wrap"]);
+  if(!recent.length)addRow(table,["—","—","No recent-attribute preview available"]);
+}
+function renderRuns(d){
+  const table=byId("runs");table.replaceChildren();addHeading(table,["Completed (UTC)","Status","Details"]);
+  const runs=Array.isArray(d.runs)?d.runs:[];
+  for(const run of runs.slice(-12).reverse()){
+    const status=run.status==="ok"?"OK":"CHECK";
+    addRow(table,[String(run.ts||"unknown").replace("T"," ").replace("Z",""),status,
+      status==="OK"?"Completed":"Operational details withheld"],["",status==="OK"?"ok":"bad","wrap"]);
+  }
+}
+function renderFeeds(){
+  const root=byId("feeds");root.replaceChildren();
+  function feed(name,description,linkText,href){
+    const box=add(root,"div","","feed");add(box,"h3",name);const para=add(box,"p",description);
+    if(href){add(para,"br","");const link=add(para,"a",linkText);link.href=href;link.rel="noopener noreferrer";link.target="_blank";}
+  }
+  feed("Review-only IP list","Corroborated SSH source candidates; validate locally before action.","Public watchlist", "blocklist.txt");
+  feed("MISP exports","CSV/JSON REST export requires an authorized MISP account/API key; not public access.","",null);
+  feed("VirusTotal","A capped job shares selected, evidence-backed source observations. VT labels are not proof of compromise.","",null);
+  feed("Private investigations","NDR alert samples, asset identities and incident decisions are not published on this page.","",null);
+  const sources=byId("srcs");sources.replaceChildren();
+  for(const [name,description] of [["GreyNoise","scanner context"],["OTX","pulse correlation"],
+      ["AbuseIPDB","report score"],["Wazuh","local detections"],["Clear NDR","private alerts"]]){
+    const box=add(sources,"div","","src");add(box,"b",name);add(box,"span"," — "+description);
+  }
+}
+async function main(){
+  try{
+    const response=await fetch("data.json",{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);
+    const d=await response.json();if(!Array.isArray(d.wazuh?.top_src) || !d.misp?.top_source_membership)
+      throw Error("public snapshot incomplete; membership not verified");
+    snapshot=d;byId("gen").textContent="Generated "+String(d.generated||"unknown UTC");
+    byId("agents").textContent="Asset-level evidence: private · last completed run shown below";
+    const last=Array.isArray(d.runs)?d.runs.at(-1):null;
+    if(last?.status==="ok")byId("status-pill").textContent="LAST RUN OK";
+    else {byId("status-pill").textContent="REVIEW";byId("status-pill").className="pill bad";}
+    renderCards(d);renderDaily(d);renderSources(d);renderMisp(d);renderRuns(d);renderFeeds();
+  }catch(e){
+    byId("gen").textContent="Public snapshot unavailable: "+e.message;
+    byId("status-pill").textContent="UNAVAILABLE";byId("status-pill").className="pill bad";
+    // Don't imply zero alerts or incidents when the data fetch fails.
+  }
+}
+main();

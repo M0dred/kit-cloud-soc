@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Cross MISP 1932 IOCs against Clear NDR alert history (last 24h).
+"""Cross MISP 1932 IOCs against Clear NDR (24h); save PRIVATE evidence.
 
-Prints HIT lines when an IOC appears in NDR logstash-alert-* src/dst.
-Exit 0 always unless the NDR API itself fails (rc=1).
+Only an IOC-side IP is called a match. Individual alert samples are retained
+locally for investigation, never exposed through GitHub Pages or VT.
 """
+import argparse
 import ipaddress
 import json
 import re
@@ -12,13 +13,16 @@ import sys
 import urllib.parse
 import urllib.request
 import http.cookiejar
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path.home() / ".config/agents/skills/soc-connector/scripts"))
 from misp_client import MISPClient  # noqa: E402
 import yaml  # noqa: E402
 
-BASE_CFG = Path.home() / ".config/soc-orchestrator/config.yaml"
+BASE = Path.home() / ".config/soc-orchestrator"
+BASE_CFG = BASE / "config.yaml"
+EVIDENCE_FILE = BASE / "ndr-evidence.json"
 
 
 def ndr_es(opener, csrf, index, body):
@@ -45,7 +49,47 @@ def ioc_hits(aggregations, chunk):
     return hits
 
 
+def utc_timestamp(raw):
+    if not isinstance(raw, str):
+        return None
+    try:
+        value = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC") if value.tzinfo else None
+    except ValueError:
+        return None
+
+
+def evidence_matches(aggregations, chunk):
+    """Include matched indicator buckets only; their opposite endpoint is private."""
+    allowed = set(chunk)
+    records = []
+    for field, side in (("src", "src"), ("dst", "dst")):
+        buckets = (aggregations.get(field) or {}).get("buckets") or []
+        for bucket in buckets:
+            if bucket.get("key") not in allowed:
+                continue
+            ip = bucket["key"]
+            samples = []
+            for hit in ((bucket.get("sample") or {}).get("hits") or {}).get("hits", []):
+                doc = hit.get("_source") or {}
+                if doc.get("src_ip" if side == "src" else "dest_ip") != ip:
+                    continue
+                alert = doc.get("alert") or {}
+                samples.append({
+                    "time_utc": utc_timestamp(doc.get("@timestamp") or doc.get("timestamp")),
+                    "source_ip": doc.get("src_ip"), "destination_ip": doc.get("dest_ip"),
+                    "sid": alert.get("signature_id") or doc.get("alert.signature_id"),
+                    "signature": str(alert.get("signature") or doc.get("alert.signature") or "")[:180],
+                })
+            records.append({"ip": ip, "side": side, "count": int(bucket.get("doc_count") or 0),
+                            "samples": samples})
+    return records
+
+
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--no-notify", action="store_true", help="read-only validation; do not notify Telegram")
+    args = ap.parse_args()
     cfg = yaml.safe_load(BASE_CFG.read_text())
     ndr = cfg["ndr"]
     ctx = ssl.create_default_context()
@@ -92,7 +136,7 @@ def main():
     ips = sorted({a["value"] for a in attrs if valid_source(a)})
     print(f"iocs={len(ips)}")
 
-    hits = []
+    matches = []
     for i in range(0, len(ips), 50):
         chunk = ips[i:i + 50]
         body = {
@@ -104,17 +148,35 @@ def main():
                 "minimum_should_match": 1,
             }},
             "aggs": {
-                "src": {"terms": {"field": "src_ip.keyword", "size": 20}},
-                "dst": {"terms": {"field": "dest_ip.keyword", "size": 20}},
+                "src": {"terms": {"field": "src_ip.keyword", "size": len(chunk), "include": chunk},
+                        "aggs": {"sample": {"top_hits": {"size": 3,
+                            "_source": ["@timestamp", "timestamp", "src_ip", "dest_ip",
+                                        "alert.signature_id", "alert.signature"]}}}},
+                "dst": {"terms": {"field": "dest_ip.keyword", "size": len(chunk), "include": chunk},
+                        "aggs": {"sample": {"top_hits": {"size": 3,
+                            "_source": ["@timestamp", "timestamp", "src_ip", "dest_ip",
+                                        "alert.signature_id", "alert.signature"]}}}},
             },
         }
         d = ndr_es(opener, csrf, "logstash-alert-*", body)
-        hits.extend(ioc_hits(d.get("aggregations") or {}, chunk))
+        if d.get("error") or not all(isinstance((d.get("aggregations") or {}).get(k), dict) for k in ("src", "dst")):
+            raise RuntimeError("NDR query returned an error or no aggregations")
+        matches.extend(evidence_matches(d["aggregations"], chunk))
 
+    # Do not keep a previous successful snapshot when the current query fails.
+    evidence = {"schema_version": 1, "status": "ok", "checked_at": datetime.now(timezone.utc).isoformat(),
+                "window_hours": 24, "matches": matches}
+    tmp = EVIDENCE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(evidence, indent=1))
+    tmp.chmod(0o600)
+    tmp.replace(EVIDENCE_FILE)
+    hits = [(r["ip"], r["side"], r["count"]) for r in matches]
     if hits:
         for ip, side, n in sorted(hits):
             print(f"HIT {ip} {side} {n}")
         # single Telegram ping for LAN-visible IOCs
+        if args.no_notify:
+            return
         try:
             text = "SOC: NDR cross — " + "; ".join(f"{ip}({side},{n})" for ip, side, n in sorted(hits)[:10])
             t = BASE_CFG.read_text()

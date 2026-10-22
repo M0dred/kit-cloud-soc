@@ -6,7 +6,7 @@ Homelab SOC pipeline: **Wazuh Indexer → local threat DB → GreyNoise/OTX/Abus
 
 - UTC `06:00` and `22:00`: `cron-run.sh` uses Wazuh → MISP and local NDR/log hunts; it runs the independently capped VT comment job (`vt_comment_new.py`, *at most 3 per run / 6 per UTC day*) and generates a dashboard.
 - GitHub sync is **restricted to `docs/data.json` and `docs/blocklist.txt`** after a successful pipeline and privacy gate, via `github-sync.sh`. GitHub Pages uses `docs/`. Code/config changes are **not** auto-published: review, test, then commit/push manually.
-- The local detailed dashboard lives in `dashboard/` (ignored by Git); public `docs/` suppresses real sensor names, victim IPs, event comments and failure details. The public watchlist is **review-only**, never a command to block an IP.
+- The local detailed dashboard lives in `dashboard/` (ignored by Git); private `ndr-evidence.json` retains bounded NDR alert samples and is not committed. Public `docs/` suppresses agent/victim data, raw events and failure details; it shows exact Wazuh totals, full 1932 membership **only for displayed source IPs**, and enrichment lookup age/status. The public watchlist is **review-only**, never a command to block an IP.
 - `02:30 UTC`: `backup.sh` writes a verified, root-only recovery archive to `/mnt/storage0/soc-backups` (contains secrets; do not upload).
 - These UTC times move by one hour in Melbourne during daylight saving. No SSH keys are installed.
 
@@ -19,8 +19,9 @@ Homelab SOC pipeline: **Wazuh Indexer → local threat DB → GreyNoise/OTX/Abus
 | `src/linux-log-threat-hunt/threat_db.py` | snapshot of DB dependency; active copy lives under the skill |
 | `ioc_comment.py` | one source comment template, shared by MISP and VT |
 | `vt_comment_new.py` | strict, capped VT posting and offline `--dry-run` preview |
-| `ndr-cross.py`, `health-check.py`, `dashboard-gen.py` | cross-hunt, health and split local/public dashboard |
-| `tests/test_pipeline.py` | offline regression tests |
+| `ndr-cross.py`, `health-check.py`, `dashboard-gen.py` | bounded private Wazuh/NDR evidence, health and split local/public dashboard |
+| `docs/app.js`, `themes/issues-to-incidents.html` | safe public DOM rendering; private read-only evidence workflow (not a case system) |
+| `tests/test_pipeline.py`, `tests/test_dashboard.py` | offline regression/privacy tests |
 | `config.example.yaml` | placeholder config, **never** the real `config.yaml` |
 
 For a manual dry run of the VT selection (no posts):

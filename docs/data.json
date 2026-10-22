@@ -1,49 +1,8 @@
 {
- "generated": "2026-10-22 07:56 UTC",
+ "generated": "2026-10-22 11:35 UTC",
  "wazuh": {
-  "total_7d": 220989,
-  "by_agent": [
-   [
-    "Sensor 1",
-    117714
-   ],
-   [
-    "Sensor 2",
-    82369
-   ],
-   [
-    "Sensor 3",
-    7940
-   ],
-   [
-    "Sensor 4",
-    3614
-   ],
-   [
-    "Sensor 5",
-    2876
-   ],
-   [
-    "Sensor 6",
-    2561
-   ],
-   [
-    "Sensor 7",
-    1682
-   ],
-   [
-    "Sensor 8",
-    860
-   ],
-   [
-    "Sensor 9",
-    810
-   ],
-   [
-    "Sensor 10",
-    563
-   ]
-  ],
+  "total_7d": 221750,
+  "by_agent": [],
   "top_src": [
    [
     "34.34.169.159",
@@ -55,7 +14,7 @@
    ],
    [
     "35.198.60.29",
-    18744
+    17892
    ],
    [
     "185.177.72.9",
@@ -79,7 +38,7 @@
    ],
    [
     "45.225.47.25",
-    1917
+    1919
    ],
    [
     "34.187.119.56",
@@ -111,21 +70,21 @@
    ],
    [
     "213.209.159.231",
-    1121
+    1088
+   ],
+   [
+    "213.209.159.226",
+    1084
    ],
    [
     "213.209.159.228",
-    1119
-   ],
-   [
-    "192.253.248.223",
-    1105
+    1083
    ]
   ],
   "by_day": [
    [
     "2026-10-15",
-    22828
+    20107
    ],
    [
     "2026-10-16",
@@ -153,7 +112,7 @@
    ],
    [
     "2026-10-22",
-    7447
+    10429
    ]
   ]
  },
@@ -162,156 +121,178 @@
   "cidrs": [],
   "recent_14d": [
    {
-    "ip": "45.148.10.119",
-    "date": "10-22",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "35.201.137.139",
-    "date": "10-22",
-    "comment": "Observed source; review locally"
-   },
-   {
     "ip": "45.138.12.46",
-    "date": "10-22",
+    "date": "2026-10-22",
     "comment": "Observed source; review locally"
    },
    {
     "ip": "185.213.175.37",
-    "date": "10-22",
+    "date": "2026-10-22",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.133.232.249",
-    "date": "10-21",
+    "ip": "35.201.137.139",
+    "date": "2026-10-22",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "35.187.15.4",
-    "date": "10-21",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "163.52.135.170",
-    "date": "10-21",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "147.224.190.175",
-    "date": "10-21",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "136.66.58.120",
-    "date": "10-21",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.182.241.91",
-    "date": "10-21",
+    "ip": "45.148.10.119",
+    "date": "2026-10-22",
     "comment": "Observed source; review locally"
    },
    {
     "ip": "45.148.10.5",
-    "date": "10-21",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "163.192.216.4",
-    "date": "10-20",
+    "ip": "147.224.190.175",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.152.58.234",
-    "date": "10-20",
+    "ip": "136.66.58.120",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.156.188.158",
-    "date": "10-20",
+    "ip": "34.182.241.91",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.181.236.80",
-    "date": "10-20",
+    "ip": "35.187.15.4",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "163.192.209.190",
-    "date": "10-20",
+    "ip": "163.52.135.170",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "154.57.216.142",
-    "date": "10-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.34.169.159",
-    "date": "10-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "164.152.30.189",
-    "date": "10-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.178.235.123",
-    "date": "10-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.80.254.44",
-    "date": "10-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.87.26.215",
-    "date": "10-20",
+    "ip": "34.133.232.249",
+    "date": "2026-10-21",
     "comment": "Observed source; review locally"
    },
    {
     "ip": "20.211.36.82",
-    "date": "10-20",
+    "date": "2026-10-20",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.179.150.252",
-    "date": "10-19",
+    "ip": "34.178.235.123",
+    "date": "2026-10-20",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "185.177.72.70",
-    "date": "10-19",
+    "ip": "34.80.254.44",
+    "date": "2026-10-20",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.146.157.194",
-    "date": "10-19",
+    "ip": "34.87.26.215",
+    "date": "2026-10-20",
     "comment": "Observed source; review locally"
    },
    {
-    "ip": "34.159.70.147",
-    "date": "10-19",
+    "ip": "34.34.169.159",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "164.152.30.189",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "154.57.216.142",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "163.192.209.190",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.181.236.80",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "163.192.216.4",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.152.58.234",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.156.188.158",
+    "date": "2026-10-20",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.159.148.122",
+    "date": "2026-10-19",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "87.58.199.133",
+    "date": "2026-10-19",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "45.148.10.246",
+    "date": "2026-10-19",
     "comment": "Observed source; review locally"
    },
    {
     "ip": "34.168.228.28",
-    "date": "10-19",
+    "date": "2026-10-19",
     "comment": "Observed source; review locally"
    },
    {
     "ip": "34.178.215.179",
-    "date": "10-19",
+    "date": "2026-10-19",
     "comment": "Observed source; review locally"
    },
    {
     "ip": "34.19.241.240",
-    "date": "10-19",
+    "date": "2026-10-19",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.7.77.17",
+    "date": "2026-10-19",
     "comment": "Observed source; review locally"
    }
-  ]
+  ],
+  "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
+  "top_source_membership": {
+   "35.198.60.29": true,
+   "185.177.72.56": true,
+   "45.225.47.25": true,
+   "34.85.217.40": true,
+   "34.39.248.94": true,
+   "34.187.119.56": true,
+   "185.177.72.70": true,
+   "34.34.169.159": true,
+   "213.209.159.228": true,
+   "213.209.159.231": true,
+   "104.197.25.169": true,
+   "185.177.72.9": true,
+   "34.26.225.1": true,
+   "14.53.202.223": true,
+   "34.47.4.185": true,
+   "213.209.159.226": true,
+   "34.82.51.69": true,
+   "34.90.246.60": true,
+   "35.245.130.222": false
+  }
  },
  "vt": {
   "posted_total": 63
@@ -524,124 +505,447 @@
  "blocklist_n": 1,
  "enrich_meta": {
   "34.34.169.159": {
-   "otx": 0,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "104.197.25.169": {
-   "otx": 0,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "35.198.60.29": {
-   "otx": 0,
    "country": "BR",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "185.177.72.9": {
    "gn": "malicious",
-   "org": "unknown",
-   "otx": 50,
    "country": "UN",
+   "org": "unknown",
+   "provider": "FBW NETWORKS SAS",
+   "otx": 50,
    "aip": 100,
-   "asn": "FBW NETWORKS SAS"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "185.177.72.70": {
    "gn": "malicious",
-   "org": "unknown",
-   "otx": 50,
    "country": "UN",
+   "org": "unknown",
+   "provider": "FBW NETWORKS SAS",
+   "otx": 50,
    "aip": 100,
-   "asn": "FBW NETWORKS SAS"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "185.177.72.56": {
-   "otx": 50,
    "country": "UN",
+   "provider": "FBW NETWORKS SAS",
+   "otx": 50,
    "aip": 100,
-   "asn": "FBW NETWORKS SAS"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.47.4.185": {
-   "otx": 0,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.85.217.40": {
-   "otx": 2,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 2,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "45.225.47.25": {
    "gn": "unknown",
-   "org": "unknown",
-   "otx": 15,
    "country": "EC",
+   "org": "unknown",
+   "provider": "NEGOCIOS Y TELEFONIA NEDETEL S",
+   "otx": 15,
    "aip": 100,
-   "asn": "NEGOCIOS Y TELEFONIA NEDETEL S"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.187.119.56": {
-   "otx": 0,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.82.51.69": {
-   "otx": 2,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 2,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "35.245.130.222": {
-   "otx": 0,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 63,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.26.225.1": {
-   "otx": 0,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.90.246.60": {
-   "otx": 0,
    "country": "NE",
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "34.39.248.94": {
-   "otx": 1,
    "country": "UN",
+   "provider": "Google LLC",
+   "otx": 1,
    "aip": 100,
-   "asn": "Google LLC"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "14.53.202.223": {
-   "otx": 18,
    "country": "KO",
+   "provider": "Korea Telecom",
+   "otx": 18,
    "aip": 100,
-   "asn": "Korea Telecom"
+   "sources": {
+    "gn": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "213.209.159.231": {
-   "otx": 50,
    "country": "GE",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
    "aip": 100,
-   "asn": "Feo Prest SRL"
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
+  },
+  "213.209.159.226": {
+   "country": "GE",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   },
   "213.209.159.228": {
-   "otx": 50,
    "country": "GE",
-   "aip": 100,
-   "asn": "Feo Prest SRL"
-  },
-  "192.253.248.223": {
+   "provider": "Feo Prest SRL",
    "otx": 50,
-   "country": "AU",
    "aip": 100,
-   "asn": "Secure Internet LLC (UK)"
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "aipdb": {
+     "state": "unknown_age",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    }
+   }
   }
  }
 }

@@ -23,7 +23,7 @@ main{padding:28px clamp(18px,3.5vw,52px) 70px;max-width:1720px;width:100%;margin
 <aside class="sidebar">
   <div class="brand"><div class="brand-mark">kC</div><div>kit-cloud SoC</div></div>
   <div><div class="micro">Private workspace</div><nav class="nav" aria-label="Workspace"><a class="active" href="#overview"><span>◫</span>Overview</a><a href="#issues"><span>◈</span>Issues</a><a href="#workflow"><span>↗</span>Incident path</a></nav></div>
-  <div class="sidebar-foot"><b>Coverage note</b>This snapshot is not a case-management system. Missing evidence is shown as missing—not as an all-clear.</div>
+  <div class="sidebar-foot"><b>Coverage note</b>Top-three Wazuh samples (7d) and MISP-only NDR cross (24h) are incomplete evidence. This is not case management.</div>
 </aside>
 <main id="overview">
   <div class="topbar"><div class="breadcrumbs">Security / <strong>Issues → Incidents</strong> / Investigation workspace</div><span class="private">PRIVATE PROTOTYPE · NOT GITHUB PAGES</span></div>
@@ -47,7 +47,7 @@ main{padding:28px clamp(18px,3.5vw,52px) 70px;max-width:1720px;width:100%;margin
     <section class="panel workflow"><div class="step"><span class="number">1</span><div><b>Observe an issue</b><small>Wazuh source IP, rule, agent, UTC time, and raw alert references.</small></div></div><div class="step"><span class="number">2</span><div><b>Correlate independently</b><small>Link NDR and firewall/auth events to the same asset and bounded time window; enrichment is context, not proof.</small></div></div><div class="step"><span class="number">3</span><div><b>Check the outcome</b><small>Look for successful authentication, executed process or other validated impact—not an HTTP 400 or alert count.</small></div></div><div class="step"><span class="number">4</span><div><b>Record the decision</b><small>Analyst assigns owner, evidence, severity, status and rationale; containment stays manual.</small></div></div></section>
     <section class="panel"><div class="panel-head"><div><h3>Pipeline heartbeat</h3><small>Past runs are operational health, not incidents</small></div></div><ul id="runs" class="runs"><li>Loading…</li></ul></section>
   </div>
-  <div class="footer">kit-cloud SoC · Private, read-only design preview · No live VT/MISP queries, case writes, or automatic blocks. Do not serve this directory publicly.</div>
+  <div class="footer">kit-cloud SoC · Private, read-only evidence preview · No live VT/MISP queries, case writes, or automatic blocks. Do not serve this directory publicly.</div>
 </main>
 </div>
 <script>
@@ -60,30 +60,50 @@ const put = (parent, tag, text, className='') => { const el=document.createEleme
 let snapshot=null, items=[], selectedIp=null;
 function enrichLabel(meta){
   const parts=[];
-  if(meta.gn)parts.push('GN '+String(meta.gn));
-  if(meta.aip!==undefined)parts.push('AIP '+String(meta.aip));
-  if(meta.otx!==undefined)parts.push('OTX '+String(meta.otx));
+  const state=(name)=>meta.sources?.[name]?.state||'unknown_age';
+  if(meta.gn)parts.push('GN '+String(meta.gn)+' ('+state('gn')+')');
+  if(meta.aip!==undefined)parts.push('AIP '+String(meta.aip)+' ('+state('aipdb')+')');
+  if(meta.otx!==undefined)parts.push('OTX '+String(meta.otx)+' ('+state('otx')+')');
   return parts.length ? parts.join(' · ') : 'No cached context';
 }
-function priority(item){return item.count>=200 ? 'Review volume' : (item.meta?.gn==='malicious' || asNumber(item.meta?.aip)>=80) ? 'Review context' : 'Monitor';}
+function priority(item){
+  if(item.count>=200)return 'Review volume';
+  const src=item.meta?.sources||{};
+  return (src.gn?.state==='fresh' && item.meta?.gn==='malicious') ||
+         (src.aipdb?.state==='fresh' && asNumber(item.meta?.aip)>=80) ? 'Review context' : 'Monitor';
+}
 function evidence(list, title, message, type){const li=put(list,'li','');put(li,'span','',`dot ${type}`);const box=put(li,'div','');put(box,'strong',title);put(box,'p',message);}
 function detail(item){
   selectedIp=item.ip;const root=$('detail');root.replaceChildren();
   put(root,'div','OBSERVED SOURCE · NOT AN INCIDENT','tag');put(root,'h3',defang(item.ip));
-  put(root,'p','Priority: '+priority(item)+' · Counts cover a 7-day aggregate; no per-alert timeline or verified outcome is present in this snapshot.','subtitle');
+  put(root,'p','Priority: '+priority(item)+' · 7-day aggregate; only three sample Wazuh alerts per source. No verified outcome or case decision.','subtitle');
   put(root,'h4','Evidence & missing links');const list=put(root,'ol','','evidence');
-  evidence(list,'Wazuh observation',`${item.count.toLocaleString()} alerts in the 7-day source-IP aggregation. Rules and destination asset are not linked in this feed.`, 'fact');
-  const m=item.meta || {};evidence(list,'Reputation context',enrichLabel(m)+'. External classifications/reports guide review; they do not establish exploitation or attribution.',Object.keys(m).length ? 'context' : '');
-  const recent=(snapshot.misp?.recent_14d||[]).some(x=>x.ip===item.ip);
-  evidence(list,'MISP 1932',recent ? 'Seen among up to 30 most-recent attributes in this local snapshot. This is a catalog entry, not independent incident evidence.' : 'Not in the limited recent-attribute slice. Full Event 1932 membership is unknown here.',recent?'context':'');
-  evidence(list,'Clear NDR / outcome','NDR is integrated into the pipeline, but this dashboard has no structured, per-IP/asset/time NDR evidence or validated outcome to attach.','');
+  evidence(list,'Wazuh observation',`${item.count.toLocaleString()} alerts in the 7-day source-IP aggregation. Sample events are not a complete timeline.`, 'fact');
+  const waz=(snapshot.evidence?.wazuh_top_samples||{})[item.ip]||[];
+  if(waz.length)for(const alert of waz){
+    const where=alert.agent_name||alert.agent_id||'unknown asset';
+    const rule=alert.rule||'rule not in sample';
+    evidence(list,'Wazuh sample · '+(alert.time_utc||'timestamp unavailable'),`Agent: ${where}; rule: ${rule}; dest: ${alert.destination_ip||'unknown'}. Ref: ${alert.event_id||'not available'}.`, 'fact');
+  }else evidence(list,'Wazuh samples unavailable','This view has no individual alert references; do not infer an asset or timeline.','');
+  const m=item.meta || {};evidence(list,'Reputation context',enrichLabel(m)+'. Lookup ages are shown above; reputation alone is not proof of exploitation or attribution.',Object.keys(m).length ? 'context' : '');
+  const members=snapshot.misp?.member_ips;const mMap=snapshot.misp?.top_source_membership;
+  const inEvent=Array.isArray(members)?members.includes(item.ip):(mMap?.[item.ip]??null);
+  evidence(list,'MISP 1932',inEvent===true?'Present in full Event 1932 (includes legacy ip-dst entries); catalog membership is not independent incident evidence.':inEvent===false?'Not present in the full Event 1932 snapshot.':'Full membership unavailable in this preview.',inEvent===true?'context':'');
+  const ndr=snapshot.evidence?.ndr;
+  const matches=(ndr?.matches||[]).filter(x=>x.ip===item.ip);
+  if(ndr?.status==='ok' && matches.length){
+    for(const hit of matches){
+      evidence(list,'Clear NDR · '+hit.side,`${hit.count} matching alerts in a 24h Event 1932 query; matching an IP does not establish the same asset or outcome.`, 'context');
+      for(const sample of (hit.samples||[]))evidence(list,'NDR sample · '+(sample.time_utc||'time unavailable'),`SID ${sample.sid||'unknown'}: ${sample.signature||'no signature'}; dst ${sample.destination_ip||'unknown'}.`, 'context');
+    }
+  }else evidence(list,'Clear NDR / outcome',ndr?.status==='ok'?'No matching MISP IOC alert in the last checked 24h NDR query. This is not an all-clear.':`NDR evidence ${ndr?.status||'not collected'}; no reliable per-IP conclusion.`, '');
   const box=put(root,'div','','gate');put(box,'strong','Promotion gate · not met by this summary');const ul=put(box,'ul','');
   ['Identify the affected asset and matching UTC event window.','Attach independently correlated NDR/auth/firewall evidence.','Verify an outcome and have an analyst document the decision.'].forEach(text=>put(ul,'li',text));
   const hint=put(root,'p','Investigate in Wazuh/MISP/Clear NDR before creating an incident. Containment requires a separate human decision.','subtitle');hint.style.marginTop='16px';
   document.querySelectorAll('#rows tr').forEach(row=>row.classList.toggle('selected',row.dataset.ip===item.ip));
 }
 function renderRows(){
-  const q=$('search').value.trim().toLowerCase();const matches=items.filter(x=>x.ip.includes(q) || String(x.meta?.asn||'').toLowerCase().includes(q));
+  const q=$('search').value.trim().toLowerCase();const matches=items.filter(x=>x.ip.includes(q) || String(x.meta?.provider||'').toLowerCase().includes(q));
   const body=$('rows');body.replaceChildren();$('row-status').textContent=`${matches.length} of ${items.length} top sources`;
   if(!matches.length){const tr=put(body,'tr','');const td=put(tr,'td','No sources in this snapshot match the filter.','empty');td.colSpan=4;return;}
   for(const item of matches){const tr=put(body,'tr','');tr.dataset.ip=item.ip;tr.tabIndex=0;tr.setAttribute('role','button');tr.setAttribute('aria-label','Inspect '+item.ip);

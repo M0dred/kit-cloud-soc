@@ -5,7 +5,7 @@ import sys
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 BASE = Path(__file__).resolve().parents[1]
 SKILL = Path.home() / ".config/agents/skills/soc-connector/scripts"
@@ -14,6 +14,7 @@ sys.path.insert(0, str(SKILL))
 sys.path.insert(0, str(Path.home() / ".config/agents/skills/linux-log-threat-hunt/scripts"))
 from ioc_comment import render_comment  # noqa: E402
 from vt_comment_new import eligible, parse_comment  # noqa: E402
+import intel_enrich  # noqa: E402
 
 
 def load(name, filename):
@@ -123,11 +124,38 @@ class PipelineTests(unittest.TestCase):
             obj.stage_update_misp([{"ip": "45.148.10.141", "count": 60,
                                      "rule_level": 10, "rule_desc": "sshd"}], {})
 
+    def test_enrichment_cache_keeps_last_success_after_quota_error(self):
+        previous = {"45.148.10.141": {"gn": {"classification": "malicious", "http": 200},
+                                       "_lookups": {"gn": {"status": "ok", "checked_at": "2026-10-22T06:00:00+00:00"}}}}
+        updates = {"45.148.10.141": {"gn": {"_rate_limited": True, "http": 429},
+                                      "gn_checked_at": "2026-10-22T08:00:00+00:00"}}
+        result = orch.Orchestrator._merge_enrichment_cache(previous, updates)["45.148.10.141"]
+        self.assertEqual(result["gn"]["classification"], "malicious")
+        self.assertEqual(result["_lookups"]["gn"]["checked_at"], "2026-10-22T06:00:00+00:00")
+        self.assertEqual(result["_lookups"]["gn"]["status"], "rate_limited")
+        result = orch.Orchestrator._merge_enrichment_cache(previous, {"45.148.10.141": {
+            "gn": {"_not_found": True, "classification": None, "http": 404},
+            "gn_checked_at": "2026-10-22T09:00:00+00:00"}})["45.148.10.141"]
+        self.assertIsNone(result["gn"]["classification"])
+
+    def test_greynoise_404_message_not_a_classification(self):
+        with patch.object(intel_enrich, "_get", return_value=({"message": "IP not observed"}, 404)):
+            result = intel_enrich.greynoise("45.148.10.141", "fixture")
+        self.assertIsNone(result["classification"])
+        self.assertTrue(result["_not_found"])
+
     def test_ndr_only_reports_matched_indicator(self):
-        hits = ndr.ioc_hits({"src": {"buckets": [{"key": "45.148.10.141", "doc_count": 1}]},
-                             "dst": {"buckets": [{"key": "203.0.113.10", "doc_count": 1}]}},
-                            ["45.148.10.141"])
+        ag = {"src": {"buckets": [{"key": "45.148.10.141", "doc_count": 1,
+              "sample": {"hits": {"hits": [{"_source": {"@timestamp": "2026-10-22T06:00:00Z",
+                       "src_ip": "45.148.10.141", "dest_ip": "203.0.113.10",
+                       "alert": {"signature_id": 20210}}}]}}}]},
+              "dst": {"buckets": [{"key": "203.0.113.10", "doc_count": 1}]}}
+        hits = ndr.ioc_hits(ag, ["45.148.10.141"])
         self.assertEqual(hits, [("45.148.10.141", "src", 1)])
+        records = ndr.evidence_matches(ag, ["45.148.10.141"])
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["samples"][0]["time_utc"], "2026-10-22 06:00:00 UTC")
+        self.assertEqual(records[0]["samples"][0]["destination_ip"], "203.0.113.10")
 
 
 if __name__ == "__main__":
