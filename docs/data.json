@@ -1,7 +1,7 @@
 {
- "generated": "2026-10-22 11:35 UTC",
+ "generated": "2026-10-23 06:03 UTC",
  "wazuh": {
-  "total_7d": 221750,
+  "total_7d": 211331,
   "by_agent": [],
   "top_src": [
    [
@@ -14,11 +14,11 @@
    ],
    [
     "35.198.60.29",
-    17892
+    6816
    ],
    [
     "185.177.72.9",
-    8618
+    5619
    ],
    [
     "185.177.72.70",
@@ -38,7 +38,7 @@
    ],
    [
     "45.225.47.25",
-    1919
+    1789
    ],
    [
     "34.187.119.56",
@@ -69,26 +69,22 @@
     1268
    ],
    [
-    "213.209.159.231",
-    1088
+    "45.148.10.119",
+    1040
    ],
    [
-    "213.209.159.226",
-    1084
+    "213.209.159.231",
+    974
    ],
    [
     "213.209.159.228",
-    1083
+    968
    ]
   ],
   "by_day": [
    [
-    "2026-10-15",
-    20107
-   ],
-   [
     "2026-10-16",
-    26014
+    20405
    ],
    [
     "2026-10-17",
@@ -112,14 +108,43 @@
    ],
    [
     "2026-10-22",
-    10429
+    20912
+   ],
+   [
+    "2026-10-23",
+    4814
    ]
   ]
  },
  "misp": {
-  "total": 527,
+  "total": 532,
   "cidrs": [],
   "recent_14d": [
+   {
+    "ip": "1.176.242.140",
+    "date": "2026-10-23",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "102.16.10.74",
+    "date": "2026-10-23",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "47.251.240.204",
+    "date": "2026-10-23",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "1.203.149.250",
+    "date": "2026-10-23",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "195.178.110.137",
+    "date": "2026-10-23",
+    "comment": "Observed source; review locally"
+   },
    {
     "ip": "45.138.12.46",
     "date": "2026-10-22",
@@ -244,54 +269,29 @@
     "ip": "87.58.199.133",
     "date": "2026-10-19",
     "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "45.148.10.246",
-    "date": "2026-10-19",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.168.228.28",
-    "date": "2026-10-19",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.178.215.179",
-    "date": "2026-10-19",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.19.241.240",
-    "date": "2026-10-19",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.7.77.17",
-    "date": "2026-10-19",
-    "comment": "Observed source; review locally"
    }
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "35.198.60.29": true,
-   "185.177.72.56": true,
-   "45.225.47.25": true,
-   "34.85.217.40": true,
-   "34.39.248.94": true,
-   "34.187.119.56": true,
-   "185.177.72.70": true,
-   "34.34.169.159": true,
-   "213.209.159.228": true,
-   "213.209.159.231": true,
-   "104.197.25.169": true,
-   "185.177.72.9": true,
-   "34.26.225.1": true,
-   "14.53.202.223": true,
-   "34.47.4.185": true,
-   "213.209.159.226": true,
    "34.82.51.69": true,
+   "185.177.72.9": true,
+   "104.197.25.169": true,
+   "34.39.248.94": true,
+   "34.47.4.185": true,
+   "185.177.72.56": true,
+   "34.187.119.56": true,
+   "213.209.159.228": true,
+   "35.245.130.222": false,
+   "35.198.60.29": true,
+   "45.225.47.25": true,
+   "185.177.72.70": true,
+   "34.85.217.40": true,
+   "14.53.202.223": true,
+   "213.209.159.231": true,
+   "45.148.10.119": true,
+   "34.26.225.1": true,
    "34.90.246.60": true,
-   "35.245.130.222": false
+   "34.34.169.159": true
   }
  },
  "vt": {
@@ -301,11 +301,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-10-03T22:02:22Z",
-   "status": "ok",
-   "why": ""
-  },
   {
    "ts": "2026-10-04T06:01:35Z",
    "status": "ok",
@@ -500,6 +495,11 @@
    "ts": "2026-10-22T06:01:56Z",
    "status": "ok",
    "why": ""
+  },
+  {
+   "ts": "2026-10-22T22:02:46Z",
+   "status": "fail",
+   "why": ""
   }
  ],
  "blocklist_n": 1,
@@ -607,19 +607,19 @@
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-22 22:00 UTC",
+     "last_attempt": "ok"
     },
     "otx": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-22 22:00 UTC",
+     "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-22 22:00 UTC",
+     "last_attempt": "ok"
     }
    }
   },
@@ -706,14 +706,14 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-23 06:02 UTC",
+     "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-23 06:02 UTC",
+     "last_attempt": "ok"
     }
    }
   },
@@ -878,30 +878,32 @@
     }
    }
   },
-  "213.209.159.231": {
-   "country": "GE",
-   "provider": "Feo Prest SRL",
+  "45.148.10.119": {
+   "gn": "malicious",
+   "country": "NE",
+   "org": "unknown",
+   "provider": "TECHOFF SRV LIMITED",
    "otx": 50,
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-23 06:01 UTC",
+     "last_attempt": "ok"
     },
     "otx": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-23 06:01 UTC",
+     "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-10-23 06:01 UTC",
+     "last_attempt": "ok"
     }
    }
   },
-  "213.209.159.226": {
+  "213.209.159.231": {
    "country": "GE",
    "provider": "Feo Prest SRL",
    "otx": 50,
