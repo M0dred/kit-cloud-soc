@@ -25,6 +25,7 @@ class WazuhIndexerClient:
             self._ctx.check_hostname = False
             self._ctx.verify_mode = ssl.CERT_NONE
         self._auth = base64.b64encode(f"{username}:{password}".encode()).decode()
+        self.last_coverage = None  # set by fetch_suspicious_ips; pre-public-IP filtering
 
     def _req(self, path, data=None, method="GET"):
         url = f"{self.base_url}{path}"
@@ -103,6 +104,7 @@ class WazuhIndexerClient:
             "size": 0,
             "query": {"bool": {"must": must, "must_not": must_not}},
             "aggs": {
+                "approx_unique_sources": {"cardinality": {"field": "data.srcip", "precision_threshold": 40000}},
                 "ips": {
                     "terms": {"field": "data.srcip", "size": max_results, "order": {"_count": "desc"}},
                     "aggs": {
@@ -121,11 +123,24 @@ class WazuhIndexerClient:
             }
         }
 
+        self.last_coverage = None
         res = self.query_alerts(body)
         if res.get("_error"):
             return res
+        if res.get("timed_out") or (res.get("_shards") or {}).get("failed", 0):
+            return {"_error": True, "_message": "Indexer source aggregation incomplete"}
 
-        buckets = res.get("aggregations", {}).get("ips", {}).get("buckets", [])
+        aggs = res.get("aggregations") or {}
+        terms = aggs.get("ips") or {}
+        buckets = terms.get("buckets", [])
+        # Terms aggregation has a top-N limit. An estimate, never a claim that
+        # all source IPs were captured; private/reserved sources are counted too.
+        self.last_coverage = {
+            "source_bucket_limit": max_results,
+            "returned_buckets": len(buckets),
+            "outside_top_alerts": int(terms.get("sum_other_doc_count") or 0),
+            "approx_unique_sources": int((aggs.get("approx_unique_sources") or {}).get("value") or 0),
+        }
         results = []
         for b in buckets:
             ip = b["key"]

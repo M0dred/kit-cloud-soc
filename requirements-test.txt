@@ -1,0 +1,2 @@
+# Only third-party dependency used by offline tests and current pipeline scripts.
+PyYAML==6.0.2

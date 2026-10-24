@@ -10,6 +10,7 @@ cd "$REPO"
 python3 - <<'PY'
 import ipaddress
 import json
+from datetime import datetime
 from pathlib import Path
 import yaml
 b=Path('/root/.config/soc-orchestrator')
@@ -17,8 +18,24 @@ files=[b/'docs/data.json',b/'docs/blocklist.txt']
 d=json.loads(files[0].read_text())
 c=yaml.safe_load((b/'config.yaml').read_text())
 assert set(d)=={'generated','wazuh','misp','vt','health','runs','blocklist_n','enrich_meta'}
-assert set(d['wazuh'])=={'total_7d','top_src','by_day','by_agent'}
+assert set(d['wazuh'])=={'total_7d','top_src','by_day','by_agent','source_context','pipeline_24h_coverage'}
 assert d['wazuh']['by_agent']==[]
+context=d['wazuh']['source_context']
+assert set(context)=={ip for ip,_ in d['wazuh']['top_src']}
+assert all(set(v)=={'last_sample_utc','sample_behavior'} for v in context.values())
+assert all(v['sample_behavior'] in {'SSH authentication alert',
+  'Web request alert (outcome unverified)', 'Other detection (sample only)',
+  'No alert sample available'} for v in context.values())
+assert all(v['last_sample_utc'] is None or
+  datetime.strptime(v['last_sample_utc'], '%Y-%m-%d %H:%M:%S UTC') for v in context.values())
+coverage=d['wazuh']['pipeline_24h_coverage']
+assert set(coverage)=={'bucket_limit','outside_top_alerts','approx_source_values','measured_at_utc'}
+assert coverage['bucket_limit']==500
+assert coverage['outside_top_alerts'] is None or (type(coverage['outside_top_alerts']) is int and
+  0<=coverage['outside_top_alerts']<100000000)
+assert coverage['approx_source_values'] is None or (type(coverage['approx_source_values']) is int and
+  0<=coverage['approx_source_values']<100000000)
+assert coverage['measured_at_utc'] is None or datetime.strptime(coverage['measured_at_utc'], '%Y-%m-%d %H:%M UTC')
 assert set(d['misp'])=={'total','cidrs','recent_14d','membership_scope','top_source_membership'}
 assert d['misp']['cidrs']==[]
 assert d['health']=={'agents_down':'withheld'}

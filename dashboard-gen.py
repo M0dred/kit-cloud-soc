@@ -14,7 +14,10 @@ import base64
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path.home() / ".config/agents/skills/soc-connector/scripts"))
+_skill = Path.home() / ".config/agents/skills/soc-connector/scripts"
+if not (_skill / "misp_client.py").exists():
+    _skill = Path(__file__).resolve().parent / "src/soc-connector"  # offline repository tests
+sys.path.insert(0, str(_skill))
 from misp_client import MISPClient  # noqa: E402
 import yaml  # noqa: E402
 
@@ -85,6 +88,33 @@ def parse_wazuh_rollup(d):
     }
 
 
+def public_sample_context(samples):
+    """Public, fixed-vocabulary description of a *sample*, never its raw rule/asset.
+
+    Top-three samples are not a complete timeline or a dominant-behavior count.
+    """
+    latest = None
+    for item in samples[:3]:
+        stamp = str(item.get("time_utc") or "")
+        try:
+            datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S UTC")
+            if latest is None or stamp > latest:
+                latest = stamp
+        except ValueError:
+            pass
+    if not samples:
+        return {"last_sample_utc": None, "sample_behavior": "No alert sample available"}
+    sample = samples[0]
+    desc = str(sample.get("rule") or "").lower()
+    if "ssh" in desc or "sshd" in desc:
+        behavior = "SSH authentication alert"
+    elif any(word in desc for word in ("http", "web server", "nginx", "apache")):
+        behavior = "Web request alert (outcome unverified)"
+    else:
+        behavior = "Other detection (sample only)"
+    return {"last_sample_utc": latest, "sample_behavior": behavior}
+
+
 def wazuh_7d():
     cfg = BASE.joinpath("config.yaml").read_text()
     u = re.search(r'indexer_user:\s*"([^"]+)"', cfg).group(1)
@@ -142,6 +172,34 @@ def misp_1932():
                                  cache.get(a["value"]) or {})})
     return {"total": len(ips), "cidrs": cidrs, "recent_14d": recent[:30],
             "watchlist": watchlist, "member_ips": sorted(members)}
+
+
+def pipeline_coverage(now=None):
+    """Bounded, aggregate 24h Wazuh input coverage from the most recent run.
+
+    Not a source list or a claim about the separate seven-day dashboard query.
+    """
+    empty = {"bucket_limit": 500, "outside_top_alerts": None,
+             "approx_source_values": None, "measured_at_utc": None}
+    path = BASE / "summaries/summary.json"
+    if not path.exists():
+        return empty
+    try:
+        summary = json.loads(path.read_text())
+        finished = datetime.fromisoformat(summary["finished"].replace("Z", "+00:00"))
+        age = ((now or datetime.now(timezone.utc)) - finished.astimezone(timezone.utc)).total_seconds()
+        info = (summary.get("stage_results") or {}).get("wazuh_source_coverage") or {}
+        if not 0 <= age <= 24 * 3600 or info.get("source_bucket_limit") != 500:
+            return empty
+        outside = int(info["outside_top_alerts"])
+        approx = int(info["approx_unique_sources"])
+        if not (0 <= outside < 100000000 and 0 <= approx < 100000000):
+            return empty
+        return {"bucket_limit": 500, "outside_top_alerts": outside,
+                "approx_source_values": approx,
+                "measured_at_utc": finished.strftime("%Y-%m-%d %H:%M UTC")}
+    except (OSError, KeyError, TypeError, ValueError):
+        return empty
 
 
 def runs():
@@ -327,6 +385,9 @@ def main():
             "total_7d": waz.get("total_7d", 0),
             "by_agent": [],  # private agent distribution; rank-based labels were misleading
             "top_src": public_src, "by_day": waz.get("by_day", []),
+            "source_context": {ip: public_sample_context((waz.get("samples_by_source") or {}).get(ip) or [])
+                               for ip, _ in public_src},
+            "pipeline_24h_coverage": pipeline_coverage(),
         },
         "misp": {
             "total": misp["total"], "cidrs": [],

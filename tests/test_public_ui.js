@@ -33,13 +33,25 @@ setTimeout(()=>{
     assert.match(elements.gen.textContent,/Generated/);
     assert.notEqual(elements['status-pill'].textContent,'LOADING');
     assert.equal(elements.kpis.children.length,4);
-    assert(elements.src.children.length>=2,'Source table missing');
-    const row=elements.src.children.find(x=>x.listeners.click);
-    assert(row,'No accessible source row');
-    row.listeners.click();
+    assert.equal(elements.src.children.length,2,'Semantic thead/tbody missing');
+    const rows=elements.src.children[1].children;
+    const button=rows[0]?.children[0]?.children[0];
+    assert(button?.listeners?.click,'No keyboard-focusable source button');
+    button.listeners.click();
     assert.equal(elements['ioc-detail'].hidden,false);
     assert(elements['ioc-detail'].children.length>3);
     assert(!JSON.stringify(data).includes('samples_by_source'),'Private evidence leaked into public JSON');
-    console.log('Public UI smoke test OK');
+    assert(elements['day-values'].children.length>0,'Visible UTC daily numbers missing');
+    const stale=Object.fromEntries(ids.map(id=>[id,new Element()]));
+    const staleDoc={getElementById(id){assert(stale[id]);return stale[id];},createElement(){return new Element();}};
+    const timestamp=Date.parse(data.generated.replace(' UTC','Z').replace(' ','T'));
+    const FakeDate=class extends Date {static now(){return timestamp+48*3600000;}};
+    vm.runInNewContext(script,{document:staleDoc,console,Date:FakeDate,
+      fetch:async()=>({ok:true,json:async()=>data})},{timeout:2000});
+    setTimeout(()=>{
+      try {assert.equal(stale['status-pill'].textContent,'STALE SNAPSHOT');
+        console.log('Public UI fresh/stale smoke tests OK');}
+      catch(error){console.error(error);process.exitCode=1;}
+    },25);
   } catch(error){console.error(error);process.exitCode=1;}
 },25);

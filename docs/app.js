@@ -12,6 +12,10 @@ const number = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const defang = ip => {const i=ip.lastIndexOf("."); return i<0 ? ip : ip.slice(0,i)+"[.]"+ip.slice(i+1);};
 const validIP = ip => typeof ip==="string" && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip)
   && ip.split(".").every(o=>Number(o)<=255);
+const snapshotAgeHours = (stamp, now=Date.now()) => {
+  const parsed=Date.parse(String(stamp||"").replace(" UTC","Z").replace(" ","T"));
+  return Number.isFinite(parsed) && parsed<=now+600000 ? Math.max(0,(now-parsed)/3600000) : Infinity;
+};
 const sourceState = (meta, name) => meta?.sources?.[name]?.state || "unknown_age";
 const stateLabel = state => ({fresh:"fresh",cached:"cached; latest attempt failed",stale:"stale (>48h)",
   not_observed:"not observed in lookup",unknown_age:"lookup age unknown",not_queried:"not queried"})[state] || "unknown";
@@ -27,15 +31,16 @@ function addRow(table, values, classes=[]) {
   return row;
 }
 function addHeading(table, headings){
-  const row=add(table,"tr","");
-  headings.forEach(text=>add(row,"th",text));
+  const head=add(table,"thead","");const row=add(head,"tr","");
+  headings.forEach(text=>{const cell=add(row,"th",text);cell.setAttribute("scope","col");});
+  return add(table,"tbody","");
 }
 function renderCards(d){
   const cards=byId("kpis"); cards.replaceChildren();
   const items=[
     ["Wazuh alerts · 7d",number(d.wazuh?.total_7d).toLocaleString(),"Exact query total; batch snapshot"],
     ["MISP 1932 attributes",number(d.misp?.total).toLocaleString(),"Legacy ip-dst and new ip-src; not incidents"],
-    ["VT comments logged",number(d.vt?.posted_total).toLocaleString(),"Local ledger; not a per-IP verdict"],
+    ["VT comments logged",number(d.vt?.posted_total).toLocaleString(),"Cumulative local ledger; not recent activity or a verdict"],
     ["Public watchlist",number(d.blocklist_n).toLocaleString(),"Review-only; never auto-block"],
   ];
   for (const [name,value,explain] of items) {
@@ -45,18 +50,21 @@ function renderCards(d){
 function renderDaily(d){
   const days=Array.isArray(d.wazuh?.by_day)?d.wazuh.by_day:[];
   const root=byId("days");root.replaceChildren();
+  const values=byId("day-values");values.replaceChildren();
   const max=Math.max(1,...days.map(x=>number(x[1])));
   for(const [day,count] of days){
     const bar=add(root,"div","","bar");bar.style.height=`${Math.max(3,Math.round(78*number(count)/max))}%`;
     bar.title=`${String(day)}: ${number(count).toLocaleString()} alerts`;
     add(bar,"span",String(day).slice(5));
+    add(values,"span",`${String(day)}: ${number(count).toLocaleString()}`,"day-value");
   }
   byId("agent-privacy").textContent="Per-agent totals and host identities are private. Data shown is a 7-day batch, not live detection.";
 }
-function renderDetail(ip,count,meta,membership){
+function renderDetail(ip,count,meta,membership,sourceContext){
   const root=byId("ioc-detail");root.hidden=false;root.replaceChildren();
   add(root,"h2",`Source ${defang(ip)} · evidence limits`);
   add(root,"p",`${number(count).toLocaleString()} Wazuh alerts over 7 days. A source IP and alert volume alone do not prove attack success.`);
+  add(root,"p",`Latest sampled alert: ${sourceContext?.last_sample_utc||"not available"} · ${sourceContext?.sample_behavior||"No alert sample available"}. At most three recent alerts were sampled; this is not a complete or dominant behavior timeline.`);
   const memberText=membership===true?"Present in full MISP Event 1932 (catalog, not incident evidence)":
     membership===false?"Not present in full MISP Event 1932 snapshot":"Full MISP membership unavailable";
   add(root,"p",memberText);
@@ -81,41 +89,51 @@ function renderSources(d){
   sourceRows=rows.filter(x=>Array.isArray(x)&&validIP(x[0]));
   const memberMap=d.misp?.top_source_membership||{};
   const metaMap=d.enrich_meta||{};
+  const contextMap=d.wazuh?.source_context||{};
+  const intake=d.wazuh?.pipeline_24h_coverage||{};
+  const cap=number(intake.bucket_limit)||500;
+  byId("pipeline-coverage").textContent=intake.outside_top_alerts===null||intake.outside_top_alerts===undefined
+    ?`Separate 24h pipeline: top ${cap} source buckets; truncation not yet measured. This table is a separate 7d top-20 view.`
+    :`Separate 24h pipeline: top ${cap} of approximately ${number(intake.approx_source_values)} source values; `+
+      `${number(intake.outside_top_alerts)} alerts outside the top buckets · measured ${intake.measured_at_utc||"unknown UTC"}. `+
+      `Estimate may include private IPs; this 7d table is not a complete source list.`;
   function draw(){
     const q=byId("source-filter").value.trim().toLowerCase();table.replaceChildren();
-    addHeading(table,["Source IP","Provider / org","Country","7d alerts","In 1932?","Enrichment coverage"]);
+    const body=addHeading(table,["Source IP","Sampled behavior","Provider / org","Country","7d alerts","In 1932?","Enrichment coverage"]);
     let shown=0;
     for(const [ip,count] of sourceRows){
       const meta=metaMap[ip]||{};
+      const ctx=contextMap[ip]||{};
       if(!ip.includes(q) && !String(meta.provider||meta.org||"").toLowerCase().includes(q))continue;
       const membership=Object.hasOwn(memberMap,ip)?memberMap[ip]:null;
       const presence=membership===true?"Yes":membership===false?"No":"Unknown";
       const coverage=[['GN','gn','gn'],['AIP','aipdb','aip'],['OTX','otx','otx']]
         .map(([label,key,val])=>`${label}: ${meta[val]===undefined?'—':stateLabel(sourceState(meta,key))}`).join(" · ");
-      const row=addRow(table,[defang(ip),meta.provider||meta.org||"Not provided",meta.country||"—",
-        number(count).toLocaleString(),presence,coverage],["mono","wrap","","num","","wrap"]);
-      row.tabIndex=0;row.setAttribute("role","button");row.setAttribute("aria-label",`Inspect ${ip}`);
-      row.addEventListener("click",()=>renderDetail(ip,count,meta,membership));
-      row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();renderDetail(ip,count,meta,membership);}});
+      const row=addRow(body,[defang(ip),ctx.sample_behavior||"No sample",meta.provider||meta.org||"Not provided",meta.country||"—",
+        number(count).toLocaleString(),presence,coverage],["mono","wrap","wrap","","num","","wrap"]);
+      const cell=row.children[0];cell.replaceChildren();
+      const button=add(cell,"button",defang(ip),"ip-action mono");button.type="button";
+      button.setAttribute("aria-label",`Inspect source ${ip}`);
+      button.addEventListener("click",()=>renderDetail(ip,count,meta,membership,ctx));
       shown++;
     }
-    byId("source-scope").textContent=`${shown} of ${sourceRows.length} top global IPv4 sources · membership checked against full Event 1932`;
+    byId("source-scope").textContent=`${shown} of ${sourceRows.length} top global IPv4 sources · sampled behavior is not a verdict · full Event 1932 membership checked`;
   }
   byId("source-filter").addEventListener("input",draw);
   draw();
 }
 function renderMisp(d){
-  const table=byId("misp");table.replaceChildren();addHeading(table,["Observed source","Attribute updated (UTC)","Context"]);
+  const table=byId("misp");table.replaceChildren();const body=addHeading(table,["Observed source","Attribute updated (UTC)","Context"]);
   const recent=Array.isArray(d.misp?.recent_14d)?d.misp.recent_14d:[];
-  for(const x of recent.slice(0,12))if(validIP(x.ip))addRow(table,[defang(x.ip),x.date||"unknown","Catalog entry; investigate locally"],["mono","","wrap"]);
-  if(!recent.length)addRow(table,["—","—","No recent-attribute preview available"]);
+  for(const x of recent.slice(0,12))if(validIP(x.ip))addRow(body,[defang(x.ip),x.date||"unknown","Catalog entry; investigate locally"],["mono","","wrap"]);
+  if(!recent.length)addRow(body,["—","—","No recent-attribute preview available"]);
 }
 function renderRuns(d){
-  const table=byId("runs");table.replaceChildren();addHeading(table,["Completed (UTC)","Status","Details"]);
+  const table=byId("runs");table.replaceChildren();const body=addHeading(table,["Completed (UTC)","Status","Details"]);
   const runs=Array.isArray(d.runs)?d.runs:[];
   for(const run of runs.slice(-12).reverse()){
     const status=run.status==="ok"?"OK":"CHECK";
-    addRow(table,[String(run.ts||"unknown").replace("T"," ").replace("Z",""),status,
+    addRow(body,[String(run.ts||"unknown").replace("T"," ").replace("Z",""),status,
       status==="OK"?"Completed":"Operational details withheld"],["",status==="OK"?"ok":"bad","wrap"]);
   }
 }
@@ -138,12 +156,16 @@ function renderFeeds(){
 async function main(){
   try{
     const response=await fetch("data.json",{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);
-    const d=await response.json();if(!Array.isArray(d.wazuh?.top_src) || !d.misp?.top_source_membership)
+    const d=await response.json();if(!Array.isArray(d.wazuh?.top_src) || !d.misp?.top_source_membership || !d.wazuh?.source_context)
       throw Error("public snapshot incomplete; membership not verified");
-    snapshot=d;byId("gen").textContent="Generated "+String(d.generated||"unknown UTC");
+    snapshot=d;
+    const age=snapshotAgeHours(d.generated);
+    byId("gen").textContent="Generated "+String(d.generated||"unknown UTC")+
+      (Number.isFinite(age)?` · snapshot about ${Math.floor(age)}h old`:" · age unknown");
     byId("agents").textContent="Asset-level evidence: private · last completed run shown below";
     const last=Array.isArray(d.runs)?d.runs.at(-1):null;
-    if(last?.status==="ok")byId("status-pill").textContent="LAST RUN OK";
+    if(age>24){byId("status-pill").textContent="STALE SNAPSHOT";byId("status-pill").className="pill bad";}
+    else if(last?.status==="ok")byId("status-pill").textContent="LAST RUN OK";
     else {byId("status-pill").textContent="REVIEW";byId("status-pill").className="pill bad";}
     renderCards(d);renderDaily(d);renderSources(d);renderMisp(d);renderRuns(d);renderFeeds();
   }catch(e){

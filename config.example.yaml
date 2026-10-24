@@ -21,7 +21,9 @@ misp:
   api_key: "CHANGE_ME"
   verify_tls: true  # public certificate; keep verification enabled
   # MISP event to update (null = auto-create)
-  event_id: 1932  # curated high-signal; 1930 frozen
+  event_id: 1932  # legacy 1930 frozen; new automated observations require review
+  # Newly added attributes have to_ids=false; existing attributes are not modified.
+  # An analyst must explicitly approve IDS use in MISP.
   # Tags applied to managed events
   tags:
     - "auto-sync"

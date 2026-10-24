@@ -137,6 +137,12 @@ class Orchestrator:
         results = [item for item in results if self._public_ipv4(item.get("ip"))]
         self.log(f"    [+] {len(results)} suspicious external IPs found")
         self.summary["stage_results"]["wazuh_ips"] = len(results)
+        coverage = getattr(self.indexer, "last_coverage", None)
+        if coverage:
+            self.summary["stage_results"]["wazuh_source_coverage"] = coverage
+            if coverage.get("outside_top_alerts", 0):
+                self.log(f"    [!] top-{coverage['source_bucket_limit']} source aggregation omitted "
+                         f"{coverage['outside_top_alerts']} alerts; source coverage incomplete")
         self._wazuh_ips = results
         return results
 
@@ -597,7 +603,10 @@ class Orchestrator:
                 "type": "ip-src",
                 "category": "Network activity",
                 "comment": comment,
-                "to_ids": True,
+                # An observed source or a volume threshold is not analyst approval
+                # to distribute a new IDS-actionable indicator. Existing attributes
+                # are not changed; a reviewer can promote this entry in MISP.
+                "to_ids": False,
             })
 
         # Use configured event_id or create new
@@ -631,7 +640,7 @@ class Orchestrator:
                 res = self.misp.publish_event(event_id)
                 if res.get("_error"):
                     raise RuntimeError(f"MISP Event {event_id} publish failed: HTTP {res.get('_status', 'unknown')}")
-            self.log(f"    [+] Updated MISP Event {event_id} (+{added} attributes)")
+            self.log(f"    [+] Updated MISP Event {event_id} (+{added} attributes; new entries to_ids=false, review required)")
             self.log(f"    [+] URL: {self.cfg['misp']['url']}/events/view/{event_id}")
             self.summary["stage_results"]["misp_event_id"] = event_id
             self.summary["stage_results"]["misp_attributes_added"] = added

@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from misp_client import MISPClient
 from wazuh_client import WazuhClient
+from wazuh_indexer import WazuhIndexerClient
 
 
 class TestMISPClient(unittest.TestCase):
@@ -124,6 +125,21 @@ class TestWazuhClient(unittest.TestCase):
         c = WazuhClient("https://wazuh.example.com:55000", "u", "p", verify_tls=False)
         result = c.block_ip("001", "10.0.0.99")
         self.assertFalse(result.get("_error", False))
+
+
+class TestIndexerCoverage(unittest.TestCase):
+    def test_top_sources_report_truncation_without_claiming_full_coverage(self):
+        client = WazuhIndexerClient("10.0.1.1", "test", "test", verify_tls=False)
+        reply = {"aggregations": {"ips": {"buckets": [{"key": "45.148.10.141", "doc_count": 10,
+            "agents": {"buckets": []}, "top_hit": {"hits": {"hits": [{"_source": {
+                "timestamp": "2026-10-22T12:00:00Z", "rule": {"level": 10}}}]}}}],
+            "sum_other_doc_count": 41}, "approx_unique_sources": {"value": 541}}}
+        with patch.object(client, "query_alerts", return_value=reply):
+            rows = client.fetch_suspicious_ips(days=1, min_level=5, max_results=1)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(client.last_coverage["outside_top_alerts"], 41)
+        self.assertEqual(client.last_coverage["approx_unique_sources"], 541)
+        self.assertEqual(client.last_coverage["source_bucket_limit"], 1)
 
 
 class TestStdlibOnly(unittest.TestCase):

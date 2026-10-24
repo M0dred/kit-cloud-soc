@@ -6,10 +6,10 @@
 
 | Integration | Available now | Do not infer |
 |---|---|---|
-| Wazuh Indexer | Exact 7-day alert total, top source-IP counts; private snapshot includes at most three alerts per displayed source with UTC timestamp, rule and agent/destination | A complete timeline, an exploit outcome or a proven asset relation from only three samples |
+| Wazuh Indexer | Exact 7-day alert total, top source-IP counts; private snapshot includes at most three alerts per displayed source with UTC timestamp, rule and agent/destination; 24h pipeline records top-500 truncation | A complete timeline, full source coverage when the 500-bucket limit is hit, an exploit outcome or a proven asset relation from only three samples |
 | Local threat DB | Source IP observations, evidence and VT result cache | The identity of an affected application or a verified attack path |
 | GN / OTX / AbuseIPDB | Cached context with lookup time/status for new results; legacy cache entries have unknown age; existing request caps remain | Independent confirmation of an incident, benign verdict from a missing GN record, or attribution |
-| MISP Event 1932 | Full membership for displayed source IPs (legacy `ip-dst`, new `ip-src`); a separate 30-attribute recent preview | Catalog membership proves compromise or a missing row in the preview means absence from MISP |
+| MISP Event 1932 | Full membership for displayed source IPs (legacy `ip-dst`, new `ip-src`); separate recent preview; **new** automated attributes have `to_ids=false` pending review, old attributes unchanged | Catalog membership or a volume threshold proves compromise; older `to_ids=true` entries have all been reviewed |
 | VT | Total comments posted; separate, strictly capped IOC publishing | A per-source VT verdict from `dashboard/data.json` or confirmation of exploitation |
 | Clear NDR | A 24-hour MISP-IOC cross-check retains up to three matching alert samples per IOC side in root-only `ndr-evidence.json` | A verified join to Wazuh's affected asset/time, complete NDR coverage, or compromise from matching an IP |
 | Case management | No case/incident state store | A zero count of actual incidents: **not tracked** is the honest label |

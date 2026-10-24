@@ -123,6 +123,11 @@ if [ ${#FAILS[@]} -eq 0 ]; then
     FAILS+=("GitHub docs sync failed")
   fi
 fi
+# Check after publishing: a missing daily backup alerts operators without
+# suppressing an otherwise safe public snapshot. Never expose archive contents.
+if ! /usr/bin/python3 "$OUTDIR/backup-health.py" >>"$LOG" 2>&1; then
+  FAILS+=("daily backup missing or invalid")
+fi
 if [ ${#FAILS[@]} -eq 0 ]; then
   echo "$(date -u +%FT%TZ) END ok" >>"$LOG"
 else

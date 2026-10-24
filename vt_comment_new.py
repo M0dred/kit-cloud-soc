@@ -22,7 +22,10 @@ from pathlib import Path
 import yaml
 from ioc_comment import render_comment
 
-sys.path.insert(0, str(Path.home() / ".config/agents/skills/soc-connector/scripts"))
+_skill = Path.home() / ".config/agents/skills/soc-connector/scripts"
+if not (_skill / "misp_client.py").exists():
+    _skill = Path(__file__).resolve().parent / "src/soc-connector"  # offline repository tests
+sys.path.insert(0, str(_skill))
 from misp_client import MISPClient  # noqa: E402
 
 BASE = Path.home() / ".config/soc-orchestrator"

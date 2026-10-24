@@ -1,6 +1,7 @@
 """Offline regression tests for SOC comments, IOC selection and MISP writes."""
 import importlib.util
 import json
+import os
 import sys
 import unittest
 from datetime import datetime, timezone
@@ -9,9 +10,13 @@ from unittest.mock import Mock, patch
 
 BASE = Path(__file__).resolve().parents[1]
 SKILL = Path.home() / ".config/agents/skills/soc-connector/scripts"
+SNAPSHOT = os.environ.get('SOC_TEST_USE_SNAPSHOT') == '1' or not (SKILL / 'soc-orchestrator.py').exists()
+if SNAPSHOT:
+    SKILL = BASE / 'src/soc-connector'
 sys.path.insert(0, str(BASE))
 sys.path.insert(0, str(SKILL))
-sys.path.insert(0, str(Path.home() / ".config/agents/skills/linux-log-threat-hunt/scripts"))
+sys.path.insert(0, str(BASE / 'src/linux-log-threat-hunt' if SNAPSHOT else
+                       Path.home() / '.config/agents/skills/linux-log-threat-hunt/scripts'))
 from ioc_comment import render_comment  # noqa: E402
 from vt_comment_new import eligible, parse_comment  # noqa: E402
 import intel_enrich  # noqa: E402
@@ -115,7 +120,14 @@ class PipelineTests(unittest.TestCase):
         obj.stage_update_misp(attrs, {})
         self.assertEqual(obj.summary["stage_results"]["misp_attributes_added"], 1)
         self.assertEqual(obj.misp.add_attribute.call_args.kwargs["type_"], "ip-src")
+        self.assertIs(obj.misp.add_attribute.call_args.kwargs["to_ids"], False)
         obj.misp.publish_event.assert_called_once()
+
+    def test_count_only_misp_candidate_is_never_auto_ids(self):
+        obj = self.fake_orch()
+        obj.stage_update_misp([{"ip": "45.148.10.141", "count": 220,
+                                "rule_level": 5, "rule_desc": "HTTP 400"}], {})
+        self.assertIs(obj.misp.add_attribute.call_args.kwargs["to_ids"], False)
 
     def test_misp_errors_are_not_silent(self):
         obj = self.fake_orch()
