@@ -26,13 +26,18 @@ assert.equal(ids.length,new Set(ids).size,'HTML IDs must be unique');
 const elements = Object.fromEntries(ids.map(id=>[id,new Element()]));
 const document={getElementById(id){assert(elements[id],`missing element ${id}`);return elements[id];},
   createElement(){return new Element();}};
-const sandbox={document,console,fetch:async()=>({ok:true,json:async()=>data})};
+const healthy={schema_version:1,state:'ok',last_attempt_utc:data.generated};
+const timestamp=Date.parse(data.generated.replace(' UTC','Z').replace(' ','T'));
+const FreshDate=class extends Date {static now(){return timestamp+3600000;}};
+const sandbox={document,console,Date:FreshDate,
+  fetch:async url=>({ok:true,json:async()=>url==='status.json'?healthy:data})};
 vm.runInNewContext(script,sandbox,{timeout:2000});
 setTimeout(()=>{
   try {
     assert.match(elements.gen.textContent,/Generated/);
-    assert.notEqual(elements['status-pill'].textContent,'LOADING');
+    assert.equal(elements['status-pill'].textContent,'LAST RUN OK');
     assert.equal(elements.kpis.children.length,4);
+    assert.match(elements['selection-explain'].textContent,/MISP IP attributes.*stricter public list/);
     assert.equal(elements.src.children.length,2,'Semantic thead/tbody missing');
     const rows=elements.src.children[1].children;
     const button=rows[0]?.children[0]?.children[0];
@@ -44,13 +49,21 @@ setTimeout(()=>{
     assert(elements['day-values'].children.length>0,'Visible UTC daily numbers missing');
     const stale=Object.fromEntries(ids.map(id=>[id,new Element()]));
     const staleDoc={getElementById(id){assert(stale[id]);return stale[id];},createElement(){return new Element();}};
-    const timestamp=Date.parse(data.generated.replace(' UTC','Z').replace(' ','T'));
     const FakeDate=class extends Date {static now(){return timestamp+48*3600000;}};
     vm.runInNewContext(script,{document:staleDoc,console,Date:FakeDate,
-      fetch:async()=>({ok:true,json:async()=>data})},{timeout:2000});
+      fetch:async url=>({ok:true,json:async()=>url==='status.json'?healthy:data})},{timeout:2000});
     setTimeout(()=>{
       try {assert.equal(stale['status-pill'].textContent,'STALE SNAPSHOT');
-        console.log('Public UI fresh/stale smoke tests OK');}
+        const degraded=Object.fromEntries(ids.map(id=>[id,new Element()]));
+        const doc={getElementById(id){assert(degraded[id]);return degraded[id];},createElement(){return new Element();}};
+        const RecentDate=class extends Date {static now(){return timestamp+3600000;}};
+        vm.runInNewContext(script,{document:doc,console,Date:RecentDate,
+          fetch:async url=>({ok:true,json:async()=>url==='status.json'?{...healthy,state:'degraded'}:data})},{timeout:2000});
+        setTimeout(()=>{
+          try{assert.equal(degraded['status-pill'].textContent,'PIPELINE DEGRADED');
+            console.log('Public UI healthy/stale/degraded smoke tests OK');}
+          catch(error){console.error(error);process.exitCode=1;}
+        },25);}
       catch(error){console.error(error);process.exitCode=1;}
     },25);
   } catch(error){console.error(error);process.exitCode=1;}

@@ -115,18 +115,33 @@ if awk -v m="$MARK" '$0 ~ m {p=1} p && /429 quota/ {found=1} END {exit !found}' 
   FAILS+=("VT comment hit 429 quota")
 fi
 
+dashboard_ready=0
 if [ ${#FAILS[@]} -eq 0 ]; then
   echo "$(date -u +%FT%TZ) --- dashboard ---" >>"$LOG"
-  if ! /usr/bin/python3 /root/.config/soc-orchestrator/dashboard-gen.py >>"$LOG" 2>&1; then
+  if /usr/bin/python3 "$OUTDIR/dashboard-gen.py" >>"$LOG" 2>&1; then
+    dashboard_ready=1
+  else
     FAILS+=("dashboard generation failed")
-  elif ! /bin/bash /root/.config/soc-orchestrator/github-sync.sh >>"$LOG" 2>&1; then
-    FAILS+=("GitHub docs sync failed")
   fi
 fi
-# Check after publishing: a missing daily backup alerts operators without
-# suppressing an otherwise safe public snapshot. Never expose archive contents.
+# Backup failure does not block a safe snapshot, but the public status must
+# show degradation and the existing Telegram failure path must still run.
 if ! /usr/bin/python3 "$OUTDIR/backup-health.py" >>"$LOG" 2>&1; then
   FAILS+=("daily backup missing or invalid")
+fi
+run_status=ok
+[ ${#FAILS[@]} -gt 0 ] && run_status=degraded
+if ! /usr/bin/python3 "$OUTDIR/public-status.py" --state "$run_status" >>"$LOG" 2>&1; then
+  FAILS+=("public heartbeat generation failed")
+else
+  if [ "$dashboard_ready" -eq 1 ]; then
+    # If only backup failed, the freshly sanitized data may still be shared.
+    if ! /bin/bash "$OUTDIR/github-sync.sh" >>"$LOG" 2>&1; then
+      FAILS+=("GitHub docs sync failed")
+    fi
+  elif ! /bin/bash "$OUTDIR/github-sync.sh" --status-only >>"$LOG" 2>&1; then
+    FAILS+=("GitHub status sync failed")
+  fi
 fi
 if [ ${#FAILS[@]} -eq 0 ]; then
   echo "$(date -u +%FT%TZ) END ok" >>"$LOG"

@@ -12,7 +12,7 @@
 | MISP Event 1932 | Full membership for displayed source IPs (legacy `ip-dst`, new `ip-src`); separate recent preview; **new** automated attributes have `to_ids=false` pending review, old attributes unchanged | Catalog membership or a volume threshold proves compromise; older `to_ids=true` entries have all been reviewed |
 | VT | Total comments posted; separate, strictly capped IOC publishing | A per-source VT verdict from `dashboard/data.json` or confirmation of exploitation |
 | Clear NDR | A 24-hour MISP-IOC cross-check retains up to three matching alert samples per IOC side in root-only `ndr-evidence.json` | A verified join to Wazuh's affected asset/time, complete NDR coverage, or compromise from matching an IP |
-| Case management | No case/incident state store | A zero count of actual incidents: **not tracked** is the honest label |
+| Case management | Local append-only `reviews.sqlite3` captures manually entered **IOC** review decisions; there is still no analyst case/incident state store or automatic MISP approval | A zero count of actual incidents: **not tracked** is the honest label |
 
 ## Design
 
@@ -43,7 +43,7 @@ Minimal future private model: `observations(id, source_ip, agent_id, timestamp_u
 ## Trust boundary
 
 - Private case graph may contain agent names, victim/asset links and raw event references; keep it under a protected local service with authentication. Do **not** add it to public `docs/`, `dashboard-gen.py`'s public JSON, or automatic GitHub sync.
-- Public GitHub Pages remains aggregate, sanitized and review-only; it must never report incident counts from nonexistent case data.
+- Public GitHub Pages remains aggregate, sanitized and review-only; it must never report incident counts from nonexistent case data. A separate `docs/status.json` can report only the run state and UTC attempt time after a failure; last safe source data remains unchanged.
 - The prototype is at `themes/issues-to-incidents.html`; it reads `../dashboard/data.json` when served from the repo root. **Never** expose the repository root using a generic HTTP server: it contains `config.yaml` and other secrets.
 
 ### Safe visual preview using already-public sanitized data

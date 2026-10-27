@@ -41,11 +41,15 @@ function renderCards(d){
     ["Wazuh alerts · 7d",number(d.wazuh?.total_7d).toLocaleString(),"Exact query total; batch snapshot"],
     ["MISP 1932 attributes",number(d.misp?.total).toLocaleString(),"Legacy ip-dst and new ip-src; not incidents"],
     ["VT comments logged",number(d.vt?.posted_total).toLocaleString(),"Cumulative local ledger; not recent activity or a verdict"],
-    ["Public watchlist",number(d.blocklist_n).toLocaleString(),"Review-only; never auto-block"],
+    ["Public watchlist",number(d.blocklist_n).toLocaleString(),"Strict SSH + corroboration + IDS flag; review before action"],
   ];
   for (const [name,value,explain] of items) {
     const card=add(cards,"div","","card");add(card,"h2",name);add(card,"div",value,"big");add(card,"div",explain,"ksub");
   }
+  byId("selection-explain").textContent=`${number(d.misp?.total).toLocaleString()} MISP IP attributes → `+
+    `${number(d.blocklist_n).toLocaleString()} in the stricter public list: IDS-enabled, corroborated SSH source, `+
+    `independent signal and non-cloud global IPv4. Older IDS flags are not proof of analyst review; `+
+    `new automated entries start IDS-disabled. Never use this list as an automatic block decision.`;
 }
 function renderDaily(d){
   const days=Array.isArray(d.wazuh?.by_day)?d.wazuh.by_day:[];
@@ -78,6 +82,10 @@ function renderDetail(ip,count,meta,membership,sourceContext){
     add(list,"li",line);
   }
   add(root,"p","This public view has no victim IPs, asset links, NDR evidence, successful-auth outcomes, or analyst case decisions. Confirm locally before responding.","dim");
+  const next={"SSH authentication alert":"Look for this source in your own authentication telemetry; distinguish rejected attempts from verified successful access.",
+    "Web request alert (outcome unverified)":"Review request sequence and response outcomes locally; HTTP errors alone do not show exploitation.",
+    "Other detection (sample only)":"Inspect the original alert, affected asset and subsequent auth/process outcomes locally."};
+  add(root,"p","Next local check: "+(next[sourceContext?.sample_behavior]||"Locate the original alert and verify its outcome locally."));
   const refs=add(root,"div","Public lookups: ","refs");
   for(const [label,prefix] of [["VT","https://www.virustotal.com/gui/ip-address/"],
     ["AbuseIPDB","https://www.abuseipdb.com/check/"],["GreyNoise","https://viz.greynoise.io/ip/"]]){
@@ -143,8 +151,8 @@ function renderFeeds(){
     const box=add(root,"div","","feed");add(box,"h3",name);const para=add(box,"p",description);
     if(href){add(para,"br","");const link=add(para,"a",linkText);link.href=href;link.rel="noopener noreferrer";link.target="_blank";}
   }
-  feed("Review-only IP list","Corroborated SSH source candidates; validate locally before action.","Public watchlist", "blocklist.txt");
-  feed("MISP exports","CSV/JSON REST export requires an authorized MISP account/API key; not public access.","",null);
+  feed("Review-only IP list","Only IDS-enabled MISP sources with corroborated SSH evidence; not the full catalog or a blocking directive.","Public watchlist", "blocklist.txt");
+  feed("MISP exports","New automated attributes need analyst review before IDS use; legacy IDS flags are not automatically re-reviewed. Exports require authorization.","",null);
   feed("VirusTotal","A capped job shares selected, evidence-backed source observations. VT labels are not proof of compromise.","",null);
   feed("Private investigations","NDR alert samples, asset identities and incident decisions are not published on this page.","",null);
   const sources=byId("srcs");sources.replaceChildren();
@@ -158,15 +166,22 @@ async function main(){
     const response=await fetch("data.json",{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);
     const d=await response.json();if(!Array.isArray(d.wazuh?.top_src) || !d.misp?.top_source_membership || !d.wazuh?.source_context)
       throw Error("public snapshot incomplete; membership not verified");
+    let report=null;
+    try{const statusResponse=await fetch("status.json",{cache:"no-store"});
+      if(statusResponse.ok)report=await statusResponse.json();}catch(_){/* Status remains unknown. */}
     snapshot=d;
     const age=snapshotAgeHours(d.generated);
     byId("gen").textContent="Generated "+String(d.generated||"unknown UTC")+
       (Number.isFinite(age)?` · snapshot about ${Math.floor(age)}h old`:" · age unknown");
-    byId("agents").textContent="Asset-level evidence: private · last completed run shown below";
-    const last=Array.isArray(d.runs)?d.runs.at(-1):null;
-    if(age>24){byId("status-pill").textContent="STALE SNAPSHOT";byId("status-pill").className="pill bad";}
-    else if(last?.status==="ok")byId("status-pill").textContent="LAST RUN OK";
-    else {byId("status-pill").textContent="REVIEW";byId("status-pill").className="pill bad";}
+    const reportAge=snapshotAgeHours(report?.last_attempt_utc);
+    const validReport=report?.schema_version===1 && ["ok","degraded"].includes(report?.state) && reportAge<=24;
+    byId("agents").textContent="Asset-level evidence: private · last pipeline attempt "+
+      (validReport?`${report.last_attempt_utc} (${report.state})`:"unknown");
+    const pill=byId("status-pill");
+    if(age>24){pill.textContent="STALE SNAPSHOT";pill.className="pill bad";}
+    else if(!validReport){pill.textContent="STATUS UNKNOWN";pill.className="pill bad";}
+    else if(report.state==="degraded"){pill.textContent="PIPELINE DEGRADED";pill.className="pill bad";}
+    else pill.textContent="LAST RUN OK";
     renderCards(d);renderDaily(d);renderSources(d);renderMisp(d);renderRuns(d);renderFeeds();
   }catch(e){
     byId("gen").textContent="Public snapshot unavailable: "+e.message;

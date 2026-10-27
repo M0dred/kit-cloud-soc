@@ -5,15 +5,27 @@ umask 077
 export GIT_TERMINAL_PROMPT=0
 REPO=/root/.config/soc-orchestrator
 exec 8>/run/soc-github-sync.lock
-flock -n 8 || { echo 'GitHub sync skipped: already running'; exit 0; }
+flock -n 8 || { echo 'GitHub sync failed: another sync holds the lock'; exit 1; }
 cd "$REPO"
-python3 - <<'PY'
+mode="${1:-}"
+if [ "$#" -gt 1 ] || { [ -n "$mode" ] && [ "$mode" != "--check-only" ] && [ "$mode" != "--status-only" ]; }; then
+  echo 'usage: github-sync.sh [--check-only|--status-only]' >&2; exit 2
+fi
+python3 - "$mode" <<'PY'
 import ipaddress
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 import yaml
 b=Path('/root/.config/soc-orchestrator')
+status=json.loads((b/'docs/status.json').read_text())
+assert set(status)=={'schema_version','state','last_attempt_utc'}
+assert status['schema_version']==1 and status['state'] in ('ok','degraded','unknown')
+assert datetime.strptime(status['last_attempt_utc'], '%Y-%m-%d %H:%M UTC')
+if sys.argv[1]=='--status-only':
+    print('GitHub public status privacy gate passed')
+    sys.exit(0)
 files=[b/'docs/data.json',b/'docs/blocklist.txt']
 d=json.loads(files[0].read_text())
 c=yaml.safe_load((b/'config.yaml').read_text())
@@ -64,10 +76,6 @@ if [ "${1:-}" = "--check-only" ]; then
   echo 'GitHub sync check-only: no commit or push'
   exit 0
 fi
-if [ "$#" -ne 0 ]; then
-  echo 'usage: github-sync.sh [--check-only]' >&2
-  exit 2
-fi
 # Never update a branch someone else advanced; do not auto-publish unreviewed code.
 if ! git fetch --quiet origin main >/dev/null 2>&1; then
   echo 'GitHub sync failed: fetch origin/main' >&2; exit 1
@@ -75,14 +83,18 @@ fi
 if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
   echo 'GitHub sync failed: local and origin/main differ; review manually' >&2; exit 1
 fi
-git add -- docs/data.json docs/blocklist.txt
-if git diff --cached --quiet -- docs/data.json docs/blocklist.txt; then
+files=(docs/status.json)
+if [ "$mode" != "--status-only" ]; then
+  files+=(docs/data.json docs/blocklist.txt)
+fi
+git add -- "${files[@]}"
+if git diff --cached --quiet -- "${files[@]}"; then
   echo 'GitHub docs already current'
   exit 0
 fi
 if ! git -c user.name='kit-cloud SoC' -c user.email='admin@kit-cloud.com' \
     commit -q -m "Update reviewed public SOC dashboard $(date -u +%Y-%m-%dT%H:%MZ)" \
-    -- docs/data.json docs/blocklist.txt; then
+    -- "${files[@]}"; then
   echo 'GitHub sync failed: commit' >&2; exit 1
 fi
 if ! git push -q origin HEAD:main >/dev/null 2>&1; then
