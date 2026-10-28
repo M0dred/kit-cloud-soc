@@ -1,16 +1,12 @@
 {
- "generated": "2026-10-27 22:01 UTC",
+ "generated": "2026-10-28 06:02 UTC",
  "wazuh": {
-  "total_7d": 212649,
+  "total_7d": 200003,
   "by_agent": [],
   "top_src": [
    [
     "35.233.127.87",
     69541
-   ],
-   [
-    "34.34.169.159",
-    9252
    ],
    [
     "185.177.72.70",
@@ -66,7 +62,7 @@
    ],
    [
     "45.225.47.25",
-    1035
+    989
    ],
    [
     "34.7.231.81",
@@ -79,16 +75,16 @@
    [
     "34.39.244.188",
     920
+   ],
+   [
+    "34.181.202.117",
+    916
    ]
   ],
   "by_day": [
    [
-    "2026-10-20",
-    6892
-   ],
-   [
     "2026-10-21",
-    27586
+    17157
    ],
    [
     "2026-10-22",
@@ -112,16 +108,16 @@
    ],
    [
     "2026-10-27",
-    15044
+    16357
+   ],
+   [
+    "2026-10-28",
+    3362
    ]
   ],
   "source_context": {
    "35.233.127.87": {
     "last_sample_utc": "2026-10-23 20:20:05 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "34.34.169.159": {
-    "last_sample_utc": "2026-10-21 01:40:59 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "185.177.72.70": {
@@ -177,7 +173,7 @@
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "45.225.47.25": {
-    "last_sample_utc": "2026-10-25 22:23:32 UTC",
+    "last_sample_utc": "2026-10-28 04:47:02 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "34.7.231.81": {
@@ -191,13 +187,17 @@
    "34.39.244.188": {
     "last_sample_utc": "2026-10-26 05:04:30 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "34.181.202.117": {
+    "last_sample_utc": "2026-10-27 17:51:22 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
    "outside_top_alerts": 0,
-   "approx_source_values": 434,
-   "measured_at_utc": "2026-10-27 22:01 UTC"
+   "approx_source_values": 449,
+   "measured_at_utc": "2026-10-28 06:01 UTC"
   }
  },
  "misp": {
@@ -357,25 +357,25 @@
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "34.156.40.235": true,
-   "34.39.244.188": true,
-   "34.34.169.159": true,
-   "34.84.152.60": true,
-   "34.21.14.241": true,
-   "104.199.141.155": true,
-   "34.158.126.141": true,
-   "34.140.46.49": true,
-   "34.48.151.159": true,
-   "34.7.231.81": true,
-   "35.201.207.30": true,
-   "185.177.72.70": true,
-   "34.185.200.213": true,
-   "35.233.127.87": true,
-   "185.177.72.9": true,
-   "45.148.10.119": true,
    "45.61.178.105": true,
+   "34.158.126.141": true,
+   "34.84.152.60": true,
+   "34.7.231.81": true,
+   "45.225.47.25": true,
+   "104.199.141.155": true,
+   "35.201.207.30": true,
+   "34.48.151.159": true,
+   "35.233.127.87": true,
    "185.177.72.205": true,
-   "45.225.47.25": true
+   "34.181.202.117": true,
+   "34.156.40.235": true,
+   "34.185.200.213": true,
+   "45.148.10.119": true,
+   "34.21.14.241": true,
+   "185.177.72.70": true,
+   "185.177.72.9": true,
+   "34.140.46.49": true,
+   "34.39.244.188": true
   }
  },
  "vt": {
@@ -385,11 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-10-08T06:02:29Z",
-   "status": "ok",
-   "why": ""
-  },
   {
    "ts": "2026-10-08T22:02:14Z",
    "status": "fail",
@@ -584,6 +579,11 @@
    "ts": "2026-10-27T06:03:12Z",
    "status": "ok",
    "why": ""
+  },
+  {
+   "ts": "2026-10-27T22:02:04Z",
+   "status": "ok",
+   "why": ""
   }
  ],
  "blocklist_n": 1,
@@ -610,29 +610,6 @@
      "state": "stale",
      "checked_at": "2026-10-24 06:00 UTC",
      "last_attempt": "ok"
-    }
-   }
-  },
-  "34.34.169.159": {
-   "country": "UN",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "aipdb": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
     }
    }
   },
@@ -931,12 +908,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-10-27 22:00 UTC",
+     "checked_at": "2026-10-28 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-10-27 22:00 UTC",
+     "checked_at": "2026-10-28 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -956,12 +933,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-10-26 06:00 UTC",
+     "checked_at": "2026-10-28 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-10-26 06:00 UTC",
+     "checked_at": "2026-10-28 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -1031,6 +1008,29 @@
     "aipdb": {
      "state": "fresh",
      "checked_at": "2026-10-26 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "34.181.202.117": {
+   "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-10-28 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-10-28 06:00 UTC",
      "last_attempt": "ok"
     }
    }
