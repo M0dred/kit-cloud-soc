@@ -1,7 +1,7 @@
 {
- "generated": "2026-10-28 06:02 UTC",
+ "generated": "2026-10-29 06:02 UTC",
  "wazuh": {
-  "total_7d": 200003,
+  "total_7d": 206394,
   "by_agent": [],
   "top_src": [
    [
@@ -9,12 +9,8 @@
     69541
    ],
    [
-    "185.177.72.70",
-    2638
-   ],
-   [
-    "185.177.72.9",
-    2638
+    "136.107.158.107",
+    15634
    ],
    [
     "35.201.207.30",
@@ -27,10 +23,6 @@
    [
     "45.61.178.105",
     1589
-   ],
-   [
-    "45.148.10.119",
-    1410
    ],
    [
     "34.140.46.49",
@@ -61,10 +53,6 @@
     1041
    ],
    [
-    "45.225.47.25",
-    989
-   ],
-   [
     "34.7.231.81",
     929
    ],
@@ -79,16 +67,24 @@
    [
     "34.181.202.117",
     916
+   ],
+   [
+    "45.225.47.25",
+    883
+   ],
+   [
+    "34.178.206.183",
+    882
+   ],
+   [
+    "45.138.12.22",
+    880
    ]
   ],
   "by_day": [
    [
-    "2026-10-21",
-    17157
-   ],
-   [
     "2026-10-22",
-    20912
+    14510
    ],
    [
     "2026-10-23",
@@ -112,7 +108,11 @@
    ],
    [
     "2026-10-28",
-    3362
+    24496
+   ],
+   [
+    "2026-10-29",
+    8816
    ]
   ],
   "source_context": {
@@ -120,12 +120,8 @@
     "last_sample_utc": "2026-10-23 20:20:05 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "185.177.72.70": {
-    "last_sample_utc": "2026-10-22 00:33:26 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "185.177.72.9": {
-    "last_sample_utc": "2026-10-21 13:09:47 UTC",
+   "136.107.158.107": {
+    "last_sample_utc": "2026-10-29 05:50:53 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "35.201.207.30": {
@@ -138,10 +134,6 @@
    },
    "45.61.178.105": {
     "last_sample_utc": "2026-10-26 01:22:05 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "45.148.10.119": {
-    "last_sample_utc": "2026-10-24 14:24:15 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "34.140.46.49": {
@@ -172,10 +164,6 @@
     "last_sample_utc": "2026-10-27 16:23:29 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "45.225.47.25": {
-    "last_sample_utc": "2026-10-28 04:47:02 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
    "34.7.231.81": {
     "last_sample_utc": "2026-10-23 03:58:24 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
@@ -191,19 +179,66 @@
    "34.181.202.117": {
     "last_sample_utc": "2026-10-27 17:51:22 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "45.225.47.25": {
+    "last_sample_utc": "2026-10-29 04:45:57 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "34.178.206.183": {
+    "last_sample_utc": "2026-10-26 08:05:41 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "45.138.12.22": {
+    "last_sample_utc": "2026-10-29 04:11:58 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
    "outside_top_alerts": 0,
-   "approx_source_values": 449,
-   "measured_at_utc": "2026-10-28 06:01 UTC"
+   "approx_source_values": 466,
+   "measured_at_utc": "2026-10-29 06:02 UTC"
   }
  },
  "misp": {
-  "total": 572,
+  "total": 579,
   "cidrs": [],
   "recent_14d": [
+   {
+    "ip": "45.138.12.27",
+    "date": "2026-10-29",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "193.32.162.84",
+    "date": "2026-10-29",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.48.251.157",
+    "date": "2026-10-29",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "92.118.39.14",
+    "date": "2026-10-28",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "136.107.158.107",
+    "date": "2026-10-28",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "45.138.12.22",
+    "date": "2026-10-28",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "45.138.12.142",
+    "date": "2026-10-28",
+    "comment": "Observed source; review locally"
+   },
    {
     "ip": "34.181.202.117",
     "date": "2026-10-27",
@@ -318,64 +353,29 @@
     "ip": "45.61.178.105",
     "date": "2026-10-26",
     "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "35.242.212.227",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.84.152.60",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "104.199.141.155",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.187.109.82",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.39.244.188",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.178.206.183",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.39.179.215",
-    "date": "2026-10-25",
-    "comment": "Observed source; review locally"
    }
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
    "45.61.178.105": true,
-   "34.158.126.141": true,
    "34.84.152.60": true,
-   "34.7.231.81": true,
+   "34.158.126.141": true,
    "45.225.47.25": true,
    "104.199.141.155": true,
    "35.201.207.30": true,
-   "34.48.151.159": true,
-   "35.233.127.87": true,
-   "185.177.72.205": true,
-   "34.181.202.117": true,
-   "34.156.40.235": true,
-   "34.185.200.213": true,
-   "45.148.10.119": true,
    "34.21.14.241": true,
-   "185.177.72.70": true,
-   "185.177.72.9": true,
+   "34.39.244.188": true,
+   "45.138.12.22": true,
+   "34.156.40.235": true,
    "34.140.46.49": true,
-   "34.39.244.188": true
+   "34.185.200.213": true,
+   "34.181.202.117": true,
+   "34.178.206.183": true,
+   "136.107.158.107": true,
+   "185.177.72.205": true,
+   "34.48.151.159": true,
+   "34.7.231.81": true,
+   "35.233.127.87": true
   }
  },
  "vt": {
@@ -385,16 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-10-08T22:02:14Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-09T06:01:31Z",
-   "status": "ok",
-   "why": ""
-  },
   {
    "ts": "2026-10-09T22:02:24Z",
    "status": "ok",
@@ -584,6 +574,16 @@
    "ts": "2026-10-27T22:02:04Z",
    "status": "ok",
    "why": ""
+  },
+  {
+   "ts": "2026-10-28T06:02:12Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-10-28T22:03:49Z",
+   "status": "fail",
+   "why": ""
   }
  ],
  "blocklist_n": 1,
@@ -613,53 +613,28 @@
     }
    }
   },
-  "185.177.72.70": {
+  "136.107.158.107": {
    "gn": "malicious",
    "country": "UN",
    "org": "unknown",
-   "provider": "FBW NETWORKS SAS",
-   "otx": 50,
+   "provider": "Google LLC",
+   "otx": 0,
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-22 22:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
-     "state": "stale",
-     "checked_at": "2026-10-22 22:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-10-22 22:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
      "last_attempt": "ok"
-    }
-   }
-  },
-  "185.177.72.9": {
-   "gn": "malicious",
-   "country": "UN",
-   "org": "unknown",
-   "provider": "FBW NETWORKS SAS",
-   "otx": 50,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "aipdb": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
     }
    }
   },
@@ -675,12 +650,12 @@
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -698,12 +673,12 @@
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     }
@@ -721,38 +696,13 @@
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "45.148.10.119": {
-   "gn": "malicious",
-   "country": "NE",
-   "org": "unknown",
-   "provider": "TECHOFF SRV LIMITED",
-   "otx": 50,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-23 06:01 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-10-25 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-10-25 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -769,12 +719,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -792,12 +742,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -815,12 +765,12 @@
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -838,12 +788,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -861,12 +811,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -884,12 +834,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     }
@@ -903,31 +853,6 @@
    "sources": {
     "gn": {
      "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "rate_limited"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-10-28 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-10-28 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "45.225.47.25": {
-   "gn": "unknown",
-   "country": "EC",
-   "org": "unknown",
-   "provider": "NEGOCIOS Y TELEFONIA NEDETEL S",
-   "otx": 15,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "unknown_age",
      "checked_at": null,
      "last_attempt": "rate_limited"
     },
@@ -978,12 +903,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-27 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -1001,12 +926,12 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-10-26 22:00 UTC",
      "last_attempt": "ok"
     }
@@ -1031,6 +956,79 @@
     "aipdb": {
      "state": "fresh",
      "checked_at": "2026-10-28 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "45.225.47.25": {
+   "gn": "unknown",
+   "country": "EC",
+   "org": "unknown",
+   "provider": "NEGOCIOS Y TELEFONIA NEDETEL S",
+   "otx": 15,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "cached",
+     "checked_at": "2026-10-28 22:01 UTC",
+     "last_attempt": "error"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:01 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "34.178.206.183": {
+   "country": "UN",
+   "provider": "Google LLC",
+   "otx": 0,
+   "aip": 83,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "stale",
+     "checked_at": "2026-10-27 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "stale",
+     "checked_at": "2026-10-27 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "45.138.12.22": {
+   "gn": "malicious",
+   "country": "LI",
+   "org": "unknown",
+   "provider": "TC DATACENTER LIMITED MANAGED ",
+   "otx": 18,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-10-29 06:00 UTC",
      "last_attempt": "ok"
     }
    }
