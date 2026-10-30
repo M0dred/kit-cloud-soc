@@ -22,6 +22,7 @@ from misp_client import MISPClient  # noqa: E402
 import yaml  # noqa: E402
 
 BASE = Path.home() / ".config/soc-orchestrator"
+THREAT_DB = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
 OUT = BASE / "dashboard"  # local detailed dashboard
 PUBLIC = BASE / "docs"  # restricted, review-only public GitHub Pages data
 CTX = ssl.create_default_context()
@@ -328,22 +329,26 @@ def enrich_meta_for(ips):
             if ab.get("cc"):
                 meta.setdefault("country", str(ab["cc"])[:2].upper())
         out[ip] = meta
-    # Legacy VT AS/country from DB is a fallback, with no claim of freshness.
-    db = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
-    if db.exists():
-        con = sqlite3.connect(db)
-        con.row_factory = sqlite3.Row
-        for ip in ips:
-            if out.get(ip, {}).get("provider"):
-                continue
-            row = con.execute("select evidence from iocs where ip=?", (ip,)).fetchone()
-            if row:
-                ev = _json.loads(row["evidence"] or "{}")
-                if ev.get("as_owner"):
-                    out.setdefault(ip, {})["provider"] = str(ev["as_owner"])[:30]
-                if ev.get("country"):
-                    out.setdefault(ip, {}).setdefault("country", ev["country"][:2].upper())
-        con.close()
+    # Legacy DB evidence has unknown freshness and may contain asset context.
+    # Keep its AS/country fallback private; never populate public provider fields.
+    if THREAT_DB.exists():
+        con = sqlite3.connect(THREAT_DB.resolve().as_uri() + "?mode=ro", uri=True)
+        try:
+            con.row_factory = sqlite3.Row
+            for ip in ips:
+                if out.get(ip, {}).get("provider"):
+                    continue
+                row = con.execute("select evidence from iocs where ip=?", (ip,)).fetchone()
+                if row:
+                    ev = json.loads(row["evidence"] or "{}")
+                    if not isinstance(ev, dict):
+                        continue
+                    if ev.get("as_owner"):
+                        out[ip]["db_provider_private"] = str(ev["as_owner"])[:30]
+                    if ev.get("country"):
+                        out[ip]["db_country_private"] = str(ev["country"])[:2].upper()
+        finally:
+            con.close()
     return out
 
 
@@ -359,7 +364,8 @@ def main():
         top = [x[0] for x in (data.get("wazuh") or {}).get("top_src") or []][:20]
         data["enrich_meta"] = enrich_meta_for(top)
     except Exception as e:
-        data["enrich_meta"] = {"error": str(e)[:100]}
+        # A broken enrichment fallback must not publish a silently empty snapshot.
+        raise RuntimeError("dashboard enrichment generation failed") from e
     bl = BASE / "soc_blocklist.txt"
     data["blocklist_n"] = len([l for l in bl.read_text().splitlines() if l.strip() and not l.startswith("#")]) if bl.exists() else 0
     private_ips = [x[0] for x in (data.get("wazuh") or {}).get("top_src", [])]

@@ -153,6 +153,23 @@ class PipelineTests(unittest.TestCase):
         self.assertIs(obj.misp.add_attribute.call_args.kwargs["to_ids"], False)
         obj.misp.publish_event.assert_called_once()
 
+    def test_new_event_stays_ids_disabled_and_errors_degrade_run(self):
+        obj = self.fake_orch()
+        obj.cfg["misp"]["event_id"] = None
+        obj.state = {}
+        row = {"ip": "8.8.8.8", "count": 60, "rule_level": 10,
+               "rule_desc": "sshd authentication failed", "agent_name": "fixture"}
+        obj.misp.push_ioc_event.return_value = {"event_id": "42", "event_url": "https://misp.example/events/view/42",
+                                                "attributes_added": 1}
+        with patch.object(orch, "save_state") as save:
+            obj.stage_update_misp([row], {})
+        save.assert_called_once()
+        iocs = obj.misp.push_ioc_event.call_args.kwargs["iocs"]
+        self.assertIs(iocs[0]["to_ids"], False)
+        obj.misp.push_ioc_event.return_value = {"_error": True, "_message": "attribute addition failed"}
+        with self.assertRaisesRegex(RuntimeError, "MISP event creation or update failed"):
+            obj.stage_update_misp([row], {})
+
     def test_count_only_misp_candidate_is_never_auto_ids(self):
         obj = self.fake_orch()
         obj.stage_update_misp([{"ip": "45.148.10.141", "count": 220,

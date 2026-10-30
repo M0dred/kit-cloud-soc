@@ -673,8 +673,7 @@ class Orchestrator:
                 threat_level=2,
             )
             if res.get("_error"):
-                self.log(f"    FAIL: {res.get('_body', res.get('_message', 'unknown'))[:200]}")
-                return
+                raise RuntimeError("MISP event creation or update failed")
 
             event_id = res["event_id"]
             self.log(f"    [+] Created MISP Event {event_id}")

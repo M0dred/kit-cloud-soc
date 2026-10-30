@@ -3,6 +3,7 @@ import importlib.util
 import contextlib
 import io
 import json
+import sqlite3
 import tempfile
 import unittest
 from datetime import datetime, timezone, timedelta
@@ -52,6 +53,45 @@ class DashboardTests(unittest.TestCase):
         self.assertNotIn('<', p["gn"])
         self.assertEqual(p["sources"]["gn"]["state"], "fresh")
         self.assertNotIn("classification", p["sources"]["gn"])
+
+    def test_db_provider_fallback_reads_only_private_evidence(self):
+        with tempfile.TemporaryDirectory() as folder:
+            temp = Path(folder)
+            db = temp / "fixture-threat.db"
+            con = sqlite3.connect(db)
+            con.execute("CREATE TABLE iocs (ip TEXT PRIMARY KEY, evidence TEXT)")
+            con.execute("INSERT INTO iocs VALUES (?, ?)", ("8.8.8.8",
+                        json.dumps({"as_owner": "private.internal.example", "country": "US"})))
+            con.commit()
+            con.close()
+            with patch.object(dash, "BASE", temp), patch.object(dash, "THREAT_DB", db, create=True):
+                meta = dash.enrich_meta_for(["8.8.8.8"])["8.8.8.8"]
+            self.assertEqual(meta["db_provider_private"], "private.internal.example")
+            self.assertEqual(meta["db_country_private"], "US")
+            public = dash.public_enrichment(meta)
+            self.assertNotIn("db_provider_private", public)
+            self.assertNotIn("provider", public)
+            self.assertNotIn("private.internal.example", json.dumps(public))
+
+    def test_enrichment_failure_preserves_last_safe_public_snapshot(self):
+        with tempfile.TemporaryDirectory() as folder:
+            temp = Path(folder)
+            (temp / "docs").mkdir()
+            (temp / "docs/data.json").write_text("LAST_SAFE_PUBLIC_SNAPSHOT")
+            waz = {"top_src": [["8.8.8.8", 1]], "by_day": [], "total_7d": 1}
+            misp = {"total": 0, "watchlist": [], "member_ips": [], "recent_14d": []}
+            with patch.object(dash, "BASE", temp), patch.object(dash, "OUT", temp / "dashboard"), \
+                 patch.object(dash, "PUBLIC", temp / "docs"), \
+                 patch.object(dash, "wazuh_7d", return_value=waz), \
+                 patch.object(dash, "misp_1932", return_value=misp), \
+                 patch.object(dash, "vt_ledger", return_value={"posted_total": 0}), \
+                 patch.object(dash, "health", return_value={}), \
+                 patch.object(dash, "runs", return_value=[]), \
+                 patch.object(dash, "enrich_meta_for", side_effect=ValueError("private fixture evidence")):
+                with self.assertRaisesRegex(RuntimeError, "enrichment generation failed"):
+                    dash.main()
+            self.assertEqual((temp / "docs/data.json").read_text(), "LAST_SAFE_PUBLIC_SNAPSHOT")
+            self.assertFalse((temp / "dashboard/data.json").exists())
 
     def test_ndr_snapshot_age_and_private_matches(self):
         now = datetime(2026, 10, 22, 12, tzinfo=timezone.utc)

@@ -178,9 +178,16 @@ class MISPClient:
                        comment_prefix=""):
         """Create a MISP event and populate it with IOCs.
 
-        iocs: list of dicts with keys: value, type, category, comment, confidence, source
+        iocs: list of dicts with keys: value, type, category, comment, to_ids.
+        The IDS flag defaults to False; only an explicit boolean True enables it.
         Returns: {"event_id": ..., "event_url": ..., "attributes_added": N}
         """
+        if not isinstance(iocs, (list, tuple)) or not iocs:
+            return {"_error": True, "_message": "No IOCs supplied; event not created"}
+        for ioc in iocs:
+            if (not isinstance(ioc, dict) or not ioc.get("value") or
+                    type(ioc.get("to_ids", False)) is not bool):
+                return {"_error": True, "_message": "Invalid IOC or IDS flag; event not created"}
         ev = self.create_event(
             info=name,
             threat_level=threat_level,
@@ -190,7 +197,7 @@ class MISPClient:
             return ev
         event_id = ev.get("id") or ev.get("Event", {}).get("id")
         if not event_id:
-            return {"_error": True, "_message": "Event created but no ID returned", "raw": ev}
+            return {"_error": True, "_message": "Event created but no ID returned"}
 
         added = 0
         for ioc in iocs:
@@ -203,15 +210,17 @@ class MISPClient:
                 value=ioc["value"],
                 category=ioc.get("category", "Network activity"),
                 comment=comment,
-                to_ids=True,
+                to_ids=ioc.get("to_ids", False),
             )
-            if attr_res.get("_error"):
-                print(f"WARN: failed to add attribute {ioc['value']}: "
-                      f"{attr_res.get('_body', attr_res.get('_message', ''))}")
-            else:
-                added += 1
+            if not isinstance(attr_res, dict) or attr_res.get("_error"):
+                return {"_error": True, "_message": "MISP attribute addition failed; event not published",
+                        "event_id": event_id, "attributes_added": added}
+            added += 1
 
-        self.publish_event(event_id)
+        publish = self.publish_event(event_id)
+        if not isinstance(publish, dict) or publish.get("_error"):
+            return {"_error": True, "_message": "MISP event publish failed",
+                    "event_id": event_id, "attributes_added": added}
         return {
             "event_id": event_id,
             "event_url": f"{self.base_url}/events/view/{event_id}",

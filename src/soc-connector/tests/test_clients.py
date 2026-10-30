@@ -54,6 +54,43 @@ class TestMISPClient(unittest.TestCase):
             self.assertEqual(res.get("event_id"), "42")
             self.assertEqual(res.get("attributes_added"), 1)
 
+    def test_push_ioc_event_never_enables_ids_without_explicit_boolean_approval(self):
+        client = MISPClient("https://misp.example.com", "fixture")
+        with patch.object(client, "_req", return_value={"id": "42"}) as req:
+            client.push_ioc_event("Unreviewed", [{"value": "8.8.8.8", "to_ids": False}])
+            self.assertIs(req.call_args_list[1].kwargs["data"]["to_ids"], False)
+        with patch.object(client, "_req", return_value={"id": "42"}) as req:
+            client.push_ioc_event("Default must be safe", [{"value": "8.8.8.8"}])
+            self.assertIs(req.call_args_list[1].kwargs["data"]["to_ids"], False)
+        with patch.object(client, "_req", return_value={"id": "42"}) as req:
+            client.push_ioc_event("Explicit manual IDS", [{"value": "8.8.8.8", "to_ids": True}])
+            self.assertIs(req.call_args_list[1].kwargs["data"]["to_ids"], True)
+
+    def test_partial_add_or_publish_error_never_reports_success(self):
+        client = MISPClient("https://misp.example.com", "fixture")
+        with patch.object(client, "_req", side_effect=[{"id": "42"},
+                {"_error": True, "_status": 503}]) as req:
+            result = client.push_ioc_event("Fixture", [{"value": "8.8.8.8", "to_ids": False}])
+            self.assertTrue(result.get("_error"))
+            self.assertEqual(req.call_count, 2)  # no publish of a partial event
+        with patch.object(client, "_req", side_effect=[{"id": "42"}, {"id": "1"},
+                {"_error": True, "_status": 503}]) as req:
+            result = client.push_ioc_event("Fixture", [
+                {"value": "8.8.8.8", "to_ids": False},
+                {"value": "1.1.1.1", "to_ids": False}])
+            self.assertTrue(result.get("_error"))
+            self.assertEqual(result.get("attributes_added"), 1)
+            self.assertEqual(req.call_count, 3)  # partial event stays unpublished
+        with patch.object(client, "_req", side_effect=[{"id": "42"}, {"id": "1"},
+                {"_error": True, "_status": 503}]) as req:
+            result = client.push_ioc_event("Fixture", [{"value": "8.8.8.8", "to_ids": False}])
+            self.assertTrue(result.get("_error"))
+            self.assertEqual(req.call_count, 3)
+        with patch.object(client, "_req") as req:
+            result = client.push_ioc_event("Invalid flag", [{"value": "8.8.8.8", "to_ids": "False"}])
+            self.assertTrue(result.get("_error"))
+            req.assert_not_called()
+
     def test_pull_iocs_parses_attributes(self):
         c = MISPClient("https://misp.example.com", "k")
         fake_response = {
