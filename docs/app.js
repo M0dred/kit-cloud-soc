@@ -9,11 +9,15 @@ const add = (parent, tag, text, className="") => {
   return element;
 };
 const number = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+// Missing metrics are unknown, not zero. Only real nonnegative integer counts are shown.
+const metric = value => typeof value==="number" && Number.isSafeInteger(value) && value>=0
+  ? value.toLocaleString() : "N/A";
 const defang = ip => {const i=ip.lastIndexOf("."); return i<0 ? ip : ip.slice(0,i)+"[.]"+ip.slice(i+1);};
 const validIP = ip => typeof ip==="string" && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip)
   && ip.split(".").every(o=>Number(o)<=255);
+const parseUtc = stamp => Date.parse(String(stamp||"").replace(" UTC","Z").replace(" ","T"));
 const snapshotAgeHours = (stamp, now=Date.now()) => {
-  const parsed=Date.parse(String(stamp||"").replace(" UTC","Z").replace(" ","T"));
+  const parsed=parseUtc(stamp);
   return Number.isFinite(parsed) && parsed<=now+600000 ? Math.max(0,(now-parsed)/3600000) : Infinity;
 };
 const sourceState = (meta, name) => meta?.sources?.[name]?.state || "unknown_age";
@@ -38,36 +42,44 @@ function addHeading(table, headings){
 function renderCards(d){
   const cards=byId("kpis"); cards.replaceChildren();
   const items=[
-    ["Wazuh alerts · 7d",number(d.wazuh?.total_7d).toLocaleString(),"Exact query total; batch snapshot"],
-    ["MISP 1932 attributes",number(d.misp?.total).toLocaleString(),"Legacy ip-dst and new ip-src; not incidents"],
-    ["VT comments logged",number(d.vt?.posted_total).toLocaleString(),"Cumulative local ledger; not recent activity or a verdict"],
-    ["Public watchlist",number(d.blocklist_n).toLocaleString(),"Strict SSH + corroboration + IDS flag; review before action"],
+    ["Wazuh alerts · 7d",metric(d.wazuh?.total_7d),"Exact query total; batch snapshot"],
+    ["MISP 1932 attributes",metric(d.misp?.total),"Legacy ip-dst and new ip-src; not incidents"],
+    ["VT comments logged",metric(d.vt?.posted_total),"Cumulative local ledger; not recent activity or a verdict"],
+    ["Public watchlist",metric(d.blocklist_n),"Strict SSH + corroboration + IDS flag; review before action"],
   ];
   for (const [name,value,explain] of items) {
     const card=add(cards,"div","","card");add(card,"h2",name);add(card,"div",value,"big");add(card,"div",explain,"ksub");
   }
-  byId("selection-explain").textContent=`${number(d.misp?.total).toLocaleString()} MISP IP attributes → `+
-    `${number(d.blocklist_n).toLocaleString()} in the stricter public list: IDS-enabled, corroborated SSH source, `+
-    `independent signal and non-cloud global IPv4. Older IDS flags are not proof of analyst review; `+
-    `new automated entries start IDS-disabled. Never use this list as an automatic block decision.`;
+  const totals=metric(d.misp?.total)!=="N/A" && metric(d.blocklist_n)!=="N/A"
+    ? `${metric(d.misp.total)} MISP IP attributes → ${metric(d.blocklist_n)} in the stricter public list: `
+    : "MISP and public-list counts are not both available: ";
+  byId("selection-explain").textContent=totals+
+    `IDS-enabled, corroborated SSH source, independent signal and non-cloud global IPv4. `+
+    `Older IDS flags are not proof of analyst review; new automated entries start IDS-disabled. `+
+    `Never use this list as an automatic block decision.`;
 }
 function renderDaily(d){
   const days=Array.isArray(d.wazuh?.by_day)?d.wazuh.by_day:[];
   const root=byId("days");root.replaceChildren();
   const values=byId("day-values");values.replaceChildren();
   const max=Math.max(1,...days.map(x=>number(x[1])));
+  if(!days.length)add(values,"span","Daily values unavailable; do not infer zero alerts.","day-value");
   for(const [day,count] of days){
-    const bar=add(root,"div","","bar");bar.style.height=`${Math.max(3,Math.round(78*number(count)/max))}%`;
-    bar.title=`${String(day)}: ${number(count).toLocaleString()} alerts`;
+    if(metric(count)==="N/A"){
+      add(values,"span",`${String(day)}: N/A`,"day-value");
+      continue; // Missing bucket volume is not a zero-height bar.
+    }
+    const bar=add(root,"div","","bar");bar.style.height=`${Math.max(3,Math.round(78*count/max))}%`;
+    bar.title=`${String(day)}: ${metric(count)} alerts`;
     add(bar,"span",String(day).slice(5));
-    add(values,"span",`${String(day)}: ${number(count).toLocaleString()}`,"day-value");
+    add(values,"span",`${String(day)}: ${metric(count)}`,"day-value");
   }
   byId("agent-privacy").textContent="Per-agent totals and host identities are private. Data shown is a 7-day batch, not live detection.";
 }
 function renderDetail(ip,count,meta,membership,sourceContext){
   const root=byId("ioc-detail");root.hidden=false;root.replaceChildren();
   add(root,"h2",`Source ${defang(ip)} · evidence limits`);
-  add(root,"p",`${number(count).toLocaleString()} Wazuh alerts over 7 days. A source IP and alert volume alone do not prove attack success.`);
+  add(root,"p",`${metric(count)} Wazuh alerts over 7 days. A source IP and alert volume alone do not prove attack success.`);
   add(root,"p",`Latest sampled alert: ${sourceContext?.last_sample_utc||"not available"} · ${sourceContext?.sample_behavior||"No alert sample available"}. At most three recent alerts were sampled; this is not a complete or dominant behavior timeline.`);
   const memberText=membership===true?"Present in full MISP Event 1932 (catalog, not incident evidence)":
     membership===false?"Not present in full MISP Event 1932 snapshot":"Full MISP membership unavailable";
@@ -102,11 +114,11 @@ function renderSources(d){
   const cap=number(intake.bucket_limit)||500;
   byId("pipeline-coverage").textContent=intake.outside_top_alerts===null||intake.outside_top_alerts===undefined
     ?`Separate 24h pipeline: top ${cap} source buckets; truncation not yet measured. This table is a separate 7d top-20 view.`
-    :`Separate 24h pipeline: top ${cap} of approximately ${number(intake.approx_source_values)} source values; `+
-      `${number(intake.outside_top_alerts)} alerts outside the top buckets · measured ${intake.measured_at_utc||"unknown UTC"}. `+
+    :`Separate 24h pipeline: top ${cap} of ${metric(intake.approx_source_values)==="N/A"?"an unknown number of":`approximately ${metric(intake.approx_source_values)}`} source values; `+
+      `${metric(intake.outside_top_alerts)} alerts outside the top buckets · measured ${intake.measured_at_utc||"unknown UTC"}. `+
       `Estimate may include private IPs; this 7d table is not a complete source list.`;
   function draw(){
-    const q=byId("source-filter").value.trim().toLowerCase();table.replaceChildren();
+    const q=byId("source-filter").value.trim().toLowerCase().replaceAll("[.]",".");table.replaceChildren();
     const body=addHeading(table,["Source IP","Sampled behavior","Provider / org","Country","7d alerts","In 1932?","Enrichment coverage"]);
     let shown=0;
     for(const [ip,count] of sourceRows){
@@ -118,16 +130,28 @@ function renderSources(d){
       const coverage=[['GN','gn','gn'],['AIP','aipdb','aip'],['OTX','otx','otx']]
         .map(([label,key,val])=>`${label}: ${meta[val]===undefined?'—':stateLabel(sourceState(meta,key))}`).join(" · ");
       const row=addRow(body,[defang(ip),ctx.sample_behavior||"No sample",meta.provider||meta.org||"Not provided",meta.country||"—",
-        number(count).toLocaleString(),presence,coverage],["mono","wrap","wrap","","num","","wrap"]);
+        metric(count),presence,coverage],["mono","wrap","wrap","","num","","wrap"]);
       const cell=row.children[0];cell.replaceChildren();
       const button=add(cell,"button",defang(ip),"ip-action mono");button.type="button";
       button.setAttribute("aria-label",`Inspect source ${ip}`);
       button.addEventListener("click",()=>renderDetail(ip,count,meta,membership,ctx));
       shown++;
     }
-    byId("source-scope").textContent=`${shown} of ${sourceRows.length} top global IPv4 sources · sampled behavior is not a verdict · full Event 1932 membership checked`;
+    if(!shown){
+      const row=add(body,"tr","");const cell=add(row,"td",sourceRows.length
+        ? "No sources match this filter." : "No displayed source rows in this snapshot.","dim");
+      cell.setAttribute("colspan","7");
+    }
+    byId("source-scope").textContent=shown
+      ? `${shown} of ${sourceRows.length} top global IPv4 sources · sampled behavior is not a verdict · full Event 1932 membership checked`
+      : sourceRows.length
+        ? `No sources match this filter · only ${sourceRows.length} top global IPv4 sources are available in this snapshot.`
+        : "No displayed source rows in this snapshot; this does not imply zero alerts.";
   }
-  byId("source-filter").addEventListener("input",draw);
+  byId("source-filter").addEventListener("input",()=>{
+    const detail=byId("ioc-detail");detail.hidden=true;detail.replaceChildren();
+    draw();
+  });
   draw();
 }
 function renderMisp(d){
@@ -175,17 +199,31 @@ async function main(){
       (Number.isFinite(age)?` · snapshot about ${Math.floor(age)}h old`:" · age unknown");
     const reportAge=snapshotAgeHours(report?.last_attempt_utc);
     const validReport=report?.schema_version===1 && ["ok","degraded"].includes(report?.state) && reportAge<=24;
+    // Heartbeat and data are published separately. A newer OK heartbeat does not refresh old data.
+    const lag=validReport && parseUtc(report.last_attempt_utc)-parseUtc(d.generated)>15*60000;
+    const mismatch=validReport && parseUtc(d.generated)-parseUtc(report.last_attempt_utc)>15*60000;
     byId("agents").textContent="Asset-level evidence: private · last pipeline attempt "+
       (validReport?`${report.last_attempt_utc} (${report.state})`:"unknown");
-    const pill=byId("status-pill");
-    if(age>24){pill.textContent="STALE SNAPSHOT";pill.className="pill bad";}
-    else if(!validReport){pill.textContent="STATUS UNKNOWN";pill.className="pill bad";}
-    else if(report.state==="degraded"){pill.textContent="PIPELINE DEGRADED";pill.className="pill bad";}
-    else pill.textContent="LAST RUN OK";
+    const pill=byId("status-pill");const note=byId("snapshot-note");
+    if(age>24){pill.textContent="STALE SNAPSHOT";note.textContent="Snapshot older than 24h; do not treat these counts as current."+
+      (validReport && report.state==="degraded"?" The last pipeline attempt was degraded.":"");}
+    else if(!validReport){pill.textContent="STATUS UNKNOWN";note.textContent="Last pipeline attempt unknown; showing a historical batch snapshot, not live detection.";}
+    else if(report.state==="degraded"){pill.textContent="PIPELINE DEGRADED";
+      note.textContent="Last pipeline attempt degraded; showing the previous safe snapshot. Failure details and asset evidence stay private.";}
+    else if(lag){pill.textContent="SNAPSHOT LAGS RUN";
+      note.textContent="The last pipeline status is newer than displayed data; verify the batch snapshot before using these counts.";}
+    else if(mismatch){pill.textContent="STATUS MISMATCH";
+      note.textContent="The heartbeat is older than the displayed data; the latest batch status is not verified.";}
+    else {pill.textContent="LAST RUN OK";
+      note.textContent="Latest published batch snapshot (not live). Alert counts and source lookups guide investigation, not incident confirmation.";}
+    pill.className=pill.textContent==="LAST RUN OK"?"pill":"pill bad";
+    note.className=pill.textContent==="LAST RUN OK"?"panel readout":"panel readout warn";
     renderCards(d);renderDaily(d);renderSources(d);renderMisp(d);renderRuns(d);renderFeeds();
   }catch(e){
     byId("gen").textContent="Public snapshot unavailable: "+e.message;
     byId("status-pill").textContent="UNAVAILABLE";byId("status-pill").className="pill bad";
+    byId("snapshot-note").textContent="Public snapshot unavailable; no counts or source conclusions can be drawn.";
+    byId("snapshot-note").className="panel readout warn";
     // Don't imply zero alerts or incidents when the data fetch fails.
   }
 }

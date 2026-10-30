@@ -7,5 +7,6 @@ python3 -m unittest discover -s tests -q
 python3 -m unittest discover -s src/soc-connector/tests -q
 node --check docs/app.js
 node tests/test_public_ui.js
+node tests/test_public_ui_ux.js
 bash -n cron-run.sh backup.sh github-sync.sh
 printf 'Offline SOC checks passed\n'
