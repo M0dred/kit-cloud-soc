@@ -1,8 +1,11 @@
 """Offline regression tests for SOC comments, IOC selection and MISP writes."""
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +22,7 @@ sys.path.insert(0, str(BASE / 'src/linux-log-threat-hunt' if SNAPSHOT else
                        Path.home() / '.config/agents/skills/linux-log-threat-hunt/scripts'))
 from ioc_comment import render_comment  # noqa: E402
 from vt_comment_new import eligible, parse_comment  # noqa: E402
+import vt_comment_new as vtjob  # noqa: E402
 import intel_enrich  # noqa: E402
 
 
@@ -50,9 +54,11 @@ class CommentTests(unittest.TestCase):
         self.assertIn("ip-src", text)
         self.assertIn("OTX pulses=2", text)
         self.assertIn("AbuseIPDB=87", text)
-        self.assertIn("Target: sensor-test (203.0.*.*)", text)
+        self.assertIn("Target: withheld", text)
+        self.assertNotIn("sensor-test", text)
         self.assertNotIn("203.0.113.10", text)
-        self.assertIn("Rule: sshd failed password for [address withheld]", text)
+        self.assertNotIn("203.0.*.*", text)
+        self.assertIn("Rule: sshd authentication failures (raw rule withheld)", text)
         self.assertIn("https://www.virustotal.com/gui/ip-address/45.148.10.141", text)
         self.assertIn("Via: kit-cloud SoC (Kowalski, analysis)", text)
 
@@ -69,6 +75,30 @@ class CommentTests(unittest.TestCase):
         self.assertNotIn("private-internal-host", text)
         self.assertIn("Not established from available telemetry", text)
 
+    def test_vt_fenced_summary_keeps_reference_urls_outside(self):
+        text = render_comment("45.148.10.141", 30, "sensor-test", "sshd failed password",
+                              level=10, when=NOW, format_vt=True,
+                              sensor_public_ips=SENSORS)
+        self.assertTrue(text.startswith("```text\n"))
+        self.assertEqual(text.count("```"), 2)
+        self.assertIn("\n```\nRefs:\n", text)
+        self.assertEqual(parse_comment(text)["rule"],
+                         "sshd authentication failures (raw rule withheld)")
+        self.assertTrue(eligible("45.148.10.141", parse_comment(text),
+                                 {"aipdb": {"score": 90}}))
+        self.assertNotIn("```", self.render("sshd failed password"))
+
+    def test_shared_comment_never_repeats_private_rule_or_asset(self):
+        raw = "sshd failed for user@example.invalid at https://internal.example.invalid/?token=FAKE_TEST_TOKEN 203.0.113.10"
+        text = self.render(raw, agent="sensor-test", intel={
+            "gn": {"classification": "https://private.example.invalid/?key=FAKE_TEST_TOKEN"},
+            "as_owner": "internal.example.invalid", "country": "FAKE_TEST_TOKEN"})
+        for marker in ("user@example.invalid", "internal.example.invalid", "FAKE_TEST_TOKEN",
+                       "203.0.113.10", "sensor-test"):
+            self.assertNotIn(marker, text)
+        self.assertIn("Rule: sshd authentication failures (raw rule withheld)", text)
+        self.assertIn("Target: withheld", text)
+
     def test_reject_nonpublic_ioc(self):
         with self.assertRaises(ValueError):
             render_comment("10.0.1.1", 200, "sensor-test", "sshd", level=10)
@@ -78,7 +108,7 @@ class CommentTests(unittest.TestCase):
         meta = parse_comment(text)
         self.assertEqual((meta["count"], meta["level"]), (60, 10))
         self.assertEqual(meta["aip"], 90)
-        self.assertEqual(meta["agent"], "sensor-test")
+        self.assertEqual(meta["agent"], "withheld")
         self.assertTrue(eligible("45.148.10.141", meta, {}))
 
     def test_legacy_comment_parse_and_cloud_web_skip(self):
@@ -190,6 +220,34 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["samples"][0]["time_utc"], "2026-10-22 06:00:00 UTC")
         self.assertEqual(records[0]["samples"][0]["destination_ip"], "203.0.113.10")
+
+
+class VTJobRenderingTests(unittest.TestCase):
+    def test_selected_vt_post_uses_fenced_renderer_without_live_requests(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            config = root / "config.yaml"
+            cache = root / "enrich-cache.json"
+            config.write_text("misp:\n  url: https://misp.example\n  api_key: fixture\n  event_id: 1932\nvirustotal:\n  api_key: fixture\n")
+            cache.write_text(json.dumps({"8.8.8.8": {"aipdb": {"score": 90}}}))
+            attr = {"type": "ip-src", "value": "8.8.8.8",
+                    "timestamp": int(datetime.now(timezone.utc).timestamp()),
+                    "comment": "Wazuh: 30x, lvl=10 | Rule: sshd failed password"}
+            with patch.object(vtjob, "BASE", root), patch.object(vtjob, "CONFIG", config), \
+                 patch.object(vtjob, "CACHE", cache), patch.object(vtjob, "LEDGER", root / "ledger"), \
+                 patch.object(vtjob, "DAILY", root / "daily"), patch.object(vtjob, "MISPClient") as client, \
+                 patch.object(vtjob, "render_comment", return_value="preview") as render, \
+                 patch.object(vtjob, "post", return_value=(201, "ok")) as post, \
+                 patch.object(vtjob, "mark_sent") as mark, \
+                 patch.object(sys, "argv", ["vt_comment_new.py", "--max", "1"]), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                client.return_value.get_event.return_value = {"Event": {"Attribute": [attr]}}
+                result = vtjob.main()
+            self.assertEqual(result, 0)
+            render.assert_called_once()
+            self.assertIs(render.call_args.kwargs["format_vt"], True)
+            post.assert_called_once_with("fixture", "8.8.8.8", "preview")
+            mark.assert_called_once_with("8.8.8.8")
 
 
 if __name__ == "__main__":

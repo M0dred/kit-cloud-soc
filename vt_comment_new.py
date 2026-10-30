@@ -179,7 +179,8 @@ def main() -> int:
         for _, ip, meta, intel in todo[:limit]:
             text = render_comment(ip, meta["count"], meta["agent"], meta["rule"],
                                   intel=intel, level=meta["level"],
-                                  sensor_public_ips=cfg.get("sensor_public_ips"))
+                                  sensor_public_ips=cfg.get("sensor_public_ips"),
+                                  format_vt=True)
             code, message = post(key, ip, text)
             if code in (200, 201):
                 mark_sent(ip)

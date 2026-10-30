@@ -21,7 +21,7 @@ After the Wazuh 24-hour top-500 source fetch, `warninglist_context.py` reads fou
 | `cron-run.sh`, `backup.sh`, `backup-health.py`, `public-status.py`, `github-sync.sh` | active jobs, public run heartbeat and daily backup monitoring |
 | `src/soc-connector/` | reviewed snapshot of live skill code; active file is under `~/.config/agents/skills/soc-connector/scripts/` |
 | `src/linux-log-threat-hunt/threat_db.py` | snapshot of DB dependency; active copy lives under the skill |
-| `ioc_comment.py` | one source comment template, shared by MISP and VT |
+| `ioc_comment.py` | one source comment template: fixed public behavior labels, raw rule/target withheld; VT-only fenced summary with references outside the fence (VT Markdown rendering not yet verified) |
 | `warninglist_context.py` | root-only, read-only provider-range context; no actions or sharing |
 | `vt_comment_new.py` | strict, capped VT posting and offline `--dry-run` preview |
 | `ndr-cross.py`, `health-check.py`, `dashboard-gen.py` | bounded private Wazuh/NDR evidence, health and split local/public dashboard |
