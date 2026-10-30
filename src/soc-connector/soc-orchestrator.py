@@ -42,6 +42,7 @@ from misp_client import MISPClient
 from threat_db import ThreatDB
 import intel_enrich
 from ioc_comment import render_comment
+from warninglist_context import build_report as build_warninglist_report, write_report as write_warninglist_report
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +146,24 @@ class Orchestrator:
                          f"{coverage['outside_top_alerts']} alerts; source coverage incomplete")
         self._wazuh_ips = results
         return results
+
+    # ------------------------------------------------------------------
+    # Private source context (observation only; no selection or sharing)
+    # ------------------------------------------------------------------
+
+    def stage_warninglist_context(self, wazuh_ips):
+        if self.dry_run:
+            self.log("\n[CONTEXT] MISP Warninglists: skipped (dry-run)")
+            return
+        report = build_warninglist_report(
+            wazuh_ips, coverage=getattr(self.indexer, "last_coverage", None))
+        write_warninglist_report(report)
+        matched = len(report["matches"])
+        self.log(f"\n[CONTEXT] MISP Warninglists: {report['status']}; "
+                 f"{matched} provider-range matches (private, not a verdict)")
+        self.summary["stage_results"]["warninglist_context"] = {
+            "status": report["status"], "provider_range_matches": matched,
+        }
 
     # ------------------------------------------------------------------
     # Stage 2: Ingest to local DB
@@ -854,6 +873,7 @@ class Orchestrator:
 
         # Stage 1
         wazuh_ips = self.stage_fetch_wazuh()
+        self.stage_warninglist_context(wazuh_ips)
         if not wazuh_ips:
             self.log("\n[!] No Wazuh IPs found — aborting")
             return self.finish()

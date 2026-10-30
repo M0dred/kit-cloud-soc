@@ -2,6 +2,8 @@ config.yaml
 enrich-cache.json
 ndr-evidence.json
 ndr-evidence.tmp
+warninglist-context.json
+warninglist-context.tmp
 docs/status.tmp
 reviews.sqlite3*
 vt-comment.lock

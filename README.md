@@ -2,6 +2,10 @@
 
 Homelab SOC pipeline: **Wazuh Indexer → local threat DB → GreyNoise/OTX/AbuseIPDB → MISP Event 1932 → cautiously filtered VirusTotal community comments**. No automatic blocking or VT voting. New automated MISP attributes are **not** IDS-enabled (`to_ids=false`) until an analyst reviews them; older attributes are not changed automatically.
 
+## Private MISP Warninglists context
+
+After the Wazuh 24-hour top-500 source fetch, `warninglist_context.py` reads four **public upstream** MISP CIDR warninglists (AWS, Azure, GCP, Cloudflare) over verified HTTPS and writes only source IP/provider-range matches to root-only `warninglist-context.json`. The local MISP's built-in lists are disabled and some are older; this job **does not enable them or write to MISP**. A range match is *not* a benign verdict, an allowlist, independent evidence, or an auto-exclusion. No MISP/VT selection threshold, IDS flag, blocklist, public Pages data, or automated response reads these labels. The report explicitly shows the top-500 coverage limit and upstream list versions; if any list is unavailable, malformed or older than 60 days, the report becomes `unavailable` with **no matches**, not a false no-match finding. On a dry run the optional lookup is skipped. The private report is ignored by Git and backed up with root-only archives.
+
 ## Schedule and publication
 
 - UTC `06:00` and `22:00`: `cron-run.sh` uses Wazuh → MISP and local NDR/log hunts; it runs the independently capped VT comment job (`vt_comment_new.py`, *at most 3 per run / 6 per UTC day*) and generates a dashboard.
@@ -18,6 +22,7 @@ Homelab SOC pipeline: **Wazuh Indexer → local threat DB → GreyNoise/OTX/Abus
 | `src/soc-connector/` | reviewed snapshot of live skill code; active file is under `~/.config/agents/skills/soc-connector/scripts/` |
 | `src/linux-log-threat-hunt/threat_db.py` | snapshot of DB dependency; active copy lives under the skill |
 | `ioc_comment.py` | one source comment template, shared by MISP and VT |
+| `warninglist_context.py` | root-only, read-only provider-range context; no actions or sharing |
 | `vt_comment_new.py` | strict, capped VT posting and offline `--dry-run` preview |
 | `ndr-cross.py`, `health-check.py`, `dashboard-gen.py` | bounded private Wazuh/NDR evidence, health and split local/public dashboard |
 | `docs/app.js`, `themes/issues-to-incidents.html`, `review-store.py` | safe public DOM rendering; private read-only evidence and local manual IOC reviews (not a case system) |

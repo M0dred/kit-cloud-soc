@@ -15,13 +15,16 @@ EXTRA=()
 if [ -f /root/.config/soc-orchestrator/reviews.sqlite3 ]; then
   EXTRA+=(soc-orchestrator/reviews.sqlite3)
 fi
+if [ -f /root/.config/soc-orchestrator/warninglist-context.json ]; then
+  EXTRA+=(soc-orchestrator/warninglist-context.json)
+fi
 tar -czf "$TMP" --exclude='.git' --exclude='__pycache__' \
   -C /root/.config \
   soc-orchestrator/config.yaml soc-orchestrator/cron-run.sh \
   soc-orchestrator/ioc_comment.py soc-orchestrator/vt_comment_new.py \
   soc-orchestrator/github-sync.sh soc-orchestrator/dashboard-gen.py \
   soc-orchestrator/backup-health.py soc-orchestrator/public-status.py \
-  soc-orchestrator/review-store.py \
+  soc-orchestrator/review-store.py soc-orchestrator/warninglist_context.py \
   soc-orchestrator/health-check.py soc-orchestrator/ndr-cross.py \
   soc-orchestrator/memory.md soc-orchestrator/README.md \
   soc-orchestrator/vt-commented.txt soc-orchestrator/vt-comment-daily.json \

@@ -129,6 +129,28 @@ class PipelineTests(unittest.TestCase):
                                 "rule_level": 5, "rule_desc": "HTTP 400"}], {})
         self.assertIs(obj.misp.add_attribute.call_args.kwargs["to_ids"], False)
 
+    def test_warninglist_context_is_private_and_does_not_affect_misp(self):
+        obj = self.fake_orch()
+        obj.indexer = Mock(last_coverage={"outside_top_alerts": 7})
+        report = {"status": "fresh", "matches": [{"source_ip": "8.8.8.8",
+                  "provider_ranges": ["Fixture provider range"]}]}
+        with patch.object(orch, "build_warninglist_report", return_value=report) as build, \
+             patch.object(orch, "write_warninglist_report") as write:
+            obj.stage_warninglist_context([{"ip": "8.8.8.8"}])
+        build.assert_called_once_with([{"ip": "8.8.8.8"}],
+                                      coverage={"outside_top_alerts": 7})
+        write.assert_called_once_with(report)
+        self.assertEqual(obj.summary["stage_results"]["warninglist_context"],
+                         {"status": "fresh", "provider_range_matches": 1})
+        obj.misp.assert_not_called()
+        obj.db.assert_not_called()
+        obj.dry_run = True
+        with patch.object(orch, "build_warninglist_report") as build, \
+             patch.object(orch, "write_warninglist_report") as write:
+            obj.stage_warninglist_context([{"ip": "8.8.8.8"}])
+        build.assert_not_called()
+        write.assert_not_called()
+
     def test_misp_errors_are_not_silent(self):
         obj = self.fake_orch()
         obj.misp.get_event.return_value = {"_error": True, "_status": 503}

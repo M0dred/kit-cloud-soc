@@ -14,6 +14,7 @@ from pathlib import Path
 
 DEST = Path('/mnt/storage0/soc-backups')
 REQUIRED = {'soc-orchestrator/config.yaml', 'soc-orchestrator/cron-run.sh',
+            'soc-orchestrator/warninglist_context.py',
             'agents/skills/soc-connector/scripts/soc-orchestrator.py'}
 
 
