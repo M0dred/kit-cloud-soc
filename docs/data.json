@@ -1,7 +1,7 @@
 {
- "generated": "2026-11-02 22:01 UTC",
+ "generated": "2026-11-03 06:01 UTC",
  "wazuh": {
-  "total_7d": 183856,
+  "total_7d": 183194,
   "by_agent": [],
   "top_src": [
    [
@@ -14,7 +14,7 @@
    ],
    [
     "34.87.24.222",
-    10452
+    11256
    ],
    [
     "164.30.17.82",
@@ -34,7 +34,7 @@
    ],
    [
     "202.165.25.8",
-    2115
+    2280
    ],
    [
     "91.26.99.202",
@@ -69,26 +69,22 @@
     916
    ],
    [
-    "112.216.129.27",
-    915
-   ],
-   [
     "45.138.12.142",
     885
    ],
    [
     "45.138.12.22",
     880
+   ],
+   [
+    "112.216.129.27",
+    846
    ]
   ],
   "by_day": [
    [
-    "2026-10-26",
-    1050
-   ],
-   [
     "2026-10-27",
-    16357
+    12993
    ],
    [
     "2026-10-28",
@@ -112,7 +108,11 @@
    ],
    [
     "2026-11-02",
-    42042
+    43622
+   ],
+   [
+    "2026-11-03",
+    2172
    ]
   ],
   "source_context": {
@@ -125,7 +125,7 @@
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "34.87.24.222": {
-    "last_sample_utc": "2026-11-02 20:46:40 UTC",
+    "last_sample_utc": "2026-11-02 23:28:27 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "164.30.17.82": {
@@ -145,7 +145,7 @@
     "sample_behavior": "SSH authentication alert"
    },
    "202.165.25.8": {
-    "last_sample_utc": "2026-11-02 21:57:38 UTC",
+    "last_sample_utc": "2026-11-03 05:55:29 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "91.26.99.202": {
@@ -180,10 +180,6 @@
     "last_sample_utc": "2026-10-27 17:51:22 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "112.216.129.27": {
-    "last_sample_utc": "2026-11-01 15:38:36 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
    "45.138.12.142": {
     "last_sample_utc": "2026-10-29 14:45:06 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
@@ -191,13 +187,17 @@
    "45.138.12.22": {
     "last_sample_utc": "2026-10-29 04:11:58 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "112.216.129.27": {
+    "last_sample_utc": "2026-11-01 15:38:36 UTC",
+    "sample_behavior": "SSH authentication alert"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
-   "outside_top_alerts": 66,
-   "approx_source_values": 566,
-   "measured_at_utc": "2026-11-02 22:01 UTC"
+   "outside_top_alerts": 0,
+   "approx_source_values": 432,
+   "measured_at_utc": "2026-11-03 06:00 UTC"
   }
  },
  "misp": {
@@ -357,25 +357,25 @@
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "202.165.25.8": true,
-   "34.87.24.222": true,
-   "34.126.168.190": true,
    "45.138.12.142": true,
+   "34.24.87.108": true,
+   "34.87.24.222": true,
+   "202.165.25.8": true,
+   "35.242.226.248": true,
+   "34.126.168.190": true,
+   "164.30.17.82": true,
+   "223.171.77.135": true,
+   "91.26.99.202": true,
+   "34.159.59.101": true,
    "136.107.158.107": true,
    "2.27.170.94": true,
-   "34.159.59.101": true,
-   "34.140.254.201": false,
-   "185.177.72.205": true,
-   "91.26.99.202": true,
-   "164.30.17.82": true,
-   "34.146.118.207": true,
-   "34.181.202.117": true,
-   "35.242.226.248": true,
    "117.160.217.188": true,
-   "34.24.87.108": true,
+   "34.146.118.207": true,
    "45.138.12.22": true,
    "112.216.129.27": true,
-   "223.171.77.135": true
+   "185.177.72.205": true,
+   "34.181.202.117": true,
+   "34.140.254.201": false
   }
  },
  "vt": {
@@ -385,11 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-10-14T06:01:25Z",
-   "status": "fail",
-   "why": ""
-  },
   {
    "ts": "2026-10-14T22:01:23Z",
    "status": "fail",
@@ -584,6 +579,11 @@
    "ts": "2026-11-02T06:02:00Z",
    "status": "ok",
    "why": ""
+  },
+  {
+   "ts": "2026-11-02T22:01:43Z",
+   "status": "ok",
+   "why": ""
   }
  ],
  "blocklist_n": 1,
@@ -626,12 +626,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -649,12 +649,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -664,7 +664,7 @@
    "country": "GE",
    "org": "unknown",
    "provider": "T-Systems International GmbH",
-   "otx": 36,
+   "otx": 37,
    "aip": 100,
    "sources": {
     "gn": {
@@ -674,12 +674,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -772,12 +772,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-02 22:00 UTC",
+     "checked_at": "2026-11-03 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -794,12 +794,12 @@
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-01 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-01 06:00 UTC",
      "last_attempt": "ok"
     }
@@ -966,29 +966,6 @@
     }
    }
   },
-  "112.216.129.27": {
-   "country": "KO",
-   "provider": "LG Uplus",
-   "otx": 50,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-30 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-01 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-01 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
   "45.138.12.142": {
    "gn": "malicious",
    "country": "LI",
@@ -1035,6 +1012,29 @@
     "aipdb": {
      "state": "stale",
      "checked_at": "2026-10-29 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "112.216.129.27": {
+   "country": "KO",
+   "provider": "LG Uplus",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-10-30 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-01 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-01 22:00 UTC",
      "last_attempt": "ok"
     }
    }
