@@ -1,5 +1,5 @@
 #!/bin/bash
-# Melbourne 08:00 / 16:00 via crontab. Debian cron ignores CRON_TZ; schedule is UTC 06:00 and 22:00.
+# Four UTC attempts: 06:00, 12:00, 18:00, 22:00. Debian cron ignores CRON_TZ; Melbourne wall times shift with daylight saving.
 # 1) Wazuh indexer → threat DB → GN/OTX/AIPDB → MISP 1932 (--skip-vt)
 # 2) Local /var/log hunt
 # 3) Clear NDR status
