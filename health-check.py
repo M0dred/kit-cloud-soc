@@ -11,6 +11,8 @@ from pathlib import Path
 CFG = Path("/root/.config/soc-orchestrator/config.yaml")
 STATE = Path("/root/.config/soc-orchestrator/agent-status.json")
 STALE_HOURS = 3
+# These endpoints may legitimately sleep. They still appear as WARN, not FAIL.
+SOFT_AGENTS = {"win-lite", "kowalski-mac", "kowalski-pc", "raspberrypi", "sonar-mini"}
 
 
 def _cfg():
@@ -70,8 +72,6 @@ def agent_states(user, password):
 
 
 def main():
-    # Laptop/desktop agents that routinely sleep: report as WARN, never FAIL.
-    SOFT = {"win-lite", "kowalski-mac", "kowalski-pc", "raspberrypi", "sonar-mini"}
     text = _cfg()
     shards, ts, age = indexer_facts(_grab(text, "indexer_user"), _grab(text, "indexer_pass"))
     print(f"shards={shards}")
@@ -89,26 +89,24 @@ def main():
     current = agent_states(_grab(text, "manager_user"), _grab(text, "manager_pass"))
     previous = json.loads(STATE.read_text()) if STATE.exists() else {}
     first = not STATE.exists()
-    newly_down = []
+    hard_down = []
+    soft_down = []
     recovered = []
     for name, status in sorted(current.items()):
         old = previous.get(name)
-        if status != "active" and old == "active":
-            newly_down.append(f"{name}={status}")
-        elif name not in previous and status != "active" and not first:
-            newly_down.append(f"{name}={status}")
-        elif status == "active" and old not in (None, "active"):
+        if status != "active":
+            (soft_down if name in SOFT_AGENTS else hard_down).append(f"{name}={status}")
+        elif old not in (None, "active"):
             recovered.append(name)
     STATE.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n")
     if first:
         print("agent_baseline=created")
-    if newly_down:
-        hard = [x for x in newly_down if x.split("=")[0] not in SOFT]
-        soft = [x for x in newly_down if x.split("=")[0] in SOFT]
-        if hard:
-            print("FAIL agent down: " + ", ".join(hard))
-        if soft:
-            print("WARN agent down (soft target): " + ", ".join(soft))
+    # Failure is a current condition, not just a transition. Otherwise an
+    # unchanged outage is reported healthy from the second run onward.
+    if hard_down:
+        print("FAIL agent down: " + ", ".join(hard_down))
+    if soft_down:
+        print("WARN agent down (soft target): " + ", ".join(soft_down))
     if recovered:
         print("NOTE agent recovered: " + ", ".join(recovered))
     down = [f"{n}={s}" for n, s in sorted(current.items()) if s != "active"]
