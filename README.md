@@ -4,7 +4,8 @@
 
 [**Open the review-only dashboard**](https://m0dred.github.io/kit-cloud-soc/) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
 
-![Sanitized pipeline heartbeat; not an incident verdict](https://raw.githubusercontent.com/M0dred/kit-cloud-soc/main/docs/status.svg)
+![Pipeline state from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.state&label=pipeline)
+![Last pipeline attempt from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.last_attempt_utc&label=last%20attempt%20UTC)
 
 > The heartbeat and batch dashboard can be stale. Neither proves event freshness, compromise, or incident status. There is **no automatic blocking or VT voting**. New automated MISP attributes start with **IDS use disabled (`to_ids=false`)** until an analyst reviews them; older attributes are not changed automatically.
 
@@ -30,9 +31,9 @@ flowchart LR
 
 | Area | Automated behavior | Human boundary |
 |---|---|---|
-| Pipeline heartbeat | `public-status.py` writes a tiny `status.json` and matching `status.svg`; the README image changes with the existing reviewed sync | It contains only UTC last-attempt time and `ok` / `degraded` / `unknown`; never error details |
+| Pipeline heartbeat | Existing `public-status.py` writes only `status.json`; Shields reads its public `state` and UTC attempt time for the README badges | Only `ok` / `degraded` / `unknown` and UTC last-attempt time; never error details |
 | Public dashboard | Complete runs can update `docs/data.json` and `docs/blocklist.txt` after privacy checks | Last safe snapshot is retained on failure; public data is not a live detection feed |
-| Failed runs | `--status-only` can publish only the sanitized heartbeat and SVG | No failure details, evidence, agent/victim data, or empty replacement snapshot |
+| Failed runs | `--status-only` publishes only the sanitized heartbeat | No failure details, evidence, agent/victim data, or empty replacement snapshot |
 | Code and workflow | Manual review, test, commit and push | Code/config is never auto-published |
 | MISP and response | Enrichment and previews guide review | IDS flags, blocking and incident decisions require a separate verified human action |
 

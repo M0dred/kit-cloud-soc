@@ -27,10 +27,6 @@ class PublicStatusTests(unittest.TestCase):
             self.assertEqual(json.loads(target.read_text())['state'], 'unknown')
             self.assertEqual(target.stat().st_mode & 0o777, 0o600)
             self.assertFalse(target.with_suffix('.tmp').exists())
-            svg = target.with_suffix('.svg')
-            self.assertIn('Unknown', svg.read_text())
-            self.assertEqual(svg.stat().st_mode & 0o777, 0o600)
-            self.assertNotIn('sensor', svg.read_text().lower())
 
 
 if __name__ == '__main__':
