@@ -1,4 +1,5 @@
 """Offline status-only Git sync against a local bare remote; no SOC credentials."""
+import importlib.util
 import json
 import os
 import subprocess
@@ -7,6 +8,9 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location('soc_public_status', ROOT / 'public-status.py')
+public_status = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(public_status)
 
 
 def git(repo, *args):
@@ -29,17 +33,22 @@ class StatusOnlySyncTests(unittest.TestCase):
                                           'last_attempt_utc': '2026-10-27 06:03 UTC'}))
             data = repo / 'docs/data.json'
             data.write_text('old safe snapshot')
-            git(repo, 'add', 'docs/status.json', 'docs/data.json')
+            (repo / 'docs/status.svg').write_text(
+                public_status.status_svg(json.loads(status.read_text())), encoding='utf-8')
+            git(repo, 'add', 'docs/status.json', 'docs/status.svg', 'docs/data.json')
             git(repo, 'commit', '-m', 'initial')
             git(repo, 'remote', 'add', 'origin', str(remote))
             git(repo, 'push', '-u', 'origin', 'main')
             data.write_text('unreviewed private contents - must never sync')
             status.write_text(json.dumps({'schema_version': 1, 'state': 'degraded',
                                           'last_attempt_utc': '2026-10-27 22:01 UTC'}))
+            (repo / 'docs/status.svg').write_text(
+                public_status.status_svg(json.loads(status.read_text())), encoding='utf-8')
             script = (ROOT / 'github-sync.sh').read_text().replace(
                 'REPO=/root/.config/soc-orchestrator', f'REPO={repo}').replace(
                 'exec 8>/run/soc-github-sync.lock', f'exec 8>{tmp / "lock"}').replace(
-                "b=Path('/root/.config/soc-orchestrator')", f"b=Path('{repo}')")
+                "b=Path('/root/.config/soc-orchestrator')", f"b=Path('{repo}')").replace(
+                "b/'public-status.py'", f"Path('{ROOT}/public-status.py')")
             local_script = tmp / 'sync.sh'
             local_script.write_text(script)
             result = subprocess.run(['bash', str(local_script), '--status-only'],
@@ -47,6 +56,7 @@ class StatusOnlySyncTests(unittest.TestCase):
                                     env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'})
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn('degraded', git(repo, 'show', 'HEAD:docs/status.json'))
+            self.assertIn('Degraded', git(remote, 'show', 'main:docs/status.svg'))
             self.assertEqual(git(repo, 'show', 'HEAD:docs/data.json'), 'old safe snapshot')
             self.assertEqual(git(remote, 'show', 'main:docs/data.json'), 'old safe snapshot')
             self.assertIn('docs/data.json', git(repo, 'status', '--short'))

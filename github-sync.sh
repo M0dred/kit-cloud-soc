@@ -13,6 +13,7 @@ if [ "$#" -gt 1 ] || { [ -n "$mode" ] && [ "$mode" != "--check-only" ] && [ "$mo
 fi
 python3 - "$mode" <<'PY'
 import ipaddress
+import importlib.util
 import json
 import sys
 from datetime import datetime
@@ -23,6 +24,10 @@ status=json.loads((b/'docs/status.json').read_text())
 assert set(status)=={'schema_version','state','last_attempt_utc'}
 assert status['schema_version']==1 and status['state'] in ('ok','degraded','unknown')
 assert datetime.strptime(status['last_attempt_utc'], '%Y-%m-%d %H:%M UTC')
+spec=importlib.util.spec_from_file_location('public_status', b/'public-status.py')
+public_status=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(public_status)
+assert (b/'docs/status.svg').read_text(encoding='utf-8') == public_status.status_svg(status)
 if sys.argv[1]=='--status-only':
     print('GitHub public status privacy gate passed')
     sys.exit(0)
@@ -83,7 +88,7 @@ fi
 if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
   echo 'GitHub sync failed: local and origin/main differ; review manually' >&2; exit 1
 fi
-files=(docs/status.json)
+files=(docs/status.json docs/status.svg)
 if [ "$mode" != "--status-only" ]; then
   files+=(docs/data.json docs/blocklist.txt)
 fi
