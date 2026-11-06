@@ -93,6 +93,27 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual((temp / "docs/data.json").read_text(), "LAST_SAFE_PUBLIC_SNAPSHOT")
             self.assertFalse((temp / "dashboard/data.json").exists())
 
+    def test_append_only_run_correction_can_demote_but_never_promote(self):
+        with tempfile.TemporaryDirectory() as folder:
+            temp = Path(folder)
+            log = temp / 'cron.log'
+            text = ('2026-11-06T06:18:01Z END ok\n'
+                    '2026-11-06T12:02:00Z END FAIL: private fixture reason\n'
+                    '2026-11-06T12:03:00Z RUN_STATUS_CORRECTION target_end=2026-11-06T06:18:01Z status=fail\n'
+                    '2026-11-06T12:03:01Z RUN_STATUS_CORRECTION target_end=2026-11-06T12:02:00Z status=ok\n'
+                    '2026-11-06T12:03:02Z RUN_STATUS_CORRECTION target_end=unknown status=fail\n'
+                    '2026-11-06T12:03:03Z RUN_STATUS_CORRECTION target_end=2026-11-06T06:18:01Z status=ok\n'
+                    '2026-11-06T18:01:00Z END ok\n')
+            log.write_text(text)
+            with patch.object(dash, 'BASE', temp):
+                history = dash.runs()
+            self.assertEqual([(x['ts'], x['status']) for x in history], [
+                ('2026-11-06T06:18:01Z', 'fail'),
+                ('2026-11-06T12:02:00Z', 'fail'),
+                ('2026-11-06T18:01:00Z', 'ok')])
+            self.assertEqual(log.read_text(), text, 'Original audit log must not be rewritten')
+            self.assertNotIn('fixture', history[0]['why'])
+
     def test_ndr_snapshot_age_and_private_matches(self):
         now = datetime(2026, 10, 22, 12, tzinfo=timezone.utc)
         with tempfile.TemporaryDirectory() as folder:

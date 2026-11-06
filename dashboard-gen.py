@@ -206,10 +206,24 @@ def pipeline_coverage(now=None):
 def runs():
     lines = (BASE / "cron.log").read_text().splitlines()
     out = []
-    for l in lines:
-        m = re.match(r"(\S+) END (ok|FAIL: .*)", l)
-        if m:
-            out.append({"ts": m.group(1), "status": "ok" if m.group(2) == "ok" else "fail", "why": m.group(2)[5:] if m.group(2) != "ok" else ""})
+    by_timestamp = {}
+    for line in lines:
+        match = re.match(r"(\S+) END (ok|FAIL: .*)", line)
+        if match:
+            record = {"ts": match.group(1), "status": "ok" if match.group(2) == "ok" else "fail",
+                      "why": match.group(2)[5:] if match.group(2) != "ok" else ""}
+            out.append(record)
+            by_timestamp[record["ts"]] = record
+            continue
+        # An appended operator correction can demote a known completed run,
+        # never promote an error or expose the private correction rationale.
+        correction = re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z RUN_STATUS_CORRECTION "
+            r"target_end=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) status=fail", line)
+        record = by_timestamp.get(correction.group(1)) if correction else None
+        if record is not None:
+            record["status"] = "fail"
+            record["why"] = "operator status correction"
     return out[-40:]
 
 

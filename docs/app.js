@@ -209,7 +209,7 @@ async function main(){
       (validReport && report.state==="degraded"?" The last pipeline attempt was degraded.":"");}
     else if(!validReport){pill.textContent="STATUS UNKNOWN";note.textContent="Last pipeline attempt unknown; showing a historical batch snapshot, not live detection.";}
     else if(report.state==="degraded"){pill.textContent="PIPELINE DEGRADED";
-      note.textContent="Last pipeline attempt degraded; showing the previous safe snapshot. Failure details and asset evidence stay private.";}
+      note.textContent="Last pipeline attempt degraded; showing the last published snapshot. Coverage may be incomplete; failure details and asset evidence stay private.";}
     else if(lag){pill.textContent="SNAPSHOT LAGS RUN";
       note.textContent="The last pipeline status is newer than displayed data; verify the batch snapshot before using these counts.";}
     else if(mismatch){pill.textContent="STATUS MISMATCH";

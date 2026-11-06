@@ -82,7 +82,9 @@ async function render(data, report, now = timestamp + 3600000) {
   assert(!empty['source-scope'].textContent.includes('0 alerts'));
 
   const degraded = await render(fixture, {...healthy, state: 'degraded'});
-  assert.match(degraded['snapshot-note'].textContent, /previous safe snapshot/i);
+  assert.match(degraded['snapshot-note'].textContent, /last published snapshot/i);
+  assert.match(degraded['snapshot-note'].textContent, /coverage may be incomplete/i);
+  assert(!degraded['snapshot-note'].textContent.includes('previous safe snapshot'));
   assert.equal(degraded['status-pill'].textContent, 'PIPELINE DEGRADED');
   const stale = await render(fixture, healthy, timestamp + 49 * 3600000);
   assert.match(stale['snapshot-note'].textContent, /older than 24h/i);
