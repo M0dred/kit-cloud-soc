@@ -63,6 +63,23 @@ class HealthAgentStateTests(unittest.TestCase):
         output = self.call({'fixture-server': 'unexpected-status'})
         self.assertIn('FAIL agent down:', output)
 
+    def test_missing_hard_agent_remains_unknown_until_observed_active(self):
+        self.state.write_text(json.dumps({'fixture-server': 'active'}))
+        for _ in range(2):
+            output = self.call({})
+            self.assertIn('FAIL agent status unavailable:', output)
+            self.assertIn('fixture-server', json.loads(self.state.read_text()))
+        recovered = self.call({'fixture-server': 'active'})
+        self.assertNotIn('FAIL agent status unavailable:', recovered)
+        self.assertIn('NOTE agent recovered:', recovered)
+
+    def test_missing_soft_agent_warns_not_fails(self):
+        self.state.write_text(json.dumps({'fixture-laptop': 'active'}))
+        for _ in range(2):
+            output = self.call({})
+            self.assertIn('WARN agent status unavailable (soft target):', output)
+            self.assertNotIn('FAIL ', output)
+
 
 if __name__ == '__main__':
     unittest.main()

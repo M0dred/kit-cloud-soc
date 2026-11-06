@@ -70,12 +70,18 @@ m.main()
                 self.assertEqual(json.loads(status.read_text())['state'], 'degraded')
                 self.assertEqual(data.read_text(), 'LAST_SAFE_SNAPSHOT')
             self.assertEqual(mode_log.read_text().splitlines(), ['--status-only', '--status-only'])
+            current.write_text(json.dumps({}))  # prior hard agent not returned by fixture API
+            for _ in range(2):
+                result = run()
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertEqual(json.loads(status.read_text())['state'], 'degraded')
+                self.assertEqual(data.read_text(), 'LAST_SAFE_SNAPSHOT')
             current.write_text(json.dumps({'fixture-server': 'active'}))
             result = run()
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(json.loads(status.read_text())['state'], 'ok')
             self.assertEqual(data.read_text(), 'FRESH_FIXTURE_SNAPSHOT')
-            self.assertEqual(mode_log.read_text().splitlines(), ['--status-only', '--status-only', 'full'])
+            self.assertEqual(mode_log.read_text().splitlines(), ['--status-only'] * 4 + ['full'])
 
 
 if __name__ == '__main__':
