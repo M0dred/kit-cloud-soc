@@ -1,209 +1,319 @@
 {
- "generated": "2026-11-06 06:14 UTC",
+ "generated": "2026-11-13 22:01 UTC",
  "wazuh": {
-  "total_7d": 128719,
+  "total_7d": 97170,
   "by_agent": [],
   "top_src": [
    [
-    "34.140.254.201",
-    14874
+    "35.199.65.76",
+    8483
    ],
    [
-    "34.87.24.222",
-    11256
+    "20.29.74.198",
+    2359
    ],
    [
-    "164.30.17.82",
-    2713
+    "103.148.108.83",
+    1929
    ],
    [
-    "117.160.217.188",
-    2643
-   ],
-   [
-    "2.27.170.94",
-    2605
+    "192.253.248.226",
+    1796
    ],
    [
     "202.165.25.8",
-    2490
+    1542
    ],
    [
-    "91.26.99.202",
-    2089
+    "52.179.208.167",
+    1364
    ],
    [
-    "34.146.118.207",
-    1955
+    "4.232.93.50",
+    1350
    ],
    [
-    "35.242.226.248",
-    1760
+    "172.161.40.129",
+    1331
    ],
    [
-    "34.24.87.108",
-    1564
+    "222.210.35.197",
+    1113
    ],
    [
-    "34.80.97.142",
-    1181
+    "20.120.108.52",
+    1073
    ],
    [
-    "34.126.168.190",
-    1162
+    "213.209.159.241",
+    831
    ],
    [
-    "34.159.59.101",
-    1085
+    "213.209.159.226",
+    823
    ],
    [
-    "34.21.163.30",
-    782
+    "192.253.248.223",
+    821
    ],
    [
-    "34.52.191.67",
-    782
+    "213.209.159.238",
+    819
    ],
    [
-    "34.177.88.18",
-    776
+    "213.209.159.231",
+    799
    ],
    [
-    "34.182.233.90",
-    748
+    "213.209.159.236",
+    798
    ],
    [
-    "34.79.44.204",
-    626
+    "213.209.159.242",
+    746
    ],
    [
-    "45.138.12.51",
-    614
+    "213.209.159.108",
+    699
+   ],
+   [
+    "193.24.211.219",
+    684
    ]
   ],
   "by_day": [
    [
-    "2026-10-30",
-    13617
-   ],
-   [
-    "2026-10-31",
-    20018
-   ],
-   [
-    "2026-11-01",
-    29345
-   ],
-   [
-    "2026-11-02",
-    43622
-   ],
-   [
-    "2026-11-03",
-    6095
-   ],
-   [
-    "2026-11-04",
-    0
-   ],
-   [
-    "2026-11-05",
-    12529
-   ],
-   [
     "2026-11-06",
-    3493
+    1422
+   ],
+   [
+    "2026-11-07",
+    16843
+   ],
+   [
+    "2026-11-08",
+    17246
+   ],
+   [
+    "2026-11-09",
+    11859
+   ],
+   [
+    "2026-11-10",
+    5199
+   ],
+   [
+    "2026-11-11",
+    11688
+   ],
+   [
+    "2026-11-12",
+    18927
+   ],
+   [
+    "2026-11-13",
+    13986
    ]
   ],
   "source_context": {
-   "34.140.254.201": {
-    "last_sample_utc": "2026-11-02 14:02:13 UTC",
+   "35.199.65.76": {
+    "last_sample_utc": "2026-11-13 04:22:01 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "34.87.24.222": {
-    "last_sample_utc": "2026-11-02 23:28:27 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "164.30.17.82": {
-    "last_sample_utc": "2026-11-02 10:04:35 UTC",
+   "20.29.74.198": {
+    "last_sample_utc": "2026-11-13 22:00:34 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "117.160.217.188": {
-    "last_sample_utc": "2026-11-01 13:57:53 UTC",
+   "103.148.108.83": {
+    "last_sample_utc": "2026-11-13 21:56:16 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "2.27.170.94": {
-    "last_sample_utc": "2026-11-01 23:06:59 UTC",
+   "192.253.248.226": {
+    "last_sample_utc": "2026-11-13 01:02:16 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "202.165.25.8": {
-    "last_sample_utc": "2026-11-06 06:09:50 UTC",
+    "last_sample_utc": "2026-11-11 11:13:00 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "91.26.99.202": {
-    "last_sample_utc": "2026-10-31 20:20:19 UTC",
+   "52.179.208.167": {
+    "last_sample_utc": "2026-11-08 16:59:26 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "4.232.93.50": {
+    "last_sample_utc": "2026-11-08 04:53:23 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "172.161.40.129": {
+    "last_sample_utc": "2026-11-08 15:53:38 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "222.210.35.197": {
+    "last_sample_utc": "2026-11-13 21:55:28 UTC",
+    "sample_behavior": "Other detection (sample only)"
+   },
+   "20.120.108.52": {
+    "last_sample_utc": "2026-11-08 21:33:45 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "213.209.159.241": {
+    "last_sample_utc": "2026-11-11 11:34:08 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "34.146.118.207": {
-    "last_sample_utc": "2026-11-01 21:09:25 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
+   "213.209.159.226": {
+    "last_sample_utc": "2026-11-11 11:32:56 UTC",
+    "sample_behavior": "SSH authentication alert"
    },
-   "35.242.226.248": {
-    "last_sample_utc": "2026-10-30 14:49:08 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
+   "192.253.248.223": {
+    "last_sample_utc": "2026-11-11 11:20:02 UTC",
+    "sample_behavior": "SSH authentication alert"
    },
-   "34.24.87.108": {
-    "last_sample_utc": "2026-11-01 20:28:44 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
+   "213.209.159.238": {
+    "last_sample_utc": "2026-11-11 11:33:56 UTC",
+    "sample_behavior": "SSH authentication alert"
    },
-   "34.80.97.142": {
-    "last_sample_utc": "2026-11-03 07:51:54 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
+   "213.209.159.231": {
+    "last_sample_utc": "2026-11-11 09:15:33 UTC",
+    "sample_behavior": "SSH authentication alert"
    },
-   "34.126.168.190": {
-    "last_sample_utc": "2026-11-01 12:05:59 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
+   "213.209.159.236": {
+    "last_sample_utc": "2026-11-11 09:02:26 UTC",
+    "sample_behavior": "SSH authentication alert"
    },
-   "34.159.59.101": {
-    "last_sample_utc": "2026-11-01 09:45:18 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "34.21.163.30": {
-    "last_sample_utc": "2026-11-01 04:13:16 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "34.52.191.67": {
-    "last_sample_utc": "2026-10-30 06:46:56 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "34.177.88.18": {
-    "last_sample_utc": "2026-11-01 06:43:47 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
-   },
-   "34.182.233.90": {
-    "last_sample_utc": "2026-11-01 20:35:20 UTC",
+   "213.209.159.242": {
+    "last_sample_utc": "2026-11-11 08:48:32 UTC",
     "sample_behavior": "Other detection (sample only)"
    },
-   "34.79.44.204": {
-    "last_sample_utc": "2026-11-01 04:41:36 UTC",
-    "sample_behavior": "Other detection (sample only)"
+   "213.209.159.108": {
+    "last_sample_utc": "2026-11-11 11:32:00 UTC",
+    "sample_behavior": "SSH authentication alert"
    },
-   "45.138.12.51": {
-    "last_sample_utc": "2026-11-05 14:18:21 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
+   "193.24.211.219": {
+    "last_sample_utc": "2026-11-13 10:46:00 UTC",
+    "sample_behavior": "SSH authentication alert"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
    "outside_top_alerts": 0,
-   "approx_source_values": 312,
-   "measured_at_utc": "2026-11-06 06:04 UTC"
+   "approx_source_values": 444,
+   "measured_at_utc": "2026-11-13 22:01 UTC"
   }
  },
  "misp": {
-  "total": 624,
+  "total": 646,
   "cidrs": [],
   "recent_14d": [
+   {
+    "ip": "35.199.65.76",
+    "date": "2026-11-13",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "74.243.250.30",
+    "date": "2026-11-12",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "222.210.35.197",
+    "date": "2026-11-12",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "20.29.74.198",
+    "date": "2026-11-12",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "103.148.108.83",
+    "date": "2026-11-11",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "195.178.110.159",
+    "date": "2026-11-11",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "190.119.63.81",
+    "date": "2026-11-11",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "95.179.238.77",
+    "date": "2026-11-08",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "180.178.47.170",
+    "date": "2026-11-08",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "91.218.108.6",
+    "date": "2026-11-08",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "193.47.62.109",
+    "date": "2026-11-07",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "174.138.10.15",
+    "date": "2026-11-07",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "116.49.143.85",
+    "date": "2026-11-07",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "20.120.108.52",
+    "date": "2026-11-07",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "52.179.208.167",
+    "date": "2026-11-07",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "35.189.159.10",
+    "date": "2026-11-07",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "172.161.40.129",
+    "date": "2026-11-06",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "4.232.93.50",
+    "date": "2026-11-06",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.89.222.61",
+    "date": "2026-11-06",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "4.204.208.56",
+    "date": "2026-11-06",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.107.119.138",
+    "date": "2026-11-06",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "34.23.218.56",
+    "date": "2026-11-06",
+    "comment": "Observed source; review locally"
+   },
    {
     "ip": "85.155.14.247",
     "date": "2026-11-06",
@@ -243,139 +353,29 @@
     "ip": "34.87.24.222",
     "date": "2026-11-02",
     "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.80.97.142",
-    "date": "2026-11-02",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "136.107.95.12",
-    "date": "2026-11-02",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.19.148.115",
-    "date": "2026-11-02",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "129.213.151.234",
-    "date": "2026-11-02",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.141.207.4",
-    "date": "2026-11-02",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "45.138.12.16",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "117.160.217.188",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.182.233.90",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "136.107.170.232",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "35.185.21.10",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "35.186.170.177",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.159.59.101",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.177.88.18",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.158.79.228",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.24.87.108",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.146.118.207",
-    "date": "2026-11-01",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.21.163.30",
-    "date": "2026-10-31",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.79.44.204",
-    "date": "2026-10-31",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.126.168.190",
-    "date": "2026-10-31",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "34.39.161.152",
-    "date": "2026-10-31",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "132.196.59.85",
-    "date": "2026-10-31",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "93.123.109.214",
-    "date": "2026-10-31",
-    "comment": "Observed source; review locally"
    }
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "35.242.226.248": true,
-   "34.146.118.207": true,
-   "34.79.44.204": true,
-   "91.26.99.202": true,
-   "34.182.233.90": true,
-   "34.52.191.67": true,
-   "117.160.217.188": true,
-   "34.159.59.101": true,
-   "164.30.17.82": true,
-   "34.140.254.201": false,
-   "34.126.168.190": true,
-   "45.138.12.51": true,
-   "34.21.163.30": true,
-   "34.87.24.222": true,
-   "2.27.170.94": true,
-   "34.80.97.142": true,
-   "34.24.87.108": true,
+   "192.253.248.223": true,
+   "213.209.159.108": true,
+   "213.209.159.231": true,
+   "52.179.208.167": true,
    "202.165.25.8": true,
-   "34.177.88.18": true
+   "20.120.108.52": true,
+   "20.29.74.198": true,
+   "193.24.211.219": false,
+   "213.209.159.242": true,
+   "222.210.35.197": true,
+   "213.209.159.238": true,
+   "213.209.159.236": true,
+   "4.232.93.50": true,
+   "103.148.108.83": true,
+   "213.209.159.241": true,
+   "35.199.65.76": true,
+   "172.161.40.129": true,
+   "213.209.159.226": true,
+   "192.253.248.226": true
   }
  },
  "vt": {
@@ -385,161 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-10-17T22:01:29Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-18T06:01:27Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-18T22:01:36Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-19T06:01:50Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-19T22:03:32Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-20T06:02:11Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-20T22:01:43Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-21T06:03:29Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-21T06:21:42Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-21T22:01:38Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-22T06:01:56Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-22T22:02:46Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-23T06:03:43Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-23T22:03:53Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-24T06:01:47Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-24T22:02:25Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-25T06:04:05Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-25T22:01:29Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-26T06:01:55Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-26T22:02:48Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-27T06:03:12Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-27T22:02:04Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-28T06:02:12Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-28T22:03:49Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-29T06:02:54Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-29T22:02:40Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-30T06:00:47Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-30T22:02:22Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-31T06:01:46Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-10-31T22:02:01Z",
-   "status": "ok",
-   "why": ""
-  },
-  {
-   "ts": "2026-11-01T06:01:48Z",
-   "status": "ok",
-   "why": ""
-  },
   {
    "ts": "2026-11-01T22:01:50Z",
    "status": "ok",
@@ -584,125 +429,259 @@
    "ts": "2026-11-05T22:08:06Z",
    "status": "fail",
    "why": ""
+  },
+  {
+   "ts": "2026-11-06T06:18:01Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-06T12:02:43Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-06T18:01:55Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-06T22:07:50Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-07T06:02:30Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-07T12:04:23Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-07T18:01:53Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-07T22:02:16Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-08T06:01:44Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-08T12:13:32Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-08T18:10:58Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-08T22:02:19Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-09T06:05:10Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-09T12:02:01Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-09T18:01:24Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-09T22:01:18Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-10T06:02:37Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-10T12:03:07Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-10T18:01:46Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-10T22:05:23Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-11T06:01:09Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-11T12:02:12Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-11T18:01:56Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-11T22:01:38Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-12T06:01:45Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-12T12:01:46Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-12T18:02:52Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-12T22:01:33Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-13T06:01:54Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-13T12:01:38Z",
+   "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-13T18:01:17Z",
+   "status": "fail",
+   "why": ""
   }
  ],
  "blocklist_n": 1,
  "enrich_meta": {
-  "34.140.254.201": {
-   "country": "BE",
+  "35.199.65.76": {
+   "country": "BR",
    "provider": "Google LLC",
    "otx": 0,
-   "aip": 56,
+   "aip": 31,
    "sources": {
     "gn": {
-     "state": "not_queried",
-     "checked_at": null,
+     "state": "cached",
+     "checked_at": "2026-11-12 22:00 UTC",
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "34.87.24.222": {
-   "country": "SI",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "164.30.17.82": {
-   "gn": "malicious",
-   "country": "GE",
-   "org": "unknown",
-   "provider": "T-Systems International GmbH",
-   "otx": 37,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "117.160.217.188": {
-   "country": "CH",
-   "provider": "China Mobile Communications Co",
-   "otx": 21,
-   "aip": 45,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "rate_limited"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "2.27.170.94": {
+  "20.29.74.198": {
    "gn": "malicious",
    "country": "UN",
    "org": "unknown",
-   "provider": "HostSlim OU",
-   "otx": 5,
+   "provider": "Microsoft Corporation",
+   "otx": 0,
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-12 22:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "103.148.108.83": {
+   "gn": "malicious",
+   "country": "BA",
+   "org": "unknown",
+   "provider": "Skyinfo Online",
+   "otx": 6,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "192.253.248.226": {
+   "gn": "malicious",
+   "country": "AU",
+   "org": "unknown",
+   "provider": "Secure Internet LLC (UK)",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -717,26 +696,26 @@
    "sources": {
     "gn": {
      "state": "fresh",
-     "checked_at": "2026-11-06 06:00 UTC",
+     "checked_at": "2026-11-12 06:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-06 06:00 UTC",
+     "checked_at": "2026-11-12 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-06 06:00 UTC",
+     "checked_at": "2026-11-12 06:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "91.26.99.202": {
-   "country": "GE",
-   "provider": "Lekkerland Deutschland GmbH  ",
-   "otx": 1,
-   "aip": 25,
+  "52.179.208.167": {
+   "country": "UN",
+   "provider": "Microsoft Corporation",
+   "otx": 7,
+   "aip": 100,
    "sources": {
     "gn": {
      "state": "not_queried",
@@ -745,290 +724,325 @@
     },
     "otx": {
      "state": "stale",
-     "checked_at": "2026-11-01 06:00 UTC",
+     "checked_at": "2026-11-09 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "stale",
-     "checked_at": "2026-11-01 06:00 UTC",
+     "checked_at": "2026-11-09 06:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "34.146.118.207": {
-   "country": "JA",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "35.242.226.248": {
-   "country": "GE",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "not_found"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.24.87.108": {
+  "4.232.93.50": {
    "country": "UN",
-   "provider": "Google LLC",
-   "otx": 0,
+   "provider": "Microsoft Corporation",
+   "otx": 1,
    "aip": 100,
    "sources": {
     "gn": {
      "state": "not_queried",
      "checked_at": null,
-     "last_attempt": "unknown"
+     "last_attempt": "rate_limited"
     },
     "otx": {
      "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
+     "checked_at": "2026-11-08 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
+     "checked_at": "2026-11-08 22:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "34.80.97.142": {
-   "country": "TA",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-03 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.126.168.190": {
-   "country": "SI",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.159.59.101": {
+  "172.161.40.129": {
    "country": "UN",
-   "provider": "Google LLC",
+   "provider": "Microsoft Limited",
    "otx": 0,
    "aip": 100,
    "sources": {
     "gn": {
      "state": "not_queried",
      "checked_at": null,
-     "last_attempt": "unknown"
+     "last_attempt": "rate_limited"
     },
     "otx": {
      "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
+     "checked_at": "2026-11-09 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
+     "checked_at": "2026-11-09 06:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "34.21.163.30": {
-   "country": "UN",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-01 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-01 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.52.191.67": {
-   "country": "UN",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "not_found"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-10-31 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.177.88.18": {
-   "country": "UN",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.182.233.90": {
-   "country": "UN",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-02 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "34.79.44.204": {
-   "country": "BE",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-01 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-01 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "45.138.12.51": {
+  "222.210.35.197": {
    "gn": "malicious",
-   "country": "LI",
+   "country": "CH",
    "org": "unknown",
-   "provider": "TC DATACENTER LIMITED MANAGED ",
+   "provider": "CHINANET Sichuan province netw",
+   "otx": 5,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "20.120.108.52": {
+   "country": "UN",
+   "provider": "Microsoft Corporation",
+   "otx": 4,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "stale",
+     "checked_at": "2026-11-09 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "stale",
+     "checked_at": "2026-11-09 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.241": {
+   "country": "GE",
+   "provider": "Feo Prest SRL",
    "otx": 50,
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "unknown_age",
-     "checked_at": null,
-     "last_attempt": "unknown"
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-06 06:01 UTC",
+     "checked_at": "2026-11-12 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.226": {
+   "country": "GE",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-06 12:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "192.253.248.223": {
+   "country": "AU",
+   "provider": "Secure Internet LLC (UK)",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-06 12:01 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.238": {
+   "gn": "malicious",
+   "country": "GE",
+   "org": "unknown",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-06 12:01 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.231": {
+   "gn": "malicious",
+   "country": "GE",
+   "org": "unknown",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-06 12:01 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "stale",
+     "checked_at": "2026-11-11 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "stale",
+     "checked_at": "2026-11-11 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.236": {
+   "gn": "malicious",
+   "country": "GE",
+   "org": "unknown",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-06 12:01 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "stale",
+     "checked_at": "2026-11-11 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "stale",
+     "checked_at": "2026-11-11 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.242": {
+   "gn": "malicious",
+   "country": "GE",
+   "org": "unknown",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-06 12:01 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "stale",
+     "checked_at": "2026-11-11 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "stale",
+     "checked_at": "2026-11-11 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "213.209.159.108": {
+   "gn": "malicious",
+   "country": "GE",
+   "org": "unknown",
+   "provider": "Feo Prest SRL",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
      "checked_at": "2026-11-06 06:01 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 06:01 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "193.24.211.219": {
+   "gn": "malicious",
+   "country": "GE",
+   "org": "unknown",
+   "provider": "Layer7 Networks GmbH",
+   "otx": 50,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "fresh",
+     "checked_at": "2026-11-12 18:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     }
    }
