@@ -479,8 +479,14 @@ class Orchestrator:
             if not otx_stop and otx_n < otx_max:
                 rec["otx"] = intel_enrich.otx(ip, otx_cfg["api_key"])
                 rec["otx_checked_at"] = datetime.now(timezone.utc).isoformat()
-                otx_n += 1
-                time.sleep(0.15)
+                if rec["otx"].get("_rate_limited") or rec["otx"].get("http") == 429:
+                    # Keep errors explicit even if a caller returns only the HTTP code.
+                    rec["otx"].update({"_error": True, "_rate_limited": True})
+                    otx_stop = True
+                    self.log("    OTX rate-limited, skipping rest")
+                else:
+                    otx_n += 1
+                    time.sleep(0.15)
             if not ab_stop and ab_n < ab_max:
                 rec["aipdb"] = intel_enrich.abuseipdb(ip, ab_cfg["api_key"])
                 rec["aipdb_checked_at"] = datetime.now(timezone.utc).isoformat()

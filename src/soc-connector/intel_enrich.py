@@ -49,6 +49,8 @@ def otx(ip: str, api_key: str) -> dict:
         {"X-OTX-API-KEY": api_key, "User-Agent": "soc-connector/1.0"},
         timeout=35,
     )
+    if code == 429:
+        return {"_error": True, "_rate_limited": True, "http": code}
     if code != 200:
         return {"_error": True, "http": code}
     n = ((data.get("pulse_info") or {}).get("count")) or 0

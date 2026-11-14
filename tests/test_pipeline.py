@@ -219,6 +219,81 @@ class PipelineTests(unittest.TestCase):
             "gn_checked_at": "2026-10-22T09:00:00+00:00"}})["45.148.10.141"]
         self.assertIsNone(result["gn"]["classification"])
 
+    def test_otx_429_is_explicitly_rate_limited_and_remains_an_error(self):
+        with patch.object(intel_enrich, "_get", return_value=({"message": "fixture quota"}, 429)):
+            result = intel_enrich.otx("8.8.8.8", "fixture-key")
+        self.assertEqual(result, {"_error": True, "_rate_limited": True, "http": 429})
+        self.assertNotIn("OTX:", intel_enrich.format_comment({"otx": result}))
+        with patch.object(intel_enrich, "_get", return_value=({}, 503)):
+            ordinary_error = intel_enrich.otx("8.8.8.8", "fixture-key")
+        self.assertEqual(ordinary_error, {"_error": True, "http": 503})
+
+    def test_otx_stops_after_429_but_other_sources_and_cache_continue(self):
+        obj = self.fake_orch()
+        obj.cfg.update({"greynoise": {"enabled": True, "api_key": "fixture"},
+                        "otx": {"enabled": True, "api_key": "fixture"},
+                        "abuseipdb": {"enabled": True, "api_key": "fixture"}})
+        messages = []
+        obj.log = messages.append
+        ips = ["8.8.8.8", "1.1.1.1", "9.9.9.9", "208.67.222.222"]
+        original = {"pulses": 7, "cc": "ZZ", "http": 200}
+        original_checked = "2026-10-22T06:00:00+00:00"
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder)
+            directory = home / ".config/soc-orchestrator"
+            directory.mkdir(parents=True)
+            cache = directory / "enrich-cache.json"
+            cache.write_text(json.dumps({ips[1]: {"otx": original, "_lookups": {"otx": {
+                "status": "ok", "checked_at": original_checked}}}}))
+            with patch.object(orch.Path, "home", return_value=home), \
+                 patch.object(orch.time, "sleep"), \
+                 patch.object(orch.intel_enrich, "greynoise", return_value={"http": 200}) as gn, \
+                 patch.object(orch.intel_enrich, "abuseipdb", return_value={"score": 0, "http": 200}) as aip, \
+                 patch.object(orch.intel_enrich, "otx", side_effect=[
+                     {"pulses": 1, "cc": "ZZ", "http": 200},
+                     {"_error": True, "_rate_limited": True, "http": 429},
+                     AssertionError("OTX called after HTTP 429")]) as otx:
+                result = obj.stage_enrich_intel([{"ip": ip} for ip in ips])
+            self.assertEqual(otx.call_count, 2)
+            self.assertEqual(gn.call_count, 4)
+            self.assertEqual(aip.call_count, 4)
+            self.assertEqual(obj.summary["stage_results"]["enrich_otx"], 1)
+            self.assertTrue(any("OTX rate-limited" in x for x in messages))
+            self.assertNotIn("otx", result[ips[2]])
+            stored = json.loads(cache.read_text())
+            self.assertEqual(stored[ips[1]]["otx"], original)
+            self.assertEqual(stored[ips[1]]["_lookups"]["otx"]["status"], "rate_limited")
+            self.assertEqual(stored[ips[1]]["_lookups"]["otx"]["checked_at"], original_checked)
+            self.assertEqual(stored[ips[1]]["_lookups"]["otx"]["http"], 429)
+
+    def test_otx_http_429_stops_even_without_rate_limited_marker(self):
+        obj = self.fake_orch()
+        obj.cfg.update({"otx": {"enabled": True, "api_key": "fixture"}})
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder)
+            (home / ".config/soc-orchestrator").mkdir(parents=True)
+            with patch.object(orch.Path, "home", return_value=home), \
+                 patch.object(orch.time, "sleep"), \
+                 patch.object(orch.intel_enrich, "otx", return_value={"_error": True, "http": 429}) as otx:
+                obj.stage_enrich_intel([{"ip": "8.8.8.8"}, {"ip": "1.1.1.1"}])
+        self.assertEqual(otx.call_count, 1)
+
+    def test_otx_non_429_error_does_not_trigger_quota_stop(self):
+        obj = self.fake_orch()
+        obj.cfg.update({"otx": {"enabled": True, "api_key": "fixture"}})
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder)
+            (home / ".config/soc-orchestrator").mkdir(parents=True)
+            with patch.object(orch.Path, "home", return_value=home), \
+                 patch.object(orch.time, "sleep"), \
+                 patch.object(orch.intel_enrich, "otx", side_effect=[
+                     {"_error": True, "http": 503},
+                     {"pulses": 0, "cc": "ZZ", "http": 200}]) as otx:
+                result = obj.stage_enrich_intel([{"ip": "8.8.8.8"}, {"ip": "1.1.1.1"}])
+        self.assertEqual(otx.call_count, 2)
+        self.assertTrue(result["8.8.8.8"]["otx"]["_error"])
+        self.assertEqual(result["1.1.1.1"]["otx"]["pulses"], 0)
+
     def test_greynoise_404_message_not_a_classification(self):
         with patch.object(intel_enrich, "_get", return_value=({"message": "IP not observed"}, 404)):
             result = intel_enrich.greynoise("45.148.10.141", "fixture")
