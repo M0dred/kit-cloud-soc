@@ -130,6 +130,7 @@ if ! /usr/bin/python3 "$OUTDIR/backup-health.py" >>"$LOG" 2>&1; then
   FAILS+=("daily backup missing or invalid")
 fi
 run_status=ok
+sync_failed=0
 [ ${#FAILS[@]} -gt 0 ] && run_status=degraded
 if ! /usr/bin/python3 "$OUTDIR/public-status.py" --state "$run_status" >>"$LOG" 2>&1; then
   FAILS+=("public heartbeat generation failed")
@@ -138,9 +139,18 @@ else
     # If only backup failed, the freshly sanitized data may still be shared.
     if ! /bin/bash "$OUTDIR/github-sync.sh" >>"$LOG" 2>&1; then
       FAILS+=("GitHub docs sync failed")
+      sync_failed=1
     fi
   elif ! /bin/bash "$OUTDIR/github-sync.sh" --status-only >>"$LOG" 2>&1; then
     FAILS+=("GitHub status sync failed")
+    sync_failed=1
+  fi
+fi
+# The first heartbeat precedes GitHub sync. If publication then fails, do not
+# leave a false local OK; the remote may still show its previous stale state.
+if [ "$sync_failed" -eq 1 ]; then
+  if ! /usr/bin/python3 "$OUTDIR/public-status.py" --state degraded >>"$LOG" 2>&1; then
+    FAILS+=("local degraded heartbeat correction failed")
   fi
 fi
 if [ ${#FAILS[@]} -eq 0 ]; then

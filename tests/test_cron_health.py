@@ -26,8 +26,11 @@ class CronHealthIntegrationTests(unittest.TestCase):
             (base / 'dashboard-gen.py').write_text(
                 f'from pathlib import Path\nPath({str(data)!r}).write_text("FRESH_FIXTURE_SNAPSHOT")\n')
             status = base / 'docs/status.json'
+            status_failure = base / 'fixture-status-fail'
             (base / 'public-status.py').write_text(
-                f'import json,sys\nfrom pathlib import Path\nPath({str(status)!r}).write_text(json.dumps({{"state":sys.argv[2]}}))\n')
+                f'import json,sys\nfrom pathlib import Path\n'
+                f'if sys.argv[2] == "degraded" and Path({str(status_failure)!r}).exists(): sys.exit(1)\n'
+                f'Path({str(status)!r}).write_text(json.dumps({{"state":sys.argv[2]}}))\n')
             (base / 'health-check.py').write_text(f'''\
 import importlib.util,json
 from pathlib import Path
@@ -42,8 +45,10 @@ m.agent_states=lambda user,password: json.loads(Path({str(current)!r}).read_text
 m.main()
 ''')
             mode_log = base / 'sync-modes.txt'
+            sync_failure = base / 'fixture-sync-fail'
             (base / 'github-sync.sh').write_text(
-                f'#!/bin/bash\nprintf "%s\\n" "${{1:-full}}" >> {shlex.quote(str(mode_log))}\n')
+                f'#!/bin/bash\nprintf "%s\\n" "${{1:-full}}" >> {shlex.quote(str(mode_log))}\n'
+                f'[ ! -e {shlex.quote(str(sync_failure))} ]\n')
 
             script = (ROOT / 'cron-run.sh').read_text()
             replacements = {
@@ -82,6 +87,30 @@ m.main()
             self.assertEqual(json.loads(status.read_text())['state'], 'ok')
             self.assertEqual(data.read_text(), 'FRESH_FIXTURE_SNAPSHOT')
             self.assertEqual(mode_log.read_text().splitlines(), ['--status-only'] * 4 + ['full'])
+
+            # A publish failure occurs *after* the first heartbeat write. It must
+            # correct the local heartbeat, not leave an OK result on disk.
+            sync_failure.touch()
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertEqual(json.loads(status.read_text())['state'], 'degraded')
+            self.assertEqual(mode_log.read_text().splitlines()[-1], 'full')
+
+            # If an earlier health failure already selected status-only, a sync
+            # failure must keep the degraded heartbeat and not call full sync.
+            current.write_text(json.dumps({'fixture-server': 'disconnected'}))
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertEqual(json.loads(status.read_text())['state'], 'degraded')
+            self.assertEqual(mode_log.read_text().splitlines()[-1], '--status-only')
+
+            # A local filesystem/heartbeat failure must itself be reported;
+            # the wrapper cannot guarantee a corrected file if the write fails.
+            current.write_text(json.dumps({'fixture-server': 'active'}))
+            status_failure.touch()
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertIn('local degraded heartbeat correction failed', (base / 'cron.log').read_text())
 
 
 if __name__ == '__main__':
