@@ -1,7 +1,7 @@
 {
- "generated": "2026-11-15 18:01 UTC",
+ "generated": "2026-11-16 06:01 UTC",
  "wazuh": {
-  "total_7d": 98370,
+  "total_7d": 95320,
   "by_agent": [],
   "top_src": [
    [
@@ -10,7 +10,7 @@
    ],
    [
     "103.148.108.83",
-    3130
+    3508
    ],
    [
     "20.29.74.198",
@@ -18,77 +18,73 @@
    ],
    [
     "222.210.35.197",
-    2046
+    2310
    ],
    [
     "192.253.248.226",
-    1366
+    1139
    ],
    [
-    "34.78.212.17",
-    673
-   ],
-   [
-    "179.43.153.18",
-    598
+    "85.155.14.35",
+    691
    ],
    [
     "209.99.190.186",
-    580
+    625
    ],
    [
     "167.86.125.85",
     579
    ],
    [
-    "202.165.25.8",
-    552
-   ],
-   [
     "190.119.63.81",
     527
+   ],
+   [
+    "27.102.116.43",
+    512
    ],
    [
     "93.123.109.107",
     487
    ],
    [
+    "35.198.232.29",
+    479
+   ],
+   [
     "51.116.186.197",
     476
    ],
    [
-    "27.102.116.43",
-    464
+    "193.24.211.206",
+    473
    ],
    [
-    "193.24.211.219",
-    454
+    "195.178.110.227",
+    462
    ],
    [
     "35.237.207.183",
     402
    ],
    [
-    "213.209.159.226",
-    399
+    "193.24.211.219",
+    386
    ],
    [
     "80.94.92.179",
-    399
+    368
    ],
    [
-    "213.209.159.238",
-    396
+    "195.178.110.26",
+    360
    ]
   ],
   "by_day": [
    [
-    "2026-11-08",
-    5500
-   ],
-   [
     "2026-11-09",
-    11859
+    7713
    ],
    [
     "2026-11-10",
@@ -112,7 +108,11 @@
    ],
    [
     "2026-11-15",
-    8904
+    12500
+   ],
+   [
+    "2026-11-16",
+    3000
    ]
   ],
   "source_context": {
@@ -121,7 +121,7 @@
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "103.148.108.83": {
-    "last_sample_utc": "2026-11-15 17:59:38 UTC",
+    "last_sample_utc": "2026-11-16 05:56:51 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "20.29.74.198": {
@@ -129,81 +129,86 @@
     "sample_behavior": "SSH authentication alert"
    },
    "222.210.35.197": {
-    "last_sample_utc": "2026-11-15 17:56:16 UTC",
+    "last_sample_utc": "2026-11-16 05:57:51 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "192.253.248.226": {
-    "last_sample_utc": "2026-11-13 01:02:16 UTC",
+    "last_sample_utc": "2026-11-16 03:57:45 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "34.78.212.17": {
-    "last_sample_utc": "2026-11-08 20:06:41 UTC",
+   "85.155.14.35": {
+    "last_sample_utc": "2026-11-15 22:18:50 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "179.43.153.18": {
-    "last_sample_utc": "2026-11-09 02:41:42 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
    "209.99.190.186": {
-    "last_sample_utc": "2026-11-14 18:51:32 UTC",
+    "last_sample_utc": "2026-11-16 06:00:47 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "167.86.125.85": {
     "last_sample_utc": "2026-11-15 02:11:56 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "202.165.25.8": {
-    "last_sample_utc": "2026-11-11 11:13:00 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
    "190.119.63.81": {
     "last_sample_utc": "2026-11-11 08:56:05 UTC",
     "sample_behavior": "Other detection (sample only)"
    },
+   "27.102.116.43": {
+    "last_sample_utc": "2026-11-16 05:24:17 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
    "93.123.109.107": {
     "last_sample_utc": "2026-11-14 23:16:39 UTC",
+    "sample_behavior": "Web request alert (outcome unverified)"
+   },
+   "35.198.232.29": {
+    "last_sample_utc": "2026-11-15 18:49:09 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
    "51.116.186.197": {
     "last_sample_utc": "2026-11-15 09:03:06 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "27.102.116.43": {
-    "last_sample_utc": "2026-11-15 17:08:20 UTC",
+   "193.24.211.206": {
+    "last_sample_utc": "2026-11-16 05:24:25 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "193.24.211.219": {
-    "last_sample_utc": "2026-11-13 10:46:00 UTC",
+   "195.178.110.227": {
+    "last_sample_utc": "2026-11-16 04:49:40 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "35.237.207.183": {
     "last_sample_utc": "2026-11-09 07:53:03 UTC",
     "sample_behavior": "Web request alert (outcome unverified)"
    },
-   "213.209.159.226": {
-    "last_sample_utc": "2026-11-11 11:32:56 UTC",
+   "193.24.211.219": {
+    "last_sample_utc": "2026-11-13 10:46:00 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "80.94.92.179": {
-    "last_sample_utc": "2026-11-15 17:59:48 UTC",
+    "last_sample_utc": "2026-11-15 18:59:43 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "213.209.159.238": {
-    "last_sample_utc": "2026-11-11 11:33:56 UTC",
-    "sample_behavior": "SSH authentication alert"
+   "195.178.110.26": {
+    "last_sample_utc": "2026-11-14 08:12:24 UTC",
+    "sample_behavior": "Other detection (sample only)"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
    "outside_top_alerts": 0,
-   "approx_source_values": 423,
-   "measured_at_utc": "2026-11-15 18:01 UTC"
+   "approx_source_values": 429,
+   "measured_at_utc": "2026-11-16 06:01 UTC"
   }
  },
  "misp": {
-  "total": 652,
+  "total": 653,
   "cidrs": [],
   "recent_14d": [
+   {
+    "ip": "85.155.14.35",
+    "date": "2026-11-16",
+    "comment": "Observed source; review locally"
+   },
    {
     "ip": "20.106.75.210",
     "date": "2026-11-15",
@@ -348,34 +353,29 @@
     "ip": "85.155.14.247",
     "date": "2026-11-06",
     "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "80.225.231.81",
-    "date": "2026-11-05",
-    "comment": "Observed source; review locally"
    }
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "190.119.63.81": true,
-   "192.253.248.226": true,
-   "35.237.207.183": false,
-   "35.199.65.76": true,
-   "20.29.74.198": true,
-   "80.94.92.179": true,
-   "167.86.125.85": true,
-   "202.165.25.8": true,
-   "209.99.190.186": true,
-   "51.116.186.197": true,
    "93.123.109.107": true,
-   "179.43.153.18": true,
-   "27.102.116.43": false,
-   "103.148.108.83": true,
-   "213.209.159.226": true,
-   "222.210.35.197": true,
-   "34.78.212.17": false,
    "193.24.211.219": false,
-   "213.209.159.238": true
+   "192.253.248.226": true,
+   "103.148.108.83": true,
+   "51.116.186.197": true,
+   "193.24.211.206": false,
+   "27.102.116.43": false,
+   "209.99.190.186": true,
+   "20.29.74.198": true,
+   "167.86.125.85": true,
+   "80.94.92.179": true,
+   "195.178.110.227": true,
+   "35.199.65.76": true,
+   "35.237.207.183": false,
+   "190.119.63.81": true,
+   "222.210.35.197": true,
+   "35.198.232.29": false,
+   "85.155.14.35": true,
+   "195.178.110.26": true
   }
  },
  "vt": {
@@ -385,16 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-11-05T06:00:14Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-11-05T22:08:06Z",
-   "status": "fail",
-   "why": ""
-  },
   {
    "ts": "2026-11-06T06:18:01Z",
    "status": "fail",
@@ -584,6 +574,16 @@
    "ts": "2026-11-15T12:02:02Z",
    "status": "ok",
    "why": ""
+  },
+  {
+   "ts": "2026-11-15T18:01:35Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-15T22:01:26Z",
+   "status": "fail",
+   "why": ""
   }
  ],
  "blocklist_n": 1,
@@ -600,12 +600,12 @@
      "last_attempt": "rate_limited"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     }
@@ -626,12 +626,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -676,12 +676,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -700,22 +700,22 @@
      "last_attempt": "ok"
     },
     "otx": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-13 22:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "34.78.212.17": {
-   "country": "BE",
-   "provider": "Google LLC",
-   "otx": 0,
-   "aip": 19,
+  "85.155.14.35": {
+   "country": "SP",
+   "provider": "Solid Core Hosting LTD",
+   "otx": 1,
+   "aip": 100,
    "sources": {
     "gn": {
      "state": "not_queried",
@@ -723,38 +723,13 @@
      "last_attempt": "unknown"
     },
     "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-09 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-09 06:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "179.43.153.18": {
-   "gn": "malicious",
-   "country": "SW",
-   "org": "unknown",
-   "provider": "PRIVATE LAYER INC",
-   "otx": 14,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-06 12:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-09 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-09 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -795,37 +770,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-15 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "202.165.25.8": {
-   "gn": "malicious",
-   "country": "MA",
-   "org": "unknown",
-   "provider": "TM ONE Cloud Alpha Edge",
-   "otx": 33,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
+     "checked_at": "2026-11-15 22:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -855,6 +805,31 @@
     }
    }
   },
+  "27.102.116.43": {
+   "gn": "malicious",
+   "country": "KO",
+   "org": "unknown",
+   "provider": "DAOU TECHNOLOGY",
+   "otx": 10,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-12 18:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-16 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-16 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
   "93.123.109.107": {
    "country": "BU",
    "provider": "TECHOFF SRV LIMITED",
@@ -868,12 +843,35 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-15 22:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-15 22:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "35.198.232.29": {
+   "country": "SI",
+   "provider": "Google LLC",
+   "otx": 0,
+   "aip": 53,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-16 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -891,62 +889,58 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "27.102.116.43": {
-   "gn": "malicious",
-   "country": "KO",
-   "org": "unknown",
-   "provider": "DAOU TECHNOLOGY",
-   "otx": 10,
+  "193.24.211.206": {
+   "country": "GE",
+   "provider": "Layer7 Networks GmbH",
+   "otx": 13,
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-12 18:00 UTC",
-     "last_attempt": "ok"
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "193.24.211.219": {
-   "gn": "malicious",
-   "country": "GE",
-   "org": "unknown",
-   "provider": "Layer7 Networks GmbH",
+  "195.178.110.227": {
+   "country": "UN",
+   "provider": "TECHOFF SRV LIMITED",
    "otx": 50,
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-12 18:00 UTC",
-     "last_attempt": "ok"
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-14 06:01 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-14 06:01 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -970,25 +964,27 @@
     }
    }
   },
-  "213.209.159.226": {
+  "193.24.211.219": {
+   "gn": "malicious",
    "country": "GE",
-   "provider": "Feo Prest SRL",
+   "org": "unknown",
+   "provider": "Layer7 Networks GmbH",
    "otx": 50,
    "aip": 100,
    "sources": {
     "gn": {
      "state": "stale",
-     "checked_at": "2026-11-06 12:00 UTC",
+     "checked_at": "2026-11-12 18:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
      "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
+     "checked_at": "2026-11-14 06:01 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
+     "checked_at": "2026-11-14 06:01 UTC",
      "last_attempt": "ok"
     }
    }
@@ -1008,37 +1004,37 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-15 18:00 UTC",
+     "checked_at": "2026-11-16 06:00 UTC",
      "last_attempt": "ok"
     }
    }
   },
-  "213.209.159.238": {
+  "195.178.110.26": {
    "gn": "malicious",
-   "country": "GE",
+   "country": "UN",
    "org": "unknown",
-   "provider": "Feo Prest SRL",
+   "provider": "TECHOFF SRV LIMITED",
    "otx": 50,
    "aip": 100,
    "sources": {
     "gn": {
      "state": "stale",
-     "checked_at": "2026-11-06 12:01 UTC",
+     "checked_at": "2026-11-06 12:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
-     "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-15 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
-     "state": "stale",
-     "checked_at": "2026-11-12 06:00 UTC",
+     "state": "fresh",
+     "checked_at": "2026-11-15 06:00 UTC",
      "last_attempt": "ok"
     }
    }
