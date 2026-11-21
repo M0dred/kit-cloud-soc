@@ -243,6 +243,8 @@ def lookup_freshness(entry, name, now=None, ttl_hours=48):
     checked = history.get("checked_at")
     attempt = history.get("status")
     state = "unknown_age" if entry.get(name) else "not_queried"
+    if not checked and not entry.get(name) and attempt in ('error','rate_limited'):
+        state = 'rate_limited' if attempt == 'rate_limited' else 'lookup_failed'
     if checked:
         try:
             age = (now - datetime.fromisoformat(checked.replace("Z", "+00:00"))).total_seconds()
@@ -275,7 +277,7 @@ def public_enrichment(meta):
     for name in ("gn", "otx", "aipdb"):
         source = ((meta or {}).get("sources") or {}).get(name) or {}
         state = source.get("state")
-        if state not in ("fresh", "cached", "stale", "not_observed", "unknown_age", "not_queried"):
+        if state not in ('fresh','cached','stale','not_observed','unknown_age','not_queried','rate_limited','lookup_failed'):
             state = "unknown_age"
         checked = source.get("checked_at")
         out["sources"][name] = {

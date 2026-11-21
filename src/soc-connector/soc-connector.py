@@ -13,39 +13,18 @@ Environment variables:
   WAZUH_URL             Wazuh API URL (e.g., https://wazuh.example.com:55000)
   WAZUH_USER            Wazuh API username
   WAZUH_PASS            Wazuh API password
-  WAZUH_INDEXER_HOST    Wazuh Indexer host (e.g., 10.0.0.1 — port 9200 assumed)
+  WAZUH_INDEXER_HOST    Private Indexer host (port 9200 assumed)
   WAZUH_INDEXER_USER    Indexer username (default: admin)
   WAZUH_INDEXER_PASS    Indexer password
   VT_API_KEY            Optional: for VT enrichment before pushing
 
 Usage:
-  # MISP: push local IOCs as an event
-  python3 soc-connector.py misp push --name "Reviewed example observations" \
-    --ips-file /tmp/sensor02_ips.txt --tag brute_force --tag ssh
+  # Read-only API commands
+  python3 soc-connector.py misp-pull --days 7
+  python3 soc-connector.py misp-query --ip 192.0.2.1
 
-  # MISP: pull IOCs down for blocklist generation
-  python3 soc-connector.py misp pull --days 7 --output /tmp/misp_iocs.json
-
-  # MISP: query reputation
-  python3 soc-connector.py misp query --ip 1.2.3.4
-
-  # Wazuh: list agents
-  python3 soc-connector.py wazuh agents
-
-  # Wazuh: get high-severity alerts
-  python3 soc-connector.py wazuh alerts --severity 10 --last-hours 24
-
-  # Wazuh: block IP on all agents
-  python3 soc-connector.py wazuh block --ip 1.2.3.4 --all-agents
-
-  # Sync: local DB → MISP (one-way push)
-  python3 soc-connector.py sync --to misp --days 3 --min-confidence high
-
-  # Sync: MISP → local DB (pull + ingest)
-  python3 soc-connector.py sync --from misp --days 7
-
-  # Full round-trip: enrich local DB with Wazuh alerts + push new IOCs to MISP
-  python3 soc-connector.py sync --both --days 3
+  Source-IP publication uses the governed Event 1932 workflow. Do not export
+  local DB evidence or use a source list as an automatic blocking directive.
 """
 import argparse
 import json

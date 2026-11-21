@@ -22,7 +22,7 @@ const snapshotAgeHours = (stamp, now=Date.now()) => {
 };
 const sourceState = (meta, name) => meta?.sources?.[name]?.state || "unknown_age";
 const stateLabel = state => ({fresh:"fresh",cached:"cached; latest attempt failed",stale:"stale (>48h)",
-  not_observed:"not observed in lookup",unknown_age:"lookup age unknown",not_queried:"not queried"})[state] || "unknown";
+  not_observed:"not observed in lookup",unknown_age:"lookup age unknown",not_queried:"not queried",rate_limited:"rate limited",lookup_failed:"lookup failed"})[state] || "unknown";
 const context = (meta, field, source) => {
   if (meta?.[field]===undefined || meta[field]===null || meta[field]==="") return `${source}: no result`;
   return `${source}: ${meta[field]} (${stateLabel(sourceState(meta, source))})`;

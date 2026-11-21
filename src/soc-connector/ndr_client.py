@@ -50,7 +50,7 @@ class NDRClient:
         for c in self._cj:
             if c.name == "csrftoken":
                 self._csrf = c.value
-        if "login" in resp.geturl().lower():
+        if 'login' in resp.geturl().lower() or not self._csrf:
             return {"_error": True, "_message": "login failed"}
         return {"ok": True, "url": resp.geturl()}
 
@@ -108,8 +108,8 @@ class NDRClient:
     def status(self) -> dict:
         if not self._csrf:
             login = self.login()
-            if login.get("_error"):
-                return login
+            if login.get('_error') or not self._csrf:
+                raise RuntimeError('NDR authenticated status unavailable')
         user = self.current_user()
         src = self.sources()
         rs = self.ruleset(1)

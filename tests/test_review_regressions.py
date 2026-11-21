@@ -123,6 +123,18 @@ class CoverageTests(unittest.TestCase):
         del e['Event']['Attribute']
         with self.assertRaises(RuntimeError):published_event(e,1932)
 
+    def test_first_failed_lookup_is_not_published_as_never_queried(self):
+        d=load('dash_outcomes',BASE/'dashboard-gen.py')
+        for attempt,label in [('rate_limited','rate_limited'),('error','lookup_failed')]:
+            m=d.lookup_freshness({'_lookups':{'gn':{'status':attempt}}},'gn',NOW)
+            self.assertEqual(d.public_enrichment({'sources':{'gn':m}})['sources']['gn'],
+                             {'checked_at':None,'state':label,'last_attempt':attempt})
+        self.assertEqual(d.lookup_freshness({},'gn',NOW)['state'],'not_queried')
+
+    def test_ndr_no_authenticated_session_is_not_an_empty_status(self):
+        c=NDRClient.__new__(NDRClient);c._csrf=None;c.login=lambda:{'_error':True}
+        with self.assertRaises(RuntimeError):c.status()
+
     def test_country_and_gn_class_are_not_silently_misrepresented(self):
         d=load('dash_review',BASE/'dashboard-gen.py')
         with patch.object(intel_enrich,'_get',return_value=({'country_name':'China','country_iso_code':'CN','pulse_info':{'count':0}},200)):

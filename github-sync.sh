@@ -69,7 +69,7 @@ for meta in d['enrich_meta'].values():
     assert meta.get('gn') in (None,'malicious','suspicious','benign','unknown')
     for source in meta['sources'].values():
         assert set(source)=={'state','checked_at','last_attempt'}
-        assert source['state'] in ('fresh','cached','stale','not_observed','unknown_age','not_queried')
+        assert source['state'] in ('fresh','cached','stale','not_observed','unknown_age','not_queried','rate_limited','lookup_failed')
         assert source['last_attempt'] in ('ok','not_found','error','rate_limited','unknown')
         assert source['checked_at'] is None or datetime.strptime(source['checked_at'],'%Y-%m-%d %H:%M UTC')
 assert all(set(x)=={'ts','status','why'} and x['why']=='' and x['status'] in ('ok','fail') and datetime.strptime(x['ts'],'%Y-%m-%dT%H:%M:%SZ') for x in d['runs'])
