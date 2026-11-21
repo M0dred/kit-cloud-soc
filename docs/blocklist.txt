@@ -1,6 +1,3 @@
-# kit-cloud SoC public watchlist — REVIEW BEFORE BLOCKING; not proof of compromise
-# Observed IPv4 sources with SSH authentication-failure evidence and independent reports
-# Derived from curated MISP Event 1932; excludes unreviewed internal blocklist entries
-# contact: admin@kit-cloud.com
-
-154.57.216.142
+# kit-cloud SoC public watchlist — REVIEW ONLY; never automatically block
+# Original batch: 2026-11-20 22:01 UTC; correction: 2026-11-21 01:45 UTC. Check status.json and snapshot age.
+# Legacy selection withdrawn pending a scheduled evidence check; no new observation or run is implied.
