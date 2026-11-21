@@ -19,6 +19,8 @@ from datetime import datetime
 from pathlib import Path
 import yaml
 b=Path('/root/.config/soc-orchestrator')
+if sys.flags.optimize:
+    raise SystemExit('public validation requires assertions enabled')
 status=json.loads((b/'docs/status.json').read_text())
 assert set(status)=={'schema_version','state','last_attempt_utc'}
 assert status['schema_version']==1 and status['state'] in ('ok','degraded','unknown')
@@ -29,8 +31,15 @@ if sys.argv[1]=='--status-only':
 files=[b/'docs/data.json',b/'docs/blocklist.txt']
 d=json.loads(files[0].read_text())
 c=yaml.safe_load((b/'config.yaml').read_text())
-assert set(d)=={'generated','wazuh','misp','vt','health','runs','blocklist_n','enrich_meta'}
+required={'generated','wazuh','misp','vt','health','runs','blocklist_n','enrich_meta'}
+assert set(d) in (required, required|{'public_revision'})
+if 'public_revision' in d:
+    rev=d['public_revision']
+    assert set(rev)=={'kind','corrected_utc'} and rev['kind']=='projection_correction'
+    assert datetime.strptime(rev['corrected_utc'],'%Y-%m-%d %H:%M UTC') >= datetime.strptime(d['generated'],'%Y-%m-%d %H:%M UTC')
 assert set(d['wazuh'])=={'total_7d','top_src','by_day','by_agent','source_context','pipeline_24h_coverage'}
+assert set(d['vt']) == {'posted_total'}
+assert d['vt']['posted_total'] is None or (type(d['vt']['posted_total']) is int and d['vt']['posted_total'] >= 0)
 assert d['wazuh']['by_agent']==[]
 context=d['wazuh']['source_context']
 assert set(context)=={ip for ip,_ in d['wazuh']['top_src']}
@@ -56,10 +65,22 @@ assert set(d['misp']['top_source_membership'])=={ip for ip,_ in d['wazuh']['top_
 assert all(type(value) is bool for value in d['misp']['top_source_membership'].values())
 assert all(set(meta)<= {'gn','otx','aip','country','org','provider','sources'} for meta in d['enrich_meta'].values())
 assert all(set(meta.get('sources',{}))== {'gn','otx','aipdb'} for meta in d['enrich_meta'].values())
-assert all(not x['why'] for x in d['runs'])
+for meta in d['enrich_meta'].values():
+    assert meta.get('gn') in (None,'malicious','suspicious','benign','unknown')
+    for source in meta['sources'].values():
+        assert set(source)=={'state','checked_at','last_attempt'}
+        assert source['state'] in ('fresh','cached','stale','not_observed','unknown_age','not_queried')
+        assert source['last_attempt'] in ('ok','not_found','error','rate_limited','unknown')
+        assert source['checked_at'] is None or datetime.strptime(source['checked_at'],'%Y-%m-%d %H:%M UTC')
+assert all(set(x)=={'ts','status','why'} and x['why']=='' and x['status'] in ('ok','fail') and datetime.strptime(x['ts'],'%Y-%m-%dT%H:%M:%SZ') for x in d['runs'])
 ips=[line for line in files[1].read_text().splitlines() if line and not line.startswith('#')]
 assert all(ipaddress.ip_address(ip).version==4 and ipaddress.ip_address(ip).is_global for ip in ips)
-assert set(ips).isdisjoint(set((c.get('sensor_public_ips') or {}).values()))
+protected=c.get('sensor_public_ips')
+assert isinstance(protected,dict) and protected and all(isinstance(v,str) and str(ipaddress.ip_address(v))==v for v in protected.values())
+exported=set(ips) | {ip for ip,_ in d['wazuh']['top_src']} | {r['ip'] for r in d['misp']['recent_14d']} | set(d['enrich_meta'])
+assert all(ipaddress.ip_address(ip).version==4 and ipaddress.ip_address(ip).is_global and not ipaddress.ip_address(ip).is_multicast for ip in exported)
+assert exported.isdisjoint(protected.values()) and set(d['enrich_meta']) <= set(context)
+assert type(d['blocklist_n']) is int and d['blocklist_n']==len(ips)==len(set(ips))
 assert all(not any(ip in path.read_text() for path in files) for ip in (c.get('sensor_public_ips') or {}).values())
 def scan_credentials(obj):
  if isinstance(obj,dict):

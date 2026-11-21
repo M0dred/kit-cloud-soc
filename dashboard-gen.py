@@ -19,25 +19,21 @@ if not (_skill / "misp_client.py").exists():
     _skill = Path(__file__).resolve().parent / "src/soc-connector"  # offline repository tests
 sys.path.insert(0, str(_skill))
 from misp_client import MISPClient  # noqa: E402
+from soc_contracts import complete_search, published_event
+from wazuh_indexer import WazuhIndexerClient
+from source_policy import protected_ips, public_unicast, authenticated_failures, iso_country
 import yaml  # noqa: E402
 
 BASE = Path.home() / ".config/soc-orchestrator"
 THREAT_DB = Path.home() / ".config/linux-log-threat-hunt/threat-intel.db"
 OUT = BASE / "dashboard"  # local detailed dashboard
 PUBLIC = BASE / "docs"  # restricted, review-only public GitHub Pages data
-CTX = ssl.create_default_context()
-CTX.check_hostname = False
-CTX.verify_mode = ssl.CERT_NONE
+# Connection details and TLS policy come only from private configuration.
 
 
 
 def _is_private(ip):
-    import ipaddress
-    try:
-        a = ipaddress.ip_address(ip)
-        return a.version != 4 or not a.is_global
-    except ValueError:
-        return True
+    return not public_unicast(ip)
 
 
 def utc_timestamp(raw):
@@ -52,8 +48,7 @@ def utc_timestamp(raw):
 
 def parse_wazuh_rollup(d):
     """Use OpenSearch's exact hit total, never a sum of truncated top-N buckets."""
-    if d.get("timed_out") or (d.get("_shards") or {}).get("failed", 0):
-        raise RuntimeError("Wazuh aggregation timed out or had failed shards")
+    complete_search(d)
     total = d["hits"]["total"]
     if isinstance(total, dict):
         if total.get("relation") != "eq":
@@ -117,11 +112,9 @@ def public_sample_context(samples):
 
 
 def wazuh_7d():
-    cfg = BASE.joinpath("config.yaml").read_text()
-    u = re.search(r'indexer_user:\s*"([^"]+)"', cfg).group(1)
-    p = re.search(r'indexer_pass:\s*"([^"]+)"', cfg).group(1)
-    auth = "Basic " + base64.b64encode(f"{u}:{p}".encode()).decode()
-    body = json.dumps({
+    w = yaml.safe_load((BASE/'config.yaml').read_text())['wazuh']
+    client = WazuhIndexerClient(w['indexer_host'], w['indexer_user'], w['indexer_pass'], verify_tls=w.get('verify_tls',True))
+    body = {
         "size": 0,
         "track_total_hits": True,
         "query": {"range": {"timestamp": {"gte": "now-7d"}}},
@@ -134,22 +127,16 @@ def wazuh_7d():
                                     "agent.id", "agent.name", "rule.id", "rule.level", "rule.description"]}}}},
             "days": {"date_histogram": {"field": "timestamp", "calendar_interval": "day"}},
         },
-    }).encode()
-    req = urllib.request.Request(
-        "https://10.0.1.1:9200/wazuh-alerts-4.x-*/_search",
-        data=body, headers={"Authorization": auth, "Content-Type": "application/json"}, method="POST")
-    d = json.loads(urllib.request.urlopen(req, context=CTX, timeout=40).read())
-    return parse_wazuh_rollup(d)
+    }
+    return parse_wazuh_rollup(client.query_alerts(body, index='wazuh-alerts-4.x-*'))
 
 
 def misp_1932():
     cfg = yaml.safe_load(BASE.joinpath("config.yaml").read_text())
     m = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"],
                    verify_tls=cfg["misp"].get("verify_tls", True))
-    event = m.get_event(cfg["misp"].get("event_id", 1932))
-    if event.get("_error") or not isinstance(event.get("Event"), dict):
-        raise RuntimeError("MISP event fetch failed")
-    attrs = event["Event"].get("Attribute") or []
+    eid = cfg['misp'].get('event_id', 1932)
+    attrs = published_event(m.get_event(eid), eid)['Attribute']
     ips = [a for a in attrs if a.get("type") in ("ip-src", "ip-dst")]
     cidrs = [a["value"] for a in ips if "/" in a.get("value", "")]
     # Full event membership is known; recent_14d below is only a 30-row preview.
@@ -163,14 +150,17 @@ def misp_1932():
                            "updated_at": ts, "comment": (a.get("comment") or "")[:200]})
     recent.sort(key=lambda x: x["updated_at"], reverse=True)
     # Public watchlist is smaller than the internal blocklist: require corroborated SSH evidence.
-    from vt_comment_new import eligible, parse_comment
+    from vt_comment_new import eligible, parse_comment, shortlisted
     cache_file = BASE / "enrich-cache.json"
     cache = json.loads(cache_file.read_text()) if cache_file.exists() else {}
-    sensor_ips = set((cfg.get("sensor_public_ips") or {}).values())
-    watchlist = sorted({a["value"] for a in ips if a.get("to_ids") in (True, 1, "1") and
-                        a.get("value") not in sensor_ips and
-                        eligible(a["value"], parse_comment(a.get("comment") or ""),
-                                 cache.get(a["value"]) or {})})
+    excluded = protected_ips(cfg.get('sensor_public_ips'))
+    candidates = []
+    for a in ips:
+        ip = a['value']; intel = cache.get(ip) or {}; meta = parse_comment(a.get('comment') or '')
+        if a.get('to_ids') in (True, 1, '1') and shortlisted(ip, meta, intel, excluded):
+            candidates.append((ip, meta, intel))
+    proofs = authenticated_failures(cfg, [r[0] for r in candidates])
+    watchlist = sorted({ip for ip,meta,intel in candidates if eligible(ip, meta, intel, proofs.get(ip), excluded=excluded)})
     return {"total": len(ips), "cidrs": cidrs, "recent_14d": recent[:30],
             "watchlist": watchlist, "member_ips": sorted(members)}
 
@@ -230,19 +220,19 @@ def runs():
 def vt_ledger():
     f = BASE / "vt-commented.txt"
     if not f.exists():
-        return {"posted_total": 0}
+        return {'posted_total': None}
     ips = [l.strip() for l in f.read_text().splitlines() if l.strip()]
     return {"posted_total": len(ips)}
 
 
 def health():
-    import subprocess
-    r = subprocess.run(["python3", str(BASE / "health-check.py")], capture_output=True, text=True, timeout=60)
-    agents = ""
-    for l in r.stdout.splitlines():
-        if l.startswith("agents_down="):
-            agents = l.split("=", 1)[1]
-    return {"agents_down": agents or "none", "checked": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
+    path = BASE / 'agent-status.json'  # do not run a second state-mutating health check
+    states = json.loads(path.read_text())
+    checked = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+    if not states or not timedelta(0) <= datetime.now(timezone.utc)-checked <= timedelta(hours=1):
+        return {'agents_down':'unknown'}
+    return {'agents_down': ','.join(n for n,s in states.items() if s != 'active') or 'none',
+            'checked': checked.strftime('%Y-%m-%d %H:%M UTC')}
 
 
 
@@ -326,22 +316,22 @@ def enrich_meta_for(ips):
         c = cache.get(ip) or {}
         meta = {"sources": {name: lookup_freshness(c, name) for name in ("gn", "otx", "aipdb")}}
         gn = c.get("gn") or {}
-        if isinstance(gn, dict) and not gn.get("_error") and str(gn.get("classification") or "").lower() in ("malicious", "benign", "unknown"):
+        if isinstance(gn, dict) and not gn.get("_error") and str(gn.get("classification") or "").lower() in ('malicious', 'suspicious', 'benign', 'unknown'):
             meta["gn"] = str(gn["classification"]).lower()
             if gn.get("name"):
                 meta["org"] = str(gn["name"])[:28]
         otx = c.get("otx") or {}
         if isinstance(otx, dict) and not otx.get("_error") and otx.get("pulses") is not None:
             meta["otx"] = otx.get("pulses")
-            if otx.get("cc"):
-                meta["country"] = str(otx["cc"])[:2].upper()
+            if iso_country(otx.get('cc')):
+                meta['country'] = iso_country(otx['cc'])
         ab = c.get("aipdb") or {}
         if isinstance(ab, dict) and not ab.get("_error") and ab.get("score") is not None:
             meta["aip"] = ab.get("score")
             if ab.get("isp"):
                 meta["provider"] = str(ab["isp"])[:30]
-            if ab.get("cc"):
-                meta.setdefault("country", str(ab["cc"])[:2].upper())
+            if iso_country(ab.get('cc')):
+                meta.setdefault('country', iso_country(ab['cc']))
         out[ip] = meta
     # Legacy DB evidence has unknown freshness and may contain asset context.
     # Keep its AS/country fallback private; never populate public provider fields.
@@ -396,7 +386,7 @@ def main():
         raise RuntimeError("dashboard inputs incomplete; refusing to publish stale/unsafe data")
     waz = data["wazuh"]
     misp = data["misp"]
-    sensor_ips = set((yaml.safe_load((BASE / "config.yaml").read_text()).get("sensor_public_ips") or {}).values())
+    sensor_ips = protected_ips(yaml.safe_load((BASE / 'config.yaml').read_text()).get('sensor_public_ips'))
     public_src = [(ip, n) for ip, n in waz["top_src"] if ip not in sensor_ips and not _is_private(ip)]
     top = {ip for ip, _ in public_src}
     public = {
@@ -416,7 +406,7 @@ def main():
             "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
             "top_source_membership": {ip: ip in set(misp["member_ips"]) for ip in top},
         },
-        "vt": data.get("vt", {}),
+        'vt': {'posted_total': data['vt']['posted_total'] if type(data['vt'].get('posted_total')) is int and data['vt']['posted_total'] >= 0 else None},
         "health": {"agents_down": "withheld"},
         "runs": [{"ts": x["ts"], "status": x["status"], "why": ""} for x in data["runs"]],
         "blocklist_n": len(misp["watchlist"]),
@@ -429,7 +419,8 @@ def main():
     (PUBLIC / "data.json").write_text(json.dumps(public, indent=1) + "\n")
     edl = [
         "# kit-cloud SoC public watchlist — REVIEW BEFORE BLOCKING; not proof of compromise",
-        "# Observed IPv4 sources with SSH authentication-failure evidence and independent reports",
+        f"# Batch: {data['generated']}; check status.json; do not use a stale (>24h) list",
+        '# Scope: at least 20 level 10+ SSH authentication-failure alerts within 24h and independent lookup within 48h',
         "# Derived from curated MISP Event 1932; excludes unreviewed internal blocklist entries",
         "# contact: admin@kit-cloud.com",
         "",

@@ -27,6 +27,13 @@ const context = (meta, field, source) => {
   if (meta?.[field]===undefined || meta[field]===null || meta[field]==="") return `${source}: no result`;
   return `${source}: ${meta[field]} (${stateLabel(sourceState(meta, source))})`;
 };
+function lookupLabel(status, hasValue){
+  if(status?.last_attempt==='rate_limited')return hasValue?`rate limited; ${stateLabel(status.state)}`:'rate limited; no value';
+  if(status?.last_attempt==='error')return hasValue?`lookup failed; ${stateLabel(status.state)}`:'lookup failed; no value';
+  if(status?.state==='not_observed')return 'not observed in lookup';
+  if(!hasValue && status?.last_attempt==='ok')return 'queried; no mapped value';
+  return stateLabel(status?.state||'not_queried');
+}
 let sourceRows=[], snapshot=null;
 
 function addRow(table, values, classes=[]) {
@@ -44,7 +51,7 @@ function renderCards(d){
   const items=[
     ["Wazuh alerts · 7d",metric(d.wazuh?.total_7d),"Exact query total; batch snapshot"],
     ["MISP 1932 attributes",metric(d.misp?.total),"Legacy ip-dst and new ip-src; not incidents"],
-    ["VT comments logged",metric(d.vt?.posted_total),"Cumulative local ledger; not recent activity or a verdict"],
+    ['VT ledger entries',metric(d.vt?.posted_total),'Local deduplication ledger; not a verified post count'],
     ["Public watchlist",metric(d.blocklist_n),"Strict SSH + corroboration + IDS flag; review before action"],
   ];
   for (const [name,value,explain] of items) {
@@ -54,7 +61,7 @@ function renderCards(d){
     ? `${metric(d.misp.total)} MISP IP attributes → ${metric(d.blocklist_n)} in the stricter public list: `
     : "MISP and public-list counts are not both available: ";
   byId("selection-explain").textContent=totals+
-    `IDS-enabled, corroborated SSH source, independent signal and non-cloud global IPv4. `+
+    `IDS-enabled, at least 20 verified level 10+ SSH authentication-failure alerts in 24h, and a successful corroborating lookup within 48h. `+
     `Older IDS flags are not proof of analyst review; new automated entries start IDS-disabled. `+
     `Never use this list as an automatic block decision.`;
 }
@@ -89,7 +96,7 @@ function renderDetail(ip,count,meta,membership,sourceContext){
   for(const [label,value,key] of items){
     const status=meta?.sources?.[key]||{};
     const present=value!==undefined && value!==null && value!=="";
-    const line=`${label}: ${present?value:"no result"} · ${stateLabel(status.state||"not_queried")}`+
+    const line=`${label}: ${present?value:"no result"} · ${lookupLabel(status,present)}`+
       (status.checked_at?` · checked ${status.checked_at}`:"");
     add(list,"li",line);
   }
@@ -128,7 +135,7 @@ function renderSources(d){
       const membership=Object.hasOwn(memberMap,ip)?memberMap[ip]:null;
       const presence=membership===true?"Yes":membership===false?"No":"Unknown";
       const coverage=[['GN','gn','gn'],['AIP','aipdb','aip'],['OTX','otx','otx']]
-        .map(([label,key,val])=>`${label}: ${meta[val]===undefined?'—':stateLabel(sourceState(meta,key))}`).join(" · ");
+        .map(([label,key,val])=>`${label}: ${lookupLabel(meta.sources?.[key],meta[val]!==undefined)}`).join(" · ");
       const row=addRow(body,[defang(ip),ctx.sample_behavior||"No sample",meta.provider||meta.org||"Not provided",meta.country||"—",
         metric(count),presence,coverage],["mono","wrap","wrap","","num","","wrap"]);
       const cell=row.children[0];cell.replaceChildren();
@@ -143,7 +150,7 @@ function renderSources(d){
       cell.setAttribute("colspan","7");
     }
     byId("source-scope").textContent=shown
-      ? `${shown} of ${sourceRows.length} top global IPv4 sources · sampled behavior is not a verdict · full Event 1932 membership checked`
+      ? `${shown} of ${sourceRows.length} shareable IPv4 rows from the top 20 source buckets · sampled behavior is not a verdict · full Event 1932 membership checked`
       : sourceRows.length
         ? `No sources match this filter · only ${sourceRows.length} top global IPv4 sources are available in this snapshot.`
         : "No displayed source rows in this snapshot; this does not imply zero alerts.";
@@ -175,7 +182,7 @@ function renderFeeds(){
     const box=add(root,"div","","feed");add(box,"h3",name);const para=add(box,"p",description);
     if(href){add(para,"br","");const link=add(para,"a",linkText);link.href=href;link.rel="noopener noreferrer";link.target="_blank";}
   }
-  feed("Review-only IP list","Only IDS-enabled MISP sources with corroborated SSH evidence; not the full catalog or a blocking directive.","Public watchlist", "blocklist.txt");
+  feed("Review-only IP list","Only IDS-enabled sources with recent verified SSH-failure counts and fresh independent context; not a blocking directive.","Public watchlist", "blocklist.txt");
   feed("MISP exports","New automated attributes need analyst review before IDS use; legacy IDS flags are not automatically re-reviewed. Exports require authorization.","",null);
   feed("VirusTotal","A capped job shares selected, evidence-backed source observations. VT labels are not proof of compromise.","",null);
   feed("Private investigations","NDR alert samples, asset identities and incident decisions are not published on this page.","",null);
@@ -218,6 +225,9 @@ async function main(){
       note.textContent="Latest published batch snapshot (not live). Alert counts and source lookups guide investigation, not incident confirmation.";}
     pill.className=pill.textContent==="LAST RUN OK"?"pill":"pill bad";
     note.className=pill.textContent==="LAST RUN OK"?"panel readout":"panel readout warn";
+    if(d.public_revision?.kind==='projection_correction'){
+      add(note,'span',` Display correction ${d.public_revision.corrected_utc}: country and GreyNoise labels corrected from the same batch; legacy watchlist withdrawn pending a scheduled evidence check. No new run or observation is implied.`);
+    }
     renderCards(d);renderDaily(d);renderSources(d);renderMisp(d);renderRuns(d);renderFeeds();
   }catch(e){
     byId("gen").textContent="Public snapshot unavailable: "+e.message;

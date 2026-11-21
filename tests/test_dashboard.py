@@ -9,6 +9,7 @@ import unittest
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from unittest.mock import patch
+from misp_fixture import event as fixture_event
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("soc_dashboard", ROOT / "dashboard-gen.py")
@@ -18,7 +19,7 @@ spec.loader.exec_module(dash)
 
 class DashboardTests(unittest.TestCase):
     def test_total_is_not_sum_of_top_agents(self):
-        d = {"hits": {"total": {"value": 100, "relation": "eq"}},
+        d = {'timed_out':False,'_shards':{'total':1,'successful':1,'failed':0},'hits': {'total': {'value': 100, 'relation': 'eq'}},
              "aggregations": {
                  "agents": {"buckets": [{"key": "host-a", "doc_count": 60}]},
                  "src": {"buckets": [{"key": "45.148.10.141", "doc_count": 14}]},
@@ -201,10 +202,10 @@ class DashboardTests(unittest.TestCase):
                  {"type": "ip-src", "value": "10.0.0.3", "timestamp": fresh}]
         class FakeMisp:
             def __init__(self, *args, **kwargs): pass
-            def get_event(self, event): return {"Event": {"Attribute": attrs}}
+            def get_event(self, event): return fixture_event(attrs)
         with tempfile.TemporaryDirectory() as folder:
             temp = Path(folder)
-            (temp / "config.yaml").write_text('misp:\n  url: https://test.invalid\n  api_key: fixture\n  event_id: 1932\n')
+            (temp / 'config.yaml').write_text('sensor_public_ips: {fixture: 203.0.113.10}\nmisp:\n  url: https://test.invalid\n  api_key: fixture\n  event_id: 1932\n')
             with patch.object(dash, "BASE", temp), patch.object(dash, "MISPClient", FakeMisp):
                 result = dash.misp_1932()
         self.assertEqual(result["total"], 3)

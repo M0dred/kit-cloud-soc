@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Facts for cron. Prints FAIL lines; does not send Telegram."""
 import json
-import re
+import yaml
 import ssl
 import urllib.request
 import base64
@@ -15,26 +15,39 @@ AGENT_PAGE_SIZE = 100
 MAX_AGENT_RECORDS = 10000  # fail closed instead of silently truncating larger inventories
 MISSING_STATUS = "not_returned_by_manager"
 # These endpoints may legitimately sleep. They still appear as WARN, not FAIL.
-SOFT_AGENTS = {"win-lite", "kowalski-mac", "kowalski-pc", "raspberrypi", "sonar-mini"}
+SOFT_FILE = CFG.with_name('health-policy.json')
+
+
+def soft_agents():
+    if not SOFT_FILE.exists():
+        return set()  # no undeclared exceptions to the hard health check
+    items = json.loads(SOFT_FILE.read_text())['sleep_eligible']
+    if not isinstance(items,list) or any(not isinstance(n,str) or not n.strip() for n in items):
+        raise ValueError('invalid private health policy')
+    return set(items)
 
 
 def _cfg():
-    return CFG.read_text()
+    return yaml.safe_load(CFG.read_text())['wazuh']
 
 
-def _grab(text, key):
-    return re.search(rf'{key}:\s*"([^"]+)"', text).group(1)
-
-
-def indexer_facts(user, password):
+def tls_context(verify):
     ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    auth = "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()
+    if not verify:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
+
+def indexer_facts(w):
+    ctx = tls_context(w.get('verify_tls',True))
+    host = w['indexer_host']
+    base = 'https://' + (host if ':' in host else host+':9200')
+    auth = 'Basic ' + base64.b64encode((w['indexer_user']+':'+w['indexer_pass']).encode()).decode()
 
     def call(path, data=None):
         req = urllib.request.Request(
-            "https://10.0.1.1:9200" + path,
+            base + path,
             data=data,
             headers={"Authorization": auth, "Content-Type": "application/json"},
             method="POST" if data is not None else "GET",
@@ -43,26 +56,33 @@ def indexer_facts(user, password):
             return json.loads(resp.read().decode())
 
     health = call("/_cluster/health")
+    if health.get('status') not in ('green','yellow') or type(health.get('active_shards')) is not int or health['active_shards'] <= 0:
+        raise RuntimeError('Indexer cluster health unavailable or red')
     body = json.dumps({
         "size": 1,
         "sort": [{"timestamp": {"order": "desc"}}],
         "_source": ["timestamp"],
     }).encode()
     hits = call("/wazuh-alerts-4.x-*/_search", body)
+    shards = hits.get('_shards') or {}
+    if (hits.get('timed_out') is not False or shards.get('failed') != 0 or type(shards.get('total')) is not int or
+            shards['total'] < 1 or shards.get('successful') != shards['total']):
+        raise RuntimeError('latest ingest search incomplete')
     ts = ((hits.get("hits") or {}).get("hits") or [{}])[0].get("_source", {}).get("timestamp") or ""
     age = None
     if ts:
-        seen = datetime.strptime(ts[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        seen = datetime.fromisoformat(ts.replace('Z','+00:00'))
+        if not seen.tzinfo:
+            raise ValueError('alert timestamp lacks UTC offset')
         age = (datetime.now(timezone.utc) - seen).total_seconds() / 3600
     return health.get("active_shards") or 0, ts, age
 
 
-def agent_states(user, password):
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+def agent_states(user, password, *, manager_url, verify_tls=True):
+    ctx = tls_context(verify_tls)
+    base = manager_url.rstrip('/')
     req = urllib.request.Request(
-        "https://10.147.20.1:55000/security/user/authenticate",
+        base + '/security/user/authenticate',
         headers={"Authorization": "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()},
     )
     with urllib.request.urlopen(req, context=ctx, timeout=12) as resp:
@@ -72,7 +92,7 @@ def agent_states(user, password):
     expected_total = None
     while True:
         req = urllib.request.Request(
-            f"https://10.147.20.1:55000/agents?limit={AGENT_PAGE_SIZE}&offset={offset}&select=name,status",
+            f'{base}/agents?limit={AGENT_PAGE_SIZE}&offset={offset}&select=name,status',
             headers={"Authorization": "Bearer " + token},
         )
         with urllib.request.urlopen(req, context=ctx, timeout=12) as resp:
@@ -104,8 +124,8 @@ def agent_states(user, password):
 
 
 def main():
-    text = _cfg()
-    shards, ts, age = indexer_facts(_grab(text, "indexer_user"), _grab(text, "indexer_pass"))
+    w = _cfg(); sleep_ok = soft_agents()
+    shards, ts, age = indexer_facts(w)
     print(f"shards={shards}")
     print(f"latest={ts}")
     if age is None:
@@ -113,12 +133,14 @@ def main():
         print("FAIL no latest Wazuh alert")
     else:
         print(f"latest_age_hours={age:.2f}")
+        if age < -1/6:
+            print('FAIL latest Wazuh alert is in the future')
         if age >= STALE_HOURS:
             print(f"FAIL ingest stale {age:.1f}h, last alert {ts}")
     if shards >= 1200:
         print(f"FAIL shards {shards}/1500")
 
-    current = agent_states(_grab(text, "manager_user"), _grab(text, "manager_pass"))
+    current = agent_states(w['manager_user'], w['manager_pass'], manager_url=w['manager_url'], verify_tls=w.get('verify_tls',True))
     previous = json.loads(STATE.read_text()) if STATE.exists() else {}
     first = not STATE.exists()
     # Missing from a complete manager response is unknown, not a recovery.
@@ -135,12 +157,13 @@ def main():
     for name, status in sorted(current.items()):
         old = previous.get(name)
         if name in missing:
-            (soft_missing if name in SOFT_AGENTS else hard_missing).append(name)
+            (soft_missing if name in sleep_ok else hard_missing).append(name)
         elif status != "active":
-            (soft_down if name in SOFT_AGENTS else hard_down).append(f"{name}={status}")
+            (soft_down if name in sleep_ok else hard_down).append(f"{name}={status}")
         elif old not in (None, "active"):
             recovered.append(name)
-    STATE.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n")
+    tmp = STATE.with_suffix('.tmp')
+    tmp.write_text(json.dumps(current, indent=2, sort_keys=True)+'\n'); tmp.chmod(0o600); tmp.replace(STATE)
     if first:
         print("agent_baseline=created")
     # Failure is a current condition, not just a transition. Otherwise an

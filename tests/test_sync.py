@@ -76,7 +76,7 @@ class StatusOnlySyncTests(unittest.TestCase):
             status.write_text(json.dumps({'schema_version': 1, 'state': 'ok',
                                           'last_attempt_utc': '2026-11-13 22:01 UTC'}))
             (repo / 'docs/blocklist.txt').write_text('# fixture, review only\n')
-            (repo / 'config.yaml').write_text('sensor_public_ips: {}\n')
+            (repo / 'config.yaml').write_text('sensor_public_ips: {fixture: 203.0.113.10}\n')
             (repo / 'README.md').write_text('initial\n')
             git(repo, 'add', 'README.md', 'docs')
             git(repo, 'commit', '-m', 'initial')

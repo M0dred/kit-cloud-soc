@@ -15,6 +15,9 @@ EXTRA=()
 if [ -f /root/.config/soc-orchestrator/reviews.sqlite3 ]; then
   EXTRA+=(soc-orchestrator/reviews.sqlite3)
 fi
+for state in misp-publish-pending.json ndr-evidence.json enrich-backoff.json; do
+  if [ -f "/root/.config/soc-orchestrator/$state" ]; then EXTRA+=("soc-orchestrator/$state"); fi
+done
 if [ -f /root/.config/soc-orchestrator/warninglist-context.json ]; then
   EXTRA+=(soc-orchestrator/warninglist-context.json)
 fi
@@ -29,6 +32,8 @@ tar -czf "$TMP" --exclude='.git' --exclude='__pycache__' \
   soc-orchestrator/memory.md soc-orchestrator/README.md \
   soc-orchestrator/vt-commented.txt soc-orchestrator/vt-comment-daily.json \
   soc-orchestrator/state.json soc-orchestrator/enrich-cache.json \
+  soc-orchestrator/source_policy.py soc-orchestrator/agent-status.json soc-orchestrator/health-policy.json \
+  agents/skills/linux-log-threat-hunt/scripts/analyze-logs.py agents/skills/linux-log-threat-hunt/scripts/threat_db.py \
   linux-log-threat-hunt/threat-intel.db \
   agents/skills/soc-connector "${EXTRA[@]}"
 # A successful tar exit and archive readback are both required.

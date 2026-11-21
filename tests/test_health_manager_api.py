@@ -13,6 +13,10 @@ health = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(health)
 
 
+def inventory():
+    return health.agent_states('fixture','fixture',manager_url='https://manager.example.invalid')
+
+
 def response(data):
     return io.BytesIO(json.dumps(data).encode())
 
@@ -37,7 +41,7 @@ class ManagerInventoryTests(unittest.TestCase):
             offset = int(qs['offset'][0]); offsets.append(offset)
             return response(listing(records[offset:offset + 100], len(records)))
         with patch.object(health.urllib.request, 'urlopen', side_effect=open_):
-            agents = health.agent_states('fixture', 'fixture')
+            agents = inventory()
         self.assertEqual(len(agents), 205)
         self.assertEqual(offsets, [0, 100, 200])
 
@@ -61,14 +65,14 @@ class ManagerInventoryTests(unittest.TestCase):
                     return response(fixture)
                 with patch.object(health.urllib.request, 'urlopen', side_effect=open_):
                     with self.assertRaises((RuntimeError, ValueError)):
-                        health.agent_states('fixture', 'fixture')
+                        inventory()
 
     def test_truncated_nonempty_page_fails_without_unbounded_followup_requests(self):
         replies = [response({'error': 0, 'data': {'token': 'fixture'}}),
                    response(listing([{'name': 'fixture', 'status': 'active'}], 2))]
         with patch.object(health.urllib.request, 'urlopen', side_effect=replies) as req:
             with self.assertRaises((RuntimeError, ValueError)):
-                health.agent_states('fixture', 'fixture')
+                inventory()
             self.assertEqual(req.call_count, 2)
 
     def test_total_changing_during_pagination_fails_closed(self):
@@ -78,7 +82,7 @@ class ManagerInventoryTests(unittest.TestCase):
                    response(listing([{'name': 'last', 'status': 'active'}], 101))]
         with patch.object(health.urllib.request, 'urlopen', side_effect=replies):
             with self.assertRaises((RuntimeError, ValueError)):
-                health.agent_states('fixture', 'fixture')
+                inventory()
 
 
 if __name__ == '__main__':

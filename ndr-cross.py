@@ -21,6 +21,8 @@ if not (_skill / "misp_client.py").exists():
     _skill = Path(__file__).resolve().parent / "src/soc-connector"  # offline repository tests
 sys.path.insert(0, str(_skill))
 from misp_client import MISPClient  # noqa: E402
+from soc_contracts import published_event, complete_search
+from source_policy import protected_ips, shareable
 import yaml  # noqa: E402
 
 BASE = Path.home() / ".config/soc-orchestrator"
@@ -28,12 +30,12 @@ BASE_CFG = BASE / "config.yaml"
 EVIDENCE_FILE = BASE / "ndr-evidence.json"
 
 
-def ndr_es(opener, csrf, index, body):
+def ndr_es(opener, csrf, base, index, body):
     path = f"/kibana/api/console/proxy?path={urllib.parse.quote(index + '/_search')}&method=POST"
     req = urllib.request.Request(
-        "https://10.0.1.50:8443" + path,
+        base + path,
         data=json.dumps(body).encode(),
-        headers={"Referer": "https://10.0.1.50:8443/", "X-CSRFToken": csrf,
+        headers={"Referer": base + '/', "X-CSRFToken": csrf,
                  "kbn-xsrf": "true", "osd-xsrf": "true", "Content-Type": "application/json"},
         method="POST",
     )
@@ -89,6 +91,16 @@ def evidence_matches(aggregations, chunk):
     return records
 
 
+def verified_chunk(reply, chunk):
+    d = complete_search(reply)
+    for side in ('src','dst'):
+        agg = d['aggregations'][side]
+        if (not isinstance(agg.get('buckets'), list) or agg.get('sum_other_doc_count') != 0 or
+                agg.get('doc_count_error_upper_bound') != 0):
+            raise RuntimeError('NDR bucket coverage incomplete')
+    return evidence_matches(d['aggregations'], chunk)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-notify", action="store_true", help="read-only validation; do not notify Telegram")
@@ -96,8 +108,9 @@ def main():
     cfg = yaml.safe_load(BASE_CFG.read_text())
     ndr = cfg["ndr"]
     ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    if not ndr.get('verify_tls', True):
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
     cj = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(
         urllib.request.HTTPSHandler(context=ctx),
@@ -123,10 +136,8 @@ def main():
 
     misp = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"],
                       verify_tls=cfg["misp"].get("verify_tls", True))
-    event = misp.get_event(cfg["misp"].get("event_id", 1932))
-    if event.get("_error") or not isinstance(event.get("Event"), dict):
-        raise RuntimeError("MISP fetch failed; NDR cross-check not performed")
-    attrs = event["Event"].get("Attribute") or []
+    eid = cfg['misp'].get('event_id', 1932)
+    attrs = published_event(misp.get_event(eid), eid)['Attribute']
     def valid_source(a):
         if a.get("type") not in ("ip-src", "ip-dst"):
             return False  # ip-dst entries were historically mis-typed inbound sources
@@ -161,12 +172,10 @@ def main():
                                         "alert.signature_id", "alert.signature"]}}}},
             },
         }
-        d = ndr_es(opener, csrf, "logstash-alert-*", body)
-        if d.get("error") or not all(isinstance((d.get("aggregations") or {}).get(k), dict) for k in ("src", "dst")):
-            raise RuntimeError("NDR query returned an error or no aggregations")
-        matches.extend(evidence_matches(d["aggregations"], chunk))
+        reply = ndr_es(opener, csrf, ndr['url'].rstrip('/'), 'logstash-alert-*', body)
+        matches.extend(verified_chunk(reply, chunk))
 
-    # Do not keep a previous successful snapshot when the current query fails.
+    # Replace last success only after every chunk passed; failed attempts are logged by cron.
     evidence = {"schema_version": 1, "status": "ok", "checked_at": datetime.now(timezone.utc).isoformat(),
                 "window_hours": 24, "matches": matches}
     tmp = EVIDENCE_FILE.with_suffix(".tmp")
@@ -181,7 +190,11 @@ def main():
         if args.no_notify:
             return
         try:
-            text = "SOC: NDR cross — " + "; ".join(f"{ip}({side},{n})" for ip, side, n in sorted(hits)[:10])
+            excluded = protected_ips(cfg.get('sensor_public_ips'))
+            share = [r for r in sorted(hits) if shareable(r[0], excluded)]
+            if not share:
+                return
+            text = 'SOC: NDR cross — ' + '; '.join(f'{ip}({side},{n})' for ip, side, n in share[:10])
             t = BASE_CFG.read_text()
             bot = re.search(r'bot_token:\s*"([^"]+)"', t).group(1)
             chat = re.search(r'chat_id:\s*(\d+)', t).group(1)

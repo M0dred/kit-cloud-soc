@@ -6,6 +6,7 @@
 # 4) VT comments, capped
 # Failures are sent to Telegram. Normal new-IOC notices stay in the orchestrator (notify_on=new_misp).
 set -uo pipefail
+umask 077
 export PATH=/usr/bin:/bin
 LOCK=/run/soc-orchestrator.lock
 LOG=/root/.config/soc-orchestrator/cron.log
@@ -46,8 +47,16 @@ fi
 MARK=$(date -u +%FT%TZ)
 echo "$MARK START (Melbourne cron)" >>"$LOG"
 
+echo "$(date -u +%FT%TZ) --- preflight health ---" >>"$LOG"
+HEALTH=$(/usr/bin/python3 "$OUTDIR/health-check.py" 2>>"$LOG") || FAILS+=("health check failed")
+printf '%s\n' "$HEALTH" >>"$LOG"
+while IFS= read -r line; do
+  case "$line" in FAIL*) FAILS+=("${line#FAIL }");; esac
+done <<< "$HEALTH"
+mode=(--skip-vt)
+if [ ${#FAILS[@]} -gt 0 ]; then mode+=(--local-only); fi
 echo "$(date -u +%FT%TZ) --- orchestrator (Wazuh+MISP) ---" >>"$LOG"
-if ! /usr/bin/python3 "$ORCH" run --skip-vt >>"$LOG" 2>&1; then
+if ! /usr/bin/python3 "$ORCH" run "${mode[@]}" >>"$LOG" 2>&1; then
   echo "$(date -u +%FT%TZ) orchestrator FAIL" >>"$LOG"
   FAILS+=("orchestrator exited non-zero")
 fi
@@ -59,18 +68,6 @@ if [ -f "$S/summary.json" ]; then
   cp "$S/summary.json" "$S/$(date -u +%Y%m%d-%H%M).json"
   ls -1t "$S"/20*.json 2>/dev/null | tail -n +31 | xargs -r rm --
 fi
-if ! timeout 5 bash -c 'echo >/dev/tcp/10.0.1.1/9200'; then
-  FAILS+=("Wazuh indexer 10.0.1.1:9200 unreachable")
-else
-  echo "$(date -u +%FT%TZ) --- health ---" >>"$LOG"
-  HEALTH=$(/usr/bin/python3 /root/.config/soc-orchestrator/health-check.py 2>>"$LOG") || FAILS+=("health check failed")
-  printf '%s\n' "$HEALTH" >>"$LOG"
-  while IFS= read -r line; do
-    case "$line" in
-      FAIL*) FAILS+=("${line#FAIL }") ;;
-    esac
-  done <<< "$HEALTH"
-fi
 IPS=$(awk -v m="$MARK" '$0 ~ m {p=1} p && /wazuh_ips:/ {print $2; exit}' "$LOG" || true)
 if [ "${IPS:-x}" = "0" ]; then
   echo "$(date -u +%FT%TZ) note: 0 external IPs this window; not a failure if ingest is fresh" >>"$LOG"
@@ -79,14 +76,16 @@ fi
 # IntelMQ removed from stack (2026-10-21): step disabled.
 
 echo "$(date -u +%FT%TZ) --- NDR cross vs 1932 ---" >>"$LOG"
-if ! /usr/bin/python3 /root/.config/soc-orchestrator/ndr-cross.py >>"$LOG" 2>&1; then
+ndr_flags=()
+if [ ${#FAILS[@]} -gt 0 ]; then ndr_flags+=(--no-notify); fi
+if ! /usr/bin/python3 "$OUTDIR/ndr-cross.py" "${ndr_flags[@]}" >>"$LOG" 2>&1; then
   echo "$(date -u +%FT%TZ) ndr-cross FAIL" >>"$LOG"
   FAILS+=("NDR cross-check failed")
 fi
 
 echo "$(date -u +%FT%TZ) --- local /var/log hunt ---" >>"$LOG"
 if [ -f "$HUNT" ]; then
-  if ! /usr/bin/python3 "$HUNT" /var/log >"$OUTDIR/logs-sensor-syd-cron.json" 2>>"$LOG"; then
+  if ! /usr/bin/python3 "$HUNT" /var/log >"$OUTDIR/local-hunt-latest.json" 2>>"$LOG"; then
     echo "$(date -u +%FT%TZ) log-hunt FAIL" >>"$LOG"
     FAILS+=("local log hunt failed")
   fi
@@ -107,7 +106,9 @@ else
 fi
 
 echo "$(date -u +%FT%TZ) --- VT comments (capped) ---" >>"$LOG"
-if ! /usr/bin/python3 /root/.config/soc-orchestrator/vt_comment_new.py --max 3 --days 7 >>"$LOG" 2>&1; then
+if [ ${#FAILS[@]} -gt 0 ]; then
+  echo "$(date -u +%FT%TZ) VT comments withheld: incomplete prerequisite" >>"$LOG"
+elif ! /usr/bin/python3 /root/.config/soc-orchestrator/vt_comment_new.py --max 3 --days 7 >>"$LOG" 2>&1; then
   echo "$(date -u +%FT%TZ) vt-comment FAIL" >>"$LOG"
   FAILS+=("VT comment job failed")
 fi

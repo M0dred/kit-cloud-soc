@@ -20,7 +20,7 @@ Environment variables:
 
 Usage:
   # MISP: push local IOCs as an event
-  python3 soc-connector.py misp push --name "sensor-02 SSH brute force" \
+  python3 soc-connector.py misp push --name "Reviewed example observations" \
     --ips-file /tmp/sensor02_ips.txt --tag brute_force --tag ssh
 
   # MISP: pull IOCs down for blocklist generation
@@ -102,10 +102,12 @@ def get_indexer_client(verify_tls=True):
 # ---------------------------------------------------------------------------
 
 def cmd_misp_push(args):
+    if args.type in ('ip-src', 'ip-dst'):
+        raise SystemExit('Direct source-IP batch push is retired; use the configured, guarded Event 1932 pipeline')
     misp = get_misp_client(verify_tls=not args.no_verify_tls)
 
     iocs = []
-    # Read IPs from file or stdin
+    # Read indicators from file or stdin
     fh = open(args.ips_file) if args.ips_file else sys.stdin
     for line in fh:
         val = line.strip()
@@ -323,44 +325,11 @@ def cmd_sync(args):
         print("[ERROR] threat_db.py not found. Install linux-log-threat-hunt skill.", file=sys.stderr)
         sys.exit(1)
 
+    if args.to_misp or args.both:
+        raise SystemExit('Bulk export of private DB evidence is retired; use the configured, guarded Event 1932 pipeline')
     db = ThreatDB()
     pushed = 0
     pulled = 0
-
-    # Push local DB → MISP
-    if args.to_misp or args.both:
-        misp = get_misp_client(verify_tls=not args.no_verify_tls)
-        iocs = db.list_iocs(min_confidence=args.min_confidence, days=args.days, limit=5000)
-        # Filter: only those not reported to MISP in last N days
-        fresh = []
-        for ioc in iocs:
-            # Simple heuristic: if never reported to VT, probably not reported to MISP either
-            # A proper implementation would track last_reported_misp in the DB schema
-            last_vt = ioc.get("last_reported_vt")
-            if not last_vt or _older_than(last_vt, args.days):
-                fresh.append({
-                    "value": ioc["ip"],
-                    "type": "ip-dst",
-                    "category": "Network activity",
-                    "confidence": ioc.get("confidence", "medium"),
-                    "source": ",".join(json.loads(ioc.get("sources", "[]"))),
-                    "comment": str(json.loads(ioc.get("evidence", "{}"))),
-                })
-        if fresh:
-            print(f"Pushing {len(fresh)} IOCs to MISP...")
-            res = misp.push_ioc_event(
-                name=f"Auto-sync from {os.uname().nodename} — {len(fresh)} IOCs",
-                iocs=fresh,
-                tags=["auto-sync", "soc-connector"],
-                threat_level=3,
-            )
-            if not res.get("_error"):
-                pushed = len(fresh)
-                print(f"OK: Event {res.get('event_id')}")
-            else:
-                print(f"FAIL: {res.get('_message', 'unknown')}")
-        else:
-            print("No new IOCs to push to MISP.")
 
     # Pull MISP → local DB
     if args.from_misp or args.both:

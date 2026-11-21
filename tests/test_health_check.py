@@ -21,9 +21,8 @@ class HealthAgentStateTests(unittest.TestCase):
         self.state = Path(self.temp.name) / 'agent-status.json'
         self.patches = [
             patch.object(health, 'STATE', self.state),
-            patch.object(health, 'SOFT_AGENTS', {'fixture-laptop'}, create=True),
-            patch.object(health, '_cfg', return_value='fixture config, no credentials'),
-            patch.object(health, '_grab', return_value='fixture'),
+            patch.object(health, 'soft_agents', return_value={'fixture-laptop'}),
+            patch.object(health,'_cfg',return_value={'manager_user':'fixture','manager_pass':'fixture','manager_url':'https://example.invalid'}),
             patch.object(health, 'indexer_facts', return_value=(20, '2026-11-06T06:00:00Z', 0.1)),
         ]
         for p in self.patches:

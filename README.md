@@ -17,13 +17,15 @@
 ```mermaid
 flowchart LR
   W[Wazuh alerts] --> P[Bounded enrichment]
-  N[Local NDR / log hunts] --> P
+  H[Private coverage preflight] --> P
+  N[Local NDR / log hunts] --> Vgate{Required stages complete?}
   P --> M[MISP Event 1932]
   M --> R{Human review}
   R -->|approved separately| I[IDS-enabled indicator]
   R -->|public-safe subset only| D[Privacy-checked snapshot]
   D --> G[GitHub Pages]
-  P --> V[Capped VT comments]
+  P --> Vgate
+  Vgate --> V[Capped VT comments after source-specific evidence check]
   R -. never automatic .-> X[No blocking / no VT voting]
 ```
 
@@ -42,7 +44,7 @@ flowchart LR
 - **Observation is not compromise.** Wazuh totals, NDR samples and catalog membership are leads, not verdicts.
 - **MISP knowledge is not local proof.** Event 1932 includes legacy `ip-dst` entries actually observed as inbound sources; new attributes use `ip-src`, and consumers support both during migration.
 - **IDS use stays off by default for new automated attributes.** The MISP new-event helper also defaults to `to_ids=false`, reports add/publish failures and requires manual review of partial events.
-- **Public watchlist is not a block command.** It requires MISP `to_ids=true`, corroborated SSH-source evidence and a non-cloud public IP. Older `to_ids=true` entries are not necessarily analyst-reviewed, and one public IP does not imply one MISP indicator.
+- **Public watchlist is not a block command.** It requires MISP `to_ids=true`, a shareable source, the existing conservative SSH/volume/provider filters, an independent successful positive lookup within 48h, and at least 20 actual Wazuh SSH authentication-failure alerts (each level ≥10) in the last 24h. Only the internal Indexer receives the batched evidence query. Mixed source counts, generic `sshd` messages, old MISP scores, a fresh zero or GreyNoise `suspicious` do not establish this evidence. Older `to_ids=true` entries are not necessarily analyst-reviewed, and one public IP does not imply one MISP indicator.
 - **Manual review records are not a Case system.** `reviews.sqlite3` keeps bounded private decisions with evidence references and expiry, but it never writes to MISP or GitHub. Approval, revocation and expiry reconciliation still need separate authenticated action.
 - **Public output is bounded.** Per-agent data, raw events, detailed failures and private AS context remain private. The 24-hour top-500 coverage limit and enrichment age/status are explicit.
 
@@ -61,13 +63,18 @@ The report shows top-500 coverage and upstream list versions. If any list is una
 <summary><strong>Schedule, publication and recovery</strong></summary>
 
 - **UTC `06:00`, `12:00`, `18:00` and `22:00`:** `cron-run.sh` attempts Wazuh → MISP and local NDR/log hunts four times daily, including the independently capped VT comment job (`vt_comment_new.py`, **at most 3 per run / 6 per UTC day**). Dashboard generation requires successful stages. These are scheduled attempts, not a freshness guarantee; additional attempts can increase API load and failure notifications while sources are down.
-- **Enrichment limits:** an OTX HTTP 429 stops further OTX requests for that run, preserves any prior successful cached result and records the rate limit, and does not stop other sources. A later scheduled run can retry; no quota reset or fresh result is assumed.
+- **Enrichment limits:** reuse successful/explicit not-observed lookups for 24h without refreshing their timestamps. A 429 stops only that provider and persists a local pause (GN 24h, OTX/AbuseIPDB 6h); this is not the remote quota reset time. Per-provider attempt, success, error, not-found, cache, limit and skip counts are kept privately. Unknown data is not a benign verdict.
+- **Sharing preflight:** hard coverage failures select private intake only (no MISP/VT or external enrichment); a later failed required NDR/log stage withholds VT and the full public snapshot. An internal MISP observation written earlier on otherwise valid inputs is not an incident or an IDS approval. `health-policy.json` is a root-only private object with a `sleep_eligible` array; absent policy means no soft exceptions. Configure the private `sensor_public_ips` inventory before enabling sharing. Public examples contain placeholders.
+- The legacy direct IP batch-push and bulk DB export paths in `soc-connector.py` are retired: they did not apply the 1932 sharing checks. Private DB evidence is not a public comment source. The standalone VT job refuses to assume an empty deduplication or daily ledger if one is missing.
+- **MISP publication:** the flat managed event must have the expected ID, a complete attribute inventory and confirmed published state. An ambiguous/failed add or publish leaves a private intent record (`misp-publish-pending.json`); unpublished or conflicting changes require authenticated human reconciliation. A later read may clear the intent only when the server already confirms the expected IDS-disabled attributes were published. Do not delete a pending record or publish someone else's edits simply to turn a run green. The read-before-publish comparison is not a server-side transaction.
+- **Historical display corrections:** a separately reviewed public projection can be labeled with `public_revision`. The snapshot time and actual run heartbeat are not advanced. A new scheduled data snapshot supersedes the correction.
 - **GitHub sync:** publishes privacy-checked `docs/data.json`, `docs/blocklist.txt` and `docs/status.json` after a complete run. `--status-only` publishes only the sanitized heartbeat. If sync fails after the first heartbeat write, the local heartbeat is corrected to `degraded`; the remote can still retain an old heartbeat while publishing is unavailable, so its age and independent notifications matter. A hard non-active Agent is a health failure on every run, including baseline; sleep-prone Agents remain warnings. Manager inventory is paginated and validated; a missing tracked Agent stays unknown until it reappears or an approved decommission is reconciled. Failed dashboard enrichment fallback fails the snapshot rather than silently publishing empty enrichment; DB-only AS context remains private.
 - **Run history:** operator-verified status corrections are appended privately to the cron log, can only mark a completed run as failed, and appear in public run history on the next safe snapshot without exposing their reasons.
 - **Local detailed dashboard:** lives in `dashboard/` and is ignored by Git. Private `ndr-evidence.json` retains bounded NDR alert samples and is not committed.
 - **UTC `02:30`:** `backup.sh` writes a verified, root-only recovery archive to `/mnt/storage0/soc-backups`. It contains secrets and must never be uploaded. `backup-health.py` checks the current UTC day's archive after each SOC run and reports absent, corrupt or unsafe backups without forcing an otherwise safe public sync.
 - UTC schedules move by one hour in Melbourne during daylight saving. No SSH keys are installed.
-- GitHub Pages is **not** a backup of credentials or state.
+- The latest private local hunt output is `local-hunt-latest.json` (ignored by Git). The public text watchlist includes a UTC batch timestamp and a stale-use warning.
+- Recovery archives now also include the private health baseline/policy, the local hunt executable and DB implementation, and any existing NDR evidence or pending MISP intent. Restore sensitive files only under restricted access. GitHub Pages is **not** a backup of credentials or state.
 
 </details>
 

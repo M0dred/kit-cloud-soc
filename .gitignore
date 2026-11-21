@@ -1,5 +1,8 @@
 config.yaml
 enrich-cache.json
+enrich-cache.tmp
+enrich-backoff.json
+enrich-backoff.tmp
 ndr-evidence.json
 ndr-evidence.tmp
 warninglist-context.json
@@ -12,7 +15,8 @@ vt-comment-daily.tmp
 vt-comment-daily.json
 soc_blocklist.txt
 summary.json
-logs-sensor-syd-cron.json
+logs-*-cron.json
+local-hunt-latest.json
 vt-comments-progress.json
 vt-comments.stdout
 vt-commented.txt
@@ -21,6 +25,11 @@ summaries/
 summaries/
 dashboard/
 agent-status.json
+agent-status.tmp
+health-policy.json
+misp-publish-pending.json
+misp-publish-pending.tmp
+misp-publish-pending.lock
 intelmq-cross.py.disabled
 __pycache__/
 state.json

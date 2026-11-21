@@ -10,6 +10,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
+from misp_fixture import event as fixture_event, wire
 
 BASE = Path(__file__).resolve().parents[1]
 SKILL = Path.home() / ".config/agents/skills/soc-connector/scripts"
@@ -84,12 +85,12 @@ class CommentTests(unittest.TestCase):
         self.assertIn("\n```\nRefs:\n", text)
         self.assertEqual(parse_comment(text)["rule"],
                          "sshd authentication failures (raw rule withheld)")
-        self.assertTrue(eligible("45.148.10.141", parse_comment(text),
-                                 {"aipdb": {"score": 90}}))
+        self.assertFalse(eligible('45.148.10.141', parse_comment(text), {'aipdb': {'score': 90}}),
+                         'The rendered note and an undated score are not current evidence')
         self.assertNotIn("```", self.render("sshd failed password"))
 
     def test_shared_comment_never_repeats_private_rule_or_asset(self):
-        raw = "sshd failed for user@example.invalid at https://internal.example.invalid/?token=FAKE_TEST_TOKEN 203.0.113.10"
+        raw = "sshd failed password for user@example.invalid at https://internal.example.invalid/?token=FAKE_TEST_TOKEN 203.0.113.10"
         text = self.render(raw, agent="sensor-test", intel={
             "gn": {"classification": "https://private.example.invalid/?key=FAKE_TEST_TOKEN"},
             "as_owner": "internal.example.invalid", "country": "FAKE_TEST_TOKEN"})
@@ -101,7 +102,7 @@ class CommentTests(unittest.TestCase):
 
     def test_reject_nonpublic_ioc(self):
         with self.assertRaises(ValueError):
-            render_comment("10.0.1.1", 200, "sensor-test", "sshd", level=10)
+            render_comment('192.168.0.10', 200, 'fixture', 'sshd', level=10, sensor_public_ips=SENSORS)
 
     def test_new_format_is_parseable(self):
         text = self.render("sshd: authentication failed", {"aipdb": {"score": 90}})
@@ -109,7 +110,7 @@ class CommentTests(unittest.TestCase):
         self.assertEqual((meta["count"], meta["level"]), (60, 10))
         self.assertEqual(meta["aip"], 90)
         self.assertEqual(meta["agent"], "withheld")
-        self.assertTrue(eligible("45.148.10.141", meta, {}))
+        self.assertFalse(eligible('45.148.10.141', meta, {}))
 
     def test_legacy_comment_parse_and_cloud_web_skip(self):
         self.assertEqual(parse_comment("Wazuh: 400x, lvl=10 | OTX: pulses=5 | AIPDB: score=80")['count'], 400)
@@ -133,10 +134,9 @@ class PipelineTests(unittest.TestCase):
         obj.db.get_ioc.return_value = {"evidence": json.dumps({"wazuh_count": 60,
                                "wazuh_level": 10}), "vt_malicious": 0, "vt_suspicious": 0}
         obj.misp = Mock()
-        obj.misp.get_event.return_value = {"Event": {"Attribute": [
-            {"type": "ip-dst", "value": ip} for ip in existing]}}
-        obj.misp.add_attribute.return_value = {"Attribute": {"id": "1"}}
-        obj.misp.publish_event.return_value = {"message": "Published"}
+        wire(obj.misp, [{'type':'ip-dst','value':ip} for ip in existing])
+        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
+        obj.pending_path = Path(temp.name) / 'pending.json'
         obj.summary = {"stage_results": {}}
         obj.log = lambda message: None
         return obj
@@ -200,7 +200,8 @@ class PipelineTests(unittest.TestCase):
 
     def test_misp_errors_are_not_silent(self):
         obj = self.fake_orch()
-        obj.misp.get_event.return_value = {"_error": True, "_status": 503}
+        obj.misp.get_event.side_effect = None
+        obj.misp.get_event.return_value = {'_error': True, '_status': 503}
         with self.assertRaises(RuntimeError):
             obj.stage_update_misp([{"ip": "45.148.10.141", "count": 60,
                                      "rule_level": 10, "rule_desc": "sshd"}], {})
@@ -320,24 +321,30 @@ class VTJobRenderingTests(unittest.TestCase):
             root = Path(folder)
             config = root / "config.yaml"
             cache = root / "enrich-cache.json"
-            config.write_text("misp:\n  url: https://misp.example\n  api_key: fixture\n  event_id: 1932\nvirustotal:\n  api_key: fixture\n")
-            cache.write_text(json.dumps({"8.8.8.8": {"aipdb": {"score": 90}}}))
+            config.write_text('sensor_public_ips: {fixture: 203.0.113.10}\nmisp:\n  url: https://misp.example\n  api_key: fixture\n  event_id: 1932\nvirustotal:\n  api_key: fixture\n')
+            seen = datetime.now(timezone.utc).isoformat()
+            cache.write_text(json.dumps({'8.8.8.8':{'aipdb':{'score':90,'http':200},'_lookups':{'aipdb':{'status':'ok','checked_at':seen}}}}))
+            (root/'ledger').write_text('')
+            (root/'daily').write_text(json.dumps({'date':seen[:10],'used':0}))
             attr = {"type": "ip-src", "value": "8.8.8.8",
                     "timestamp": int(datetime.now(timezone.utc).timestamp()),
                     "comment": "Wazuh: 30x, lvl=10 | Rule: sshd failed password"}
             with patch.object(vtjob, "BASE", root), patch.object(vtjob, "CONFIG", config), \
                  patch.object(vtjob, "CACHE", cache), patch.object(vtjob, "LEDGER", root / "ledger"), \
                  patch.object(vtjob, "DAILY", root / "daily"), patch.object(vtjob, "MISPClient") as client, \
-                 patch.object(vtjob, "render_comment", return_value="preview") as render, \
+                 patch.object(vtjob,'authenticated_failures',return_value={'8.8.8.8':{'count':24,'level':11,'last_seen':seen}}), \
+                 patch.object(vtjob, 'render_comment', return_value='preview') as render, \
                  patch.object(vtjob, "post", return_value=(201, "ok")) as post, \
                  patch.object(vtjob, "mark_sent") as mark, \
                  patch.object(sys, "argv", ["vt_comment_new.py", "--max", "1"]), \
                  contextlib.redirect_stdout(io.StringIO()):
-                client.return_value.get_event.return_value = {"Event": {"Attribute": [attr]}}
+                client.return_value.get_event.return_value = fixture_event([attr,attr])
                 result = vtjob.main()
             self.assertEqual(result, 0)
             render.assert_called_once()
-            self.assertIs(render.call_args.kwargs["format_vt"], True)
+            self.assertIs(render.call_args.kwargs['format_vt'], True)
+            self.assertEqual(render.call_args.args[1],24)
+            self.assertEqual(render.call_args.kwargs['observed_at'],seen)
             post.assert_called_once_with("fixture", "8.8.8.8", "preview")
             mark.assert_called_once_with("8.8.8.8")
 

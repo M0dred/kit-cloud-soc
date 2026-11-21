@@ -5,19 +5,19 @@
 # Wazuh
 # ---------------------------------------------------------------------------
 wazuh:
-  indexer_host: "10.0.1.1"  # Netbird; proxy on wazuh -> 10.0.0.1:9200. Do not change wazuh-indexer bind.
+  indexer_host: "indexer.example.invalid"  # Private Indexer or approved proxy
   indexer_user: "admin"
   indexer_pass: "CHANGE_ME"
-  manager_url: "https://10.147.20.1:55000"
-  manager_user: "wazuh-wui"
+  manager_url: "https://manager.example.invalid:55000"
+  manager_user: "CHANGE_ME"
   manager_pass: "CHANGE_ME"
-  verify_tls: false
+  verify_tls: true  # provision trust for your own private CA
 
 # ---------------------------------------------------------------------------
 # MISP
 # ---------------------------------------------------------------------------
 misp:
-  url: "https://misp.kit-ai.net"
+  url: "https://misp.example.invalid"
   api_key: "CHANGE_ME"
   verify_tls: true  # public certificate; keep verification enabled
   # MISP event to update (null = auto-create)
@@ -98,13 +98,13 @@ notifications:
   summary_json: "/root/.config/soc-orchestrator/summaries/summary.json"
 
 # ---------------------------------------------------------------------------
-# Clear NDR (Scirius) — Netbird. Do not use :443 (closed).
+# Clear NDR (Scirius) — private endpoint
 # ---------------------------------------------------------------------------
 ndr:
-  url: "https://10.0.1.50:8443"
-  username: "clearndr"
+  url: "https://ndr.example.invalid:8443"
+  username: "CHANGE_ME"
   password: "CHANGE_ME"
-  verify_tls: false
+  verify_tls: true
 
 # ---------------------------------------------------------------------------
 # GreyNoise (community v3) — header: key
@@ -150,12 +150,10 @@ driftnet:
 telegram:
   enabled: true
   bot_token: "CHANGE_ME"
-  # Your Telegram chat ID (numeric). Message @hey_max_intel_bot to get it.
+  # Configure privately with your own bot.
   chat_id: 000000000
   # Send on every run, or only when new IOCs/MISP attributes are found?
   notify_on: "new_misp"  # only when Event 1932 gains attributes
 
 sensor_public_ips:
-  sensor-syd: "203.0.113.10"
-  sensor-melb: "198.51.100.20"
-  sensor-02: "192.0.2.30"
+  example-asset: "203.0.113.10"  # replace with the real protected inventory before enabling sharing

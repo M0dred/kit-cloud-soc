@@ -12,7 +12,7 @@ Features:
 Usage:
     from threat_db import ThreatDB
     db = ThreatDB()
-    db.upsert_ioc("1.2.3.4", categories=["brute_force"], sources=["sensor-02"],
+    db.upsert_ioc("1.2.3.4", categories=["brute_force"], sources=["example-sensor"],
                   evidence={"ssh_failed": 42}, confidence="high")
     if db.should_report_vt("1.2.3.4", cooldown_hours=24):
         vt_client.report_ip(...)

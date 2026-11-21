@@ -11,6 +11,7 @@ import json
 import ssl
 import urllib.request
 import base64
+from soc_contracts import complete_search
 from datetime import datetime, timezone, timedelta
 
 
@@ -86,7 +87,7 @@ class WazuhIndexerClient:
         """Aggregate top source IPs from alerts.
 
         Returns list of dicts:
-          [{"ip": "1.2.3.4", "count": 42, "agent": "sensor-02",
+          [{"ip": "1.2.3.4", "count": 42, "agent": "example-sensor",
             "rule_level": 10, "rule_desc": "...", "rule_groups": [...]}, ...]
         """
         must = [
@@ -125,14 +126,14 @@ class WazuhIndexerClient:
 
         self.last_coverage = None
         res = self.query_alerts(body)
-        if res.get("_error"):
-            return res
-        if res.get("timed_out") or (res.get("_shards") or {}).get("failed", 0):
-            return {"_error": True, "_message": "Indexer source aggregation incomplete"}
-
-        aggs = res.get("aggregations") or {}
-        terms = aggs.get("ips") or {}
-        buckets = terms.get("buckets", [])
+        try:
+            complete_search(res)
+            aggs = res['aggregations']; terms = aggs['ips']; buckets = terms['buckets']
+            counts = (terms['sum_other_doc_count'], aggs['approx_unique_sources']['value'])
+            if not isinstance(buckets,list) or len(buckets)>max_results or any(type(v) is not int or v<0 for v in counts):
+                raise ValueError
+        except (ValueError, KeyError, TypeError):
+            return {'_error': True, '_message': 'Indexer source aggregation incomplete'}
         # Terms aggregation has a top-N limit. An estimate, never a claim that
         # all source IPs were captured; private/reserved sources are counted too.
         self.last_coverage = {

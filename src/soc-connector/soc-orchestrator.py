@@ -42,6 +42,9 @@ from misp_client import MISPClient
 from threat_db import ThreatDB
 import intel_enrich
 from ioc_comment import render_comment
+from source_policy import protected_ips, shareable
+from misp_sync import update_existing
+from enrich_budget import bounded
 from warninglist_context import build_report as build_warninglist_report, write_report as write_warninglist_report
 
 
@@ -77,8 +80,10 @@ def save_state(state):
 # ---------------------------------------------------------------------------
 
 class Orchestrator:
-    def __init__(self, cfg, dry_run=False, skip_vt=False):
+    def __init__(self, cfg, dry_run=False, skip_vt=False, local_only=False):
         self.cfg = cfg
+        self.local_only = local_only
+        self.pending_path = Path.home() / '.config/soc-orchestrator/misp-publish-pending.json'
         self.dry_run = dry_run
         self.skip_vt = skip_vt
         self.state = load_state()
@@ -103,7 +108,7 @@ class Orchestrator:
             m["url"], m["api_key"], verify_tls=m.get("verify_tls", True),
         )
 
-        self.db = ThreatDB(cfg.get("database", {}).get("path"))
+        self.db = None if dry_run else ThreatDB(cfg.get('database', {}).get('path'))
 
     def log(self, msg):
         print(msg)
@@ -239,8 +244,9 @@ class Orchestrator:
 
         # Prioritize: never-checked first, then by Wazuh count
         prioritized = []
+        excluded = protected_ips(self.cfg.get('sensor_public_ips'))
         for ip in candidate_ips:
-            if self.db.should_report_vt(ip, cooldown_hours=cooldown):
+            if shareable(ip, excluded) and self.db.should_report_vt(ip, cooldown_hours=cooldown):
                 row = self.db.get_ioc(ip)
                 count = json.loads(row.get("evidence", "{}")).get("wazuh_count", 0) if row else 0
                 prioritized.append((ip, count))
@@ -336,7 +342,10 @@ class Orchestrator:
         voted = 0
         commented = 0
 
+        excluded = protected_ips(self.cfg.get('sensor_public_ips'))
         for ip, data in vt_results.items():
+            if not shareable(ip, excluded):
+                continue
             vt_score = data.get("malicious", 0) + data.get("suspicious", 0)
             wazuh_count = count_map.get(ip, 0)
 
@@ -453,67 +462,19 @@ class Orchestrator:
     def stage_enrich_intel(self, wazuh_ips):
         """GreyNoise / OTX / AbuseIPDB. Caps per source; stop a source on 429."""
         self.log("\n[STAGE 3c] Enrichment (GreyNoise / OTX / AbuseIPDB)...")
-        out = {}
-        ips = [i.get("ip") for i in wazuh_ips if i.get("ip")]
-        gn_cfg = self.cfg.get("greynoise") or {}
-        otx_cfg = self.cfg.get("otx") or {}
-        ab_cfg = self.cfg.get("abuseipdb") or {}
-        gn_n = otx_n = ab_n = 0
-        gn_stop = not gn_cfg.get("enabled") or not gn_cfg.get("api_key")
-        otx_stop = not otx_cfg.get("enabled") or not otx_cfg.get("api_key")
-        ab_stop = not ab_cfg.get("enabled") or not ab_cfg.get("api_key")
-        gn_max = int(gn_cfg.get("max_per_run", 15))
-        otx_max = int(otx_cfg.get("max_per_run", 40))
-        ab_max = int(ab_cfg.get("max_per_run", 40))
-        for ip in ips:
-            rec = out.setdefault(ip, {})
-            if not gn_stop and gn_n < gn_max:
-                rec["gn"] = intel_enrich.greynoise(ip, gn_cfg["api_key"])
-                rec["gn_checked_at"] = datetime.now(timezone.utc).isoformat()
-                if rec["gn"].get("_rate_limited"):
-                    gn_stop = True
-                    self.log("    GreyNoise rate-limited, skipping rest")
-                else:
-                    gn_n += 1
-                    time.sleep(0.25)
-            if not otx_stop and otx_n < otx_max:
-                rec["otx"] = intel_enrich.otx(ip, otx_cfg["api_key"])
-                rec["otx_checked_at"] = datetime.now(timezone.utc).isoformat()
-                if rec["otx"].get("_rate_limited") or rec["otx"].get("http") == 429:
-                    # Keep errors explicit even if a caller returns only the HTTP code.
-                    rec["otx"].update({"_error": True, "_rate_limited": True})
-                    otx_stop = True
-                    self.log("    OTX rate-limited, skipping rest")
-                else:
-                    otx_n += 1
-                    time.sleep(0.15)
-            if not ab_stop and ab_n < ab_max:
-                rec["aipdb"] = intel_enrich.abuseipdb(ip, ab_cfg["api_key"])
-                rec["aipdb_checked_at"] = datetime.now(timezone.utc).isoformat()
-                if rec["aipdb"].get("_rate_limited"):
-                    ab_stop = True
-                    self.log("    AbuseIPDB rate-limited, skipping rest")
-                else:
-                    ab_n += 1
-                    time.sleep(0.15)
-        self.log(f"    [+] GN={gn_n} OTX={otx_n} AIPDB={ab_n}")
-        # persist enrichment cache for dashboard/other consumers
-        try:
-            cache_path = Path.home() / ".config/soc-orchestrator/enrich-cache.json"
-            cache = {}
-            if cache_path.exists():
-                import json as _j
-                cache = _j.loads(cache_path.read_text() or "{}")
-            self._merge_enrichment_cache(cache, out)
-            tmp = cache_path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(cache, indent=1))
-            tmp.chmod(0o600)
-            tmp.replace(cache_path)
-        except Exception as e:
-            raise RuntimeError("enrichment cache update failed") from e
-        self.summary["stage_results"]["enrich_gn"] = gn_n
-        self.summary["stage_results"]["enrich_otx"] = otx_n
-        self.summary["stage_results"]["enrich_aipdb"] = ab_n
+        excluded = protected_ips(self.cfg.get('sensor_public_ips'))
+        ips = [i['ip'] for i in wazuh_ips if shareable(i.get('ip'), excluded)]
+        sources = {
+            'gn': (intel_enrich.greynoise, self.cfg.get('greynoise') or {}, 15, 24, .25, 'GreyNoise'),
+            'otx': (intel_enrich.otx, self.cfg.get('otx') or {}, 40, 6, .15, 'OTX'),
+            'aipdb': (intel_enrich.abuseipdb, self.cfg.get('abuseipdb') or {}, 40, 6, .15, 'AbuseIPDB'),
+        }
+        out, stats = bounded(ips, sources, Path.home()/'.config/soc-orchestrator',
+                             self._merge_enrichment_cache, self.log, time.sleep)
+        self.summary['stage_results']['enrich_coverage'] = stats
+        for k, s in stats.items():
+            self.summary['stage_results']['enrich_'+k] = s['success']
+        self.log('    Enrichment coverage: '+json.dumps(stats, sort_keys=True))
         return out
 
     # ------------------------------------------------------------------
@@ -568,8 +529,11 @@ class Orchestrator:
 
         push_ips = []
         skipped_cloud = 0
+        excluded = protected_ips(self.cfg.get('sensor_public_ips'))
         for item in wazuh_ips:
-            ip = item["ip"]
+            ip = item['ip']
+            if not shareable(ip, excluded):
+                continue
             count = item.get("count", 0)
             lvl = item.get("rule_level", 0) or 0
             try:
@@ -589,8 +553,8 @@ class Orchestrator:
 
         if skipped_cloud:
             self.log(f"    [-] skipped {skipped_cloud} Azure/GCP/Cloudflare web-400 IPs")
-        if not push_ips:
-            self.log("    [!] No IPs qualify for MISP push")
+        if not push_ips and not self.cfg['misp'].get('event_id'):
+            self.log('    No new-event candidates')
             return
 
         self.log(f"    [*] {len(push_ips)} IPs qualify")
@@ -639,32 +603,7 @@ class Orchestrator:
 
         if event_id:
             # Existing values (including legacy ip-dst) must not be re-added as ip-src.
-            event = self.misp.get_event(event_id)
-            if event.get("_error") or not isinstance(event.get("Event"), dict):
-                raise RuntimeError(f"MISP Event {event_id} lookup failed")
-            existing = {a.get("value") for a in event["Event"].get("Attribute", [])
-                        if a.get("type") in ("ip-src", "ip-dst")}
-            added = 0
-            for ioc in iocs:
-                if ioc["value"] in existing:
-                    continue
-                res = self.misp.add_attribute(
-                    event_id=event_id,
-                    type_=ioc["type"],
-                    value=ioc["value"],
-                    category=ioc["category"],
-                    comment=ioc["comment"],
-                    to_ids=ioc["to_ids"],
-                )
-                if res.get("_error"):
-                    raise RuntimeError(f"MISP add attribute failed: HTTP {res.get('_status', 'unknown')}")
-                existing.add(ioc["value"])
-                added += 1
-
-            if added:
-                res = self.misp.publish_event(event_id)
-                if res.get("_error"):
-                    raise RuntimeError(f"MISP Event {event_id} publish failed: HTTP {res.get('_status', 'unknown')}")
+            added = update_existing(self.misp, event_id, iocs, self.pending_path)
             self.log(f"    [+] Updated MISP Event {event_id} (+{added} attributes; new entries to_ids=false, review required)")
             self.log(f"    [+] URL: {self.cfg['misp']['url']}/events/view/{event_id}")
             self.summary["stage_results"]["misp_event_id"] = event_id
@@ -879,12 +818,21 @@ class Orchestrator:
         # Stage 1
         wazuh_ips = self.stage_fetch_wazuh()
         self.stage_warninglist_context(wazuh_ips)
-        if not wazuh_ips:
-            self.log("\n[!] No Wazuh IPs found — aborting")
+        if self.dry_run:
+            self.stage_update_misp(wazuh_ips, {})  # preview thresholds without writes or third-party lookups
             return self.finish()
-
-        # Stage 2
+        # Private intake can continue when a prerequisite for external sharing is down.
         new_ips = self.stage_ingest_db(wazuh_ips)
+        if self.local_only:
+            self.log('    Private intake only; external enrichment, MISP, VT and actions skipped')
+            self.summary['stage_results']['local_only'] = True
+            return self.finish()
+        excluded = protected_ips(self.cfg.get('sensor_public_ips'))
+        wazuh_ips = [r for r in wazuh_ips if shareable(r['ip'], excluded)]
+        self._wazuh_ips = wazuh_ips  # notifications must use the same exclusion policy
+        if not wazuh_ips:
+            self.stage_update_misp([], {})  # still detect unresolved publication on an empty window
+            return self.finish()
 
         # Stage 3
         if self.skip_vt:
@@ -915,7 +863,7 @@ class Orchestrator:
         self.summary["finished"] = datetime.now(timezone.utc).isoformat()
 
         notif = self.cfg.get("notifications", {})
-        if notif.get("summary_json"):
+        if notif.get('summary_json') and not self.dry_run:
             with open(notif["summary_json"], "w") as f:
                 json.dump(self.summary, f, indent=2, default=str)
             self.log(f"\n[+] Summary saved: {notif['summary_json']}")
@@ -927,7 +875,8 @@ class Orchestrator:
             self.log(f"  {k}: {v}")
         self.log("=" * 80)
 
-        self.maybe_notify_telegram()
+        if not self.local_only:
+            self.maybe_notify_telegram()
         return self.summary
 
 
@@ -943,7 +892,8 @@ def main():
     p_run = sub.add_parser("run", help="Run full pipeline")
     p_run.add_argument("--config", "-c", default=str(DEFAULT_CONFIG), help="Config file path")
     p_run.add_argument("--dry-run", action="store_true", help="Don't modify MISP or block IPs")
-    p_run.add_argument("--skip-vt", action="store_true", help="Skip VirusTotal checks and votes")
+    p_run.add_argument('--skip-vt', action='store_true', help='Skip VirusTotal checks and votes')
+    p_run.add_argument('--local-only', action='store_true', help='Private intake only; do not share or act')
 
     # status
     p_status = sub.add_parser("status", help="Show orchestrator state")
@@ -952,7 +902,7 @@ def main():
 
     if args.cmd == "run":
         cfg = load_config(args.config)
-        orch = Orchestrator(cfg, dry_run=args.dry_run, skip_vt=args.skip_vt)
+        orch = Orchestrator(cfg, dry_run=args.dry_run, skip_vt=args.skip_vt, local_only=args.local_only)
         orch.run()
     elif args.cmd == "status":
         state = load_state()

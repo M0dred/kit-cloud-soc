@@ -115,7 +115,9 @@ class MISPClient:
     # ------------------------------------------------------------------
 
     def add_attribute(self, event_id, type_, value, category="Network activity",
-                      comment="", to_ids=True):
+                      comment="", to_ids=False):
+        if type(to_ids) is not bool:
+            raise ValueError('IDS use requires an explicit boolean')
         attr = {
             "type": type_,
             "value": value,

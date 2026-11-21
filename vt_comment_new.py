@@ -21,12 +21,14 @@ from pathlib import Path
 
 import yaml
 from ioc_comment import render_comment
+from source_policy import protected_ips, shareable, ssh_failure_sample, fresh_intel, authenticated_failures
 
 _skill = Path.home() / ".config/agents/skills/soc-connector/scripts"
 if not (_skill / "misp_client.py").exists():
     _skill = Path(__file__).resolve().parent / "src/soc-connector"  # offline repository tests
 sys.path.insert(0, str(_skill))
 from misp_client import MISPClient  # noqa: E402
+from soc_contracts import published_event
 
 BASE = Path.home() / ".config/soc-orchestrator"
 LEDGER = BASE / "vt-commented.txt"
@@ -72,35 +74,47 @@ def public_ip(value: str) -> bool:
         return False
 
 
-def eligible(ip: str, meta: dict, intel: dict) -> bool:
-    """Only SSH auth-failure evidence corroborated independently; no cloud/web 400."""
-    if not public_ip(ip) or cloud_range(ip):
+def shortlisted(ip, meta, intel, excluded, now=None):
+    """Pre-filter only, never sufficient to share. Old scores are not evidence."""
+    if not shareable(ip, excluded) or cloud_range(ip):
         return False
-    rule = meta["rule"].lower()
-    if not ("sshd" in rule or ("ssh" in rule and any(word in rule for word in ("failed", "invalid", "brute", "auth")))):
+    if not ssh_failure_sample(meta['rule']):
         return False
     if meta["count"] < 20 or meta["level"] < 10:
         return False
     ab = intel.get("aipdb") or {}
     gn = intel.get("gn") or {}
-    otx = intel.get("otx") or {}
     isp = str(ab.get("isp") or meta.get("isp") or "").lower()
     if any(word in isp for word in ("google", "microsoft", "azure", "amazon", "cloudflare", "oracle")):
         return False
     if gn.get("riot") is True or gn.get("classification") == "benign":
         return False
-    return (str(gn.get("classification") or meta["gn"]).lower() == "malicious"
-            or int(ab.get("score") or meta["aip"] or 0) >= 80
-            or int(otx.get("pulses") or meta["otx"] or 0) >= 5)
+    fresh = fresh_intel(intel, now)
+    score = fresh.get('aipdb', {}).get('score'); pulses = fresh.get('otx', {}).get('pulses')
+    return (fresh.get('gn', {}).get('classification') == 'malicious' or
+            type(score) is int and 80 <= score <= 100 or type(pulses) is int and pulses >= 5)
+
+
+def eligible(ip, meta, intel, proof=None, *, excluded=None, now=None):
+    if excluded is None or not shortlisted(ip, meta, intel, excluded, now) or not isinstance(proof, dict):
+        return False
+    try:
+        last = datetime.fromisoformat(proof['last_seen'].replace('Z','+00:00'))
+        age = (now or datetime.now(timezone.utc)) - last
+        return (timedelta(0) <= age <= timedelta(hours=24) and type(proof['count']) is int and proof['count'] >= 20 and
+                type(proof['level']) is int and 10 <= proof['level'] <= 16)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return False
 
 
 def daily_used() -> int:
-    if not DAILY.exists():
-        return 0
-    d = json.loads(DAILY.read_text())
-    if d.get("date") != datetime.now(timezone.utc).strftime("%Y-%m-%d"):
-        return 0
-    return int(d.get("used") or 0)
+    d = json.loads(DAILY.read_text())  # a missing ledger is unknown, not a fresh quota
+    day = datetime.strptime(d['date'], '%Y-%m-%d').date()
+    today = datetime.now(timezone.utc).date()
+    used = d.get('used')
+    if day > today or type(used) is not int or not 0 <= used <= DAILY_CAP:
+        raise ValueError('invalid VT budget ledger; refusing to post')
+    return used if day == today else 0
 
 
 def mark_sent(ip: str) -> None:
@@ -136,49 +150,61 @@ def main() -> int:
     if args.max < 0 or args.days < 0:
         ap.error("--max and --days must be non-negative")
     cfg = yaml.safe_load(CONFIG.read_text())
+    excluded = protected_ips(cfg.get('sensor_public_ips'))
     lock = BASE / "vt-comment.lock"
     with lock.open("a+") as fh:
         fcntl.flock(fh, fcntl.LOCK_EX)
-        done = set(LEDGER.read_text().splitlines()) if LEDGER.exists() else set()
+        done = set(LEDGER.read_text().splitlines())  # missing dedup history must fail closed
         used = daily_used()
-        limit = min(args.max, max(0, DAILY_CAP - used))
+        limit = min(3, args.max, max(0, DAILY_CAP - used))
         print(f"daily_used={used} local_cap={DAILY_CAP} this_run={limit}")
         if limit == 0:
             return 0
         misp = MISPClient(cfg["misp"]["url"], cfg["misp"]["api_key"],
                           verify_tls=cfg["misp"].get("verify_tls", True))
-        event = misp.get_event(cfg["misp"].get("event_id", 1932))
-        if event.get("_error") or not isinstance(event.get("Event"), dict):
-            raise RuntimeError("MISP event fetch failed; not treating errors as zero candidates")
+        eid = cfg['misp'].get('event_id', 1932)
+        event = published_event(misp.get_event(eid), eid)
         cache = json.loads(CACHE.read_text()) if CACHE.exists() else {}
         cutoff = datetime.now(timezone.utc) - timedelta(days=args.days)
         todo = []
-        for attr in event["Event"].get("Attribute", []):
+        for attr in event['Attribute']:
             if attr.get("type") not in ("ip-src", "ip-dst"):
                 continue  # old Event 1932 records used ip-dst for inbound sources
             ip = attr.get("value") or ""
-            if ip in done or not public_ip(ip):
+            if ip in done or not shareable(ip, excluded):
                 continue
             ts = int(attr.get("timestamp") or 0)
-            if not ts or datetime.fromtimestamp(ts, timezone.utc) < cutoff:
+            if not ts or not cutoff <= datetime.fromtimestamp(ts, timezone.utc) <= datetime.now(timezone.utc):
                 continue
             meta = parse_comment(attr.get("comment") or "")
             intel = cache.get(ip) or {}
-            if not eligible(ip, meta, intel):
+            if not shortlisted(ip, meta, intel, excluded):
                 continue
             todo.append((ts, ip, meta, intel))
-        todo.sort(reverse=True)
+        proofs = authenticated_failures(cfg, [ip for _, ip, _, _ in todo])
+        todo.sort(key=lambda row: row[0], reverse=True)
+        # Legacy ip-dst and ip-src may describe the same source. At most one post per IP.
+        unique = set()
+        selected = []
+        for row in todo:
+            _, ip, meta, intel = row
+            if ip not in unique and eligible(ip, meta, intel, proofs.get(ip), excluded=excluded):
+                selected.append(row); unique.add(ip)
+        todo = selected
         print(f"candidates={len(todo)} posting={min(limit, len(todo))}")
-        for _, ip, meta, _ in todo[:min(limit, len(todo))]:
-            print(f"candidate {ip} count={meta['count']} level={meta['level']} rule={meta['rule'][:75]}")
+        for _, ip, _, _ in todo[:limit]:
+            print(f"candidate {ip} verified SSH failure alerts={proofs[ip]['count']} max_level={proofs[ip]['level']}")
         if args.dry_run or not todo:
             return 0
         key = cfg["virustotal"]["api_key"]
         failed = 0
         posted = 0
         for _, ip, meta, intel in todo[:limit]:
-            text = render_comment(ip, meta["count"], meta["agent"], meta["rule"],
-                                  intel=intel, level=meta["level"],
+            if not eligible(ip, meta, intel, proofs.get(ip), excluded=excluded):
+                continue  # age may cross the boundary while waiting to post
+            proof = proofs[ip]
+            text = render_comment(ip, proof['count'], None, 'SSH authentication failure',
+                                  intel=fresh_intel(intel), level=proof['level'], observed_at=proof['last_seen'],
                                   sensor_public_ips=cfg.get("sensor_public_ips"),
                                   format_vt=True)
             code, message = post(key, ip, text)

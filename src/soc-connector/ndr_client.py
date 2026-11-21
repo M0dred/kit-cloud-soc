@@ -2,7 +2,7 @@
 """Clear NDR (Scirius / SELKS) REST client. Stdlib only.
 
 Auth is Django session + CSRF (same as the Hunt UI).
-Verified against Clear NDR CE at https://10.0.1.50:8443
+Uses the privately configured Clear NDR CE endpoint.
 """
 from __future__ import annotations
 
@@ -113,6 +113,10 @@ class NDRClient:
         user = self.current_user()
         src = self.sources()
         rs = self.ruleset(1)
+        if (not all(isinstance(v, dict) and not v.get('_error') for v in (user, src, rs)) or
+                not user.get('username') or not isinstance(src.get('results'), list) or
+                not isinstance(rs.get('rules_count'), int) or not rs.get('name')):
+            raise RuntimeError('NDR status subquery incomplete')
         return {
             "user": {k: user.get(k) for k in ("username", "role", "email", "timezone") if isinstance(user, dict)},
             "sources": [

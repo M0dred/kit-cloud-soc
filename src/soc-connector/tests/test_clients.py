@@ -166,8 +166,8 @@ class TestWazuhClient(unittest.TestCase):
 
 class TestIndexerCoverage(unittest.TestCase):
     def test_top_sources_report_truncation_without_claiming_full_coverage(self):
-        client = WazuhIndexerClient("10.0.1.1", "test", "test", verify_tls=False)
-        reply = {"aggregations": {"ips": {"buckets": [{"key": "45.148.10.141", "doc_count": 10,
+        client = WazuhIndexerClient('indexer.example.invalid','test','test')
+        reply = {'timed_out':False,'_shards':{'total':1,'successful':1,'failed':0},'aggregations': {"ips": {"buckets": [{"key": "45.148.10.141", "doc_count": 10,
             "agents": {"buckets": []}, "top_hit": {"hits": {"hits": [{"_source": {
                 "timestamp": "2026-10-22T12:00:00Z", "rule": {"level": 10}}}]}}}],
             "sum_other_doc_count": 41}, "approx_unique_sources": {"value": 541}}}

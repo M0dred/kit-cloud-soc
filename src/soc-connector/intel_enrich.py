@@ -31,6 +31,8 @@ def greynoise(ip: str, api_key: str) -> dict:
         return {"_rate_limited": True, "http": code}
     if code not in (200, 404):
         return {"_error": True, "http": code}
+    if code == 200 and (not isinstance(data,dict) or not isinstance(data.get('classification'), str)):
+        return {'_error': True, 'http': code}
     return {
         # A 404's API message is not a classification and must not imply benign.
         "classification": data.get("classification") if code == 200 else None,
@@ -51,11 +53,13 @@ def otx(ip: str, api_key: str) -> dict:
     )
     if code == 429:
         return {"_error": True, "_rate_limited": True, "http": code}
-    if code != 200:
-        return {"_error": True, "http": code}
-    n = ((data.get("pulse_info") or {}).get("count")) or 0
-    cc = data.get("country_name") or data.get("country_iso_code") or ""
-    return {"pulses": n, "cc": str(cc)[:32], "http": code}
+    if code != 200 or not isinstance(data,dict) or not isinstance(data.get('pulse_info'),dict):
+        return {'_error': True, 'http': code}
+    n = data['pulse_info'].get('count')
+    if type(n) is not int or n < 0:
+        return {'_error': True, 'http': code}
+    cc = data.get('country_iso_code')
+    return {'pulses': n, 'cc': cc.upper() if isinstance(cc,str) and len(cc)==2 and cc.isascii() and cc.isalpha() else '', 'http': code}
 
 
 def abuseipdb(ip: str, api_key: str) -> dict:
@@ -66,9 +70,9 @@ def abuseipdb(ip: str, api_key: str) -> dict:
     )
     if code == 429:
         return {"_rate_limited": True, "http": code}
-    d = data.get("data") or {}
-    if not d:
-        return {"_error": True, "http": code}
+    d = data.get('data') if isinstance(data,dict) else None
+    if code != 200 or not isinstance(d, dict) or type(d.get('abuseConfidenceScore')) is not int or not 0 <= d['abuseConfidenceScore'] <= 100:
+        return {'_error': True, 'http': code}
     return {
         "score": d.get("abuseConfidenceScore"),
         "reports": d.get("totalReports"),

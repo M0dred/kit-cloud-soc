@@ -54,6 +54,19 @@ async function render(data, report, now = timestamp + 3600000) {
   assert.match(e['source-scope'].textContent, /no sources match/i);
   assert.match(e.src.children[1].textContent, /no sources match/i);
 
+  const quota = structuredClone(fixture);
+  delete quota.enrich_meta[first].gn;
+  quota.enrich_meta[first].sources.gn={state:'not_queried',last_attempt:'rate_limited'};
+  const limited=await render(quota, healthy);
+  assert.match(limited.src.textContent,/GN: rate limited; no value/);
+  limited.src.children[1].children[0].children[0].children[0].listeners.click();
+  assert.match(limited['ioc-detail'].textContent,/GreyNoise: no result · rate limited/);
+  quota.enrich_meta[first].sources.gn={state:'unknown_age',last_attempt:'error'};
+  assert.match((await render(quota,healthy)).src.textContent,/lookup failed; no value/);
+  const correction=structuredClone(fixture);
+  correction.public_revision={kind:'projection_correction',corrected_utc:fixture.generated};
+  const corrected=await render(correction,healthy);
+  assert.match(corrected['snapshot-note'].textContent,/display correction.*no new run/i);
   const missing = structuredClone(fixture);
   missing.wazuh.total_7d = null; missing.misp.total = null;
   missing.vt.posted_total = null; missing.blocklist_n = null;

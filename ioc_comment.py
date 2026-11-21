@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import ipaddress
 from datetime import datetime, timezone
+from source_policy import protected_ips, shareable, ssh_failure_sample
 
 
 def defang(ip: str) -> str:
@@ -21,23 +22,29 @@ def _number(value, default=0):
 
 
 def render_comment(ip, count, agent, rule, vt=None, intel=None, level=None,
-                   sensor_public_ips=None, when=None, format_vt=False):
+                   sensor_public_ips=None, when=None, format_vt=False, observed_at=None):
+    if not shareable(ip, protected_ips(sensor_public_ips)):
+        raise ValueError('Source not permitted for sharing')
     address = ipaddress.ip_address(ip)
-    if address.version != 4 or not address.is_global:
-        raise ValueError("Only public IPv4 source indicators may be shared")
     ip = str(address)
     intel = intel or {}
     # Rule descriptions can contain usernames, URLs, query tokens and hostnames.
     # Classify locally but share only fixed vocabulary, never the raw text.
     low = str(rule or "").lower()[:200]
     count, lvl = _number(count), _number(level)
-    if "sshd" in low or ("ssh" in low and any(x in low for x in ("failed", "invalid", "brute", "auth"))):
+    if ssh_failure_sample(low):
         category = "SSH authentication failures"
         ttp = "T1110 Brute Force (suspected; attempts do not establish compromise)"
         ports = "SSH (typically 22/tcp; destination port not verified)"
         look_for = "SSH login failures associated with this source IP"
         safe_rule = "sshd authentication failures (raw rule withheld)"
-    elif any(x in low for x in ("http", "web", "400", "url")):
+    elif 'ssh' in low:
+        category = 'SSH-related activity (outcome unverified)'
+        ttp = 'Not established; a service or login message alone is not a failed authentication'
+        ports = 'Unknown; check locally'
+        look_for = 'the original SSH event and its actual authentication outcome'
+        safe_rule = 'SSH-related sample, outcome unverified (raw rule withheld)'
+    elif any(x in low for x in ('http', 'web', '400', 'url')):
         category = "Web requests / errors (unconfirmed probing)"
         ttp = "Not established; HTTP errors alone do not prove exploitation"
         ports = "HTTP(S) (typically 80/443; destination port not verified)"
@@ -84,14 +91,21 @@ def render_comment(ip, count, agent, rule, vt=None, intel=None, level=None,
     detail = "; ".join(extra)
     if detail:
         detail = " " + detail + "."
+    scope = 'Count covers all matching source alerts; level and behavior describe one sample.'
+    if observed_at is not None:
+        last = datetime.fromisoformat(observed_at.replace('Z','+00:00'))
+        if not last.tzinfo:
+            raise ValueError('observation time must be timezone aware')
+        scope = ('Count covers only verified SSH authentication-failure alerts of level 10+ in 24h; '
+                 'level is their maximum. Latest match: ' + last.astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M UTC') + '.')
     body = (
-        f"Date: {stamp} (comment generated; observation time not verified)\n"
+        f"Date: {stamp} (comment generated; not an event timestamp)\n"
         f"IOC: {fang}\n"
         f"Type: IPv4 observed source (ip-src)\n"
         f"Category: {category}\n"
         f"Confidence: {confidence}\n"
         f"Ports: {ports}\n"
-        f"Observed Behavior: Wazuh {count} alerts, level {lvl}.{detail} "
+        f"Observed Behavior: Wazuh {count} alerts, level {lvl}. {scope}{detail} "
         f"Rule: {safe_rule}\n"
         f"Target: {target}\n"
         f"Source: Wazuh alerts (kit-cloud SoC)\n"

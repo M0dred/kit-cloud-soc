@@ -23,6 +23,8 @@ class CronHealthIntegrationTests(unittest.TestCase):
             for name in ('orchestrator.py', 'hunt.py', 'ndr-cli.py', 'ndr-cross.py',
                          'vt_comment_new.py', 'backup-health.py'):
                 (base / name).write_text('print("offline fixture OK")\n')
+            (base/'orchestrator.py').write_text(f'import sys\nfrom pathlib import Path\nPath({str(base/"mode")!r}).write_text(" ".join(sys.argv[1:]))\n')
+            (base/'vt_comment_new.py').write_text(f'from pathlib import Path\nPath({str(base/"vt-ran")!r}).touch()\n')
             (base / 'dashboard-gen.py').write_text(
                 f'from pathlib import Path\nPath({str(data)!r}).write_text("FRESH_FIXTURE_SNAPSHOT")\n')
             status = base / 'docs/status.json'
@@ -37,11 +39,10 @@ from pathlib import Path
 spec=importlib.util.spec_from_file_location("health_fixture", {str(ROOT / 'health-check.py')!r})
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 m.STATE=Path({str(base / 'agent-status.json')!r})
-m.SOFT_AGENTS={{"fixture-laptop"}}
-m._cfg=lambda: "synthetic"
-m._grab=lambda text,key: "synthetic"
-m.indexer_facts=lambda user,password: (20,"2026-11-06T06:00:00Z",0.1)
-m.agent_states=lambda user,password: json.loads(Path({str(current)!r}).read_text())
+m.soft_agents=lambda: {{'fixture-laptop'}}
+m._cfg=lambda: {{'manager_user':'fixture','manager_pass':'fixture','manager_url':'https://example.invalid'}}
+m.indexer_facts=lambda w: (20,'2026-11-06T06:00:00Z',0.1)
+m.agent_states=lambda *args,**kw: json.loads(Path({str(current)!r}).read_text())
 m.main()
 ''')
             mode_log = base / 'sync-modes.txt'
@@ -57,7 +58,6 @@ m.main()
                 '/root/.config/agents/skills/linux-log-threat-hunt/scripts/analyze-logs.py': str(base / 'hunt.py'),
                 '/root/.config/agents/skills/soc-connector/scripts/ndr-cli.py': str(base / 'ndr-cli.py'),
                 '/root/.config/soc-orchestrator': str(base),
-                "if ! timeout 5 bash -c 'echo >/dev/tcp/10.0.1.1/9200'; then": 'if ! true; then',
                 'notify_fail() {\n': 'notify_fail() {\n  return 0 # offline fixture; never send Telegram\n',
             }
             for original, replacement in replacements.items():
@@ -75,6 +75,8 @@ m.main()
                 self.assertEqual(json.loads(status.read_text())['state'], 'degraded')
                 self.assertEqual(data.read_text(), 'LAST_SAFE_SNAPSHOT')
             self.assertEqual(mode_log.read_text().splitlines(), ['--status-only', '--status-only'])
+            self.assertIn('--local-only',(base/'mode').read_text())
+            self.assertFalse((base/'vt-ran').exists())
             current.write_text(json.dumps({}))  # prior hard agent not returned by fixture API
             for _ in range(2):
                 result = run()
@@ -87,6 +89,8 @@ m.main()
             self.assertEqual(json.loads(status.read_text())['state'], 'ok')
             self.assertEqual(data.read_text(), 'FRESH_FIXTURE_SNAPSHOT')
             self.assertEqual(mode_log.read_text().splitlines(), ['--status-only'] * 4 + ['full'])
+            self.assertNotIn('--local-only',(base/'mode').read_text())
+            self.assertTrue((base/'vt-ran').exists())
 
             # A publish failure occurs *after* the first heartbeat write. It must
             # correct the local heartbeat, not leave an OK result on disk.
