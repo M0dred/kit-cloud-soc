@@ -1,94 +1,90 @@
 {
- "generated": "2026-11-21 18:02 UTC",
+ "generated": "2026-11-22 06:00 UTC",
  "wazuh": {
-  "total_7d": 418983,
+  "total_7d": 451053,
   "by_agent": [],
   "top_src": [
    [
     "183.230.9.103",
-    3600
-   ],
-   [
-    "117.173.156.172",
-    3566
+    4141
    ],
    [
     "218.94.4.146",
-    3557
+    4098
+   ],
+   [
+    "117.173.156.172",
+    4080
    ],
    [
     "222.90.83.22",
-    3376
+    3877
    ],
    [
     "222.133.188.26",
-    3111
-   ],
-   [
-    "222.210.35.197",
-    2694
+    3581
    ],
    [
     "64.225.120.37",
-    2215
+    2526
+   ],
+   [
+    "222.210.35.197",
+    2451
    ],
    [
     "122.165.56.162",
-    2028
+    2310
    ],
    [
     "118.195.183.12",
-    1999
+    2276
    ],
    [
     "103.99.207.235",
-    1967
-   ],
-   [
-    "122.165.71.110",
-    1949
-   ],
-   [
-    "222.241.144.179",
-    1940
+    2254
    ],
    [
     "101.43.124.60",
-    1938
+    2221
+   ],
+   [
+    "122.165.71.110",
+    2206
    ],
    [
     "47.100.38.51",
-    1908
+    2176
    ],
    [
     "220.154.139.216",
-    1871
+    2145
    ],
    [
     "61.185.42.66",
-    1831
+    2099
    ],
    [
     "180.101.184.47",
-    1829
+    2093
    ],
    [
     "60.190.233.178",
-    1826
+    2091
+   ],
+   [
+    "113.59.36.217",
+    2085
    ],
    [
     "119.130.58.200",
-    1808
+    2075
    ]
   ],
   "by_day": [
    [
-    "2026-11-14",
-    3541
-   ],
-   [
     "2026-11-15",
-    12500
+    9052
    ],
    [
     "2026-11-16",
@@ -112,98 +108,112 @@
    ],
    [
     "2026-11-21",
-    62576
+    81715
+   ],
+   [
+    "2026-11-22",
+    19920
    ]
   ],
   "source_context": {
    "183.230.9.103": {
-    "last_sample_utc": "2026-11-21 17:54:03 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "117.173.156.172": {
-    "last_sample_utc": "2026-11-21 17:58:23 UTC",
+    "last_sample_utc": "2026-11-22 05:55:33 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "218.94.4.146": {
-    "last_sample_utc": "2026-11-21 17:55:25 UTC",
+    "last_sample_utc": "2026-11-22 05:58:17 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "117.173.156.172": {
+    "last_sample_utc": "2026-11-22 05:55:19 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.90.83.22": {
-    "last_sample_utc": "2026-11-21 17:59:51 UTC",
+    "last_sample_utc": "2026-11-22 05:58:05 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.133.188.26": {
-    "last_sample_utc": "2026-11-21 17:59:29 UTC",
+    "last_sample_utc": "2026-11-22 06:00:39 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "64.225.120.37": {
+    "last_sample_utc": "2026-11-22 05:56:59 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.210.35.197": {
     "last_sample_utc": "2026-11-19 21:32:23 UTC",
     "sample_behavior": "SSH authentication alert"
    },
-   "64.225.120.37": {
-    "last_sample_utc": "2026-11-21 17:52:49 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
    "122.165.56.162": {
-    "last_sample_utc": "2026-11-21 17:52:17 UTC",
+    "last_sample_utc": "2026-11-22 05:52:29 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "118.195.183.12": {
-    "last_sample_utc": "2026-11-21 18:01:01 UTC",
+    "last_sample_utc": "2026-11-22 05:50:57 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "103.99.207.235": {
-    "last_sample_utc": "2026-11-21 17:57:15 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "122.165.71.110": {
-    "last_sample_utc": "2026-11-21 17:57:15 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "222.241.144.179": {
-    "last_sample_utc": "2026-11-21 17:59:33 UTC",
+    "last_sample_utc": "2026-11-22 05:58:37 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "101.43.124.60": {
-    "last_sample_utc": "2026-11-21 17:52:39 UTC",
+    "last_sample_utc": "2026-11-22 05:50:45 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "122.165.71.110": {
+    "last_sample_utc": "2026-11-22 05:57:25 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "47.100.38.51": {
-    "last_sample_utc": "2026-11-21 17:56:13 UTC",
+    "last_sample_utc": "2026-11-22 05:54:51 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "220.154.139.216": {
-    "last_sample_utc": "2026-11-21 18:01:31 UTC",
+    "last_sample_utc": "2026-11-22 05:53:07 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "61.185.42.66": {
-    "last_sample_utc": "2026-11-21 17:52:51 UTC",
+    "last_sample_utc": "2026-11-22 05:50:33 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "180.101.184.47": {
-    "last_sample_utc": "2026-11-21 18:01:33 UTC",
+    "last_sample_utc": "2026-11-22 05:50:19 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "60.190.233.178": {
-    "last_sample_utc": "2026-11-21 17:57:31 UTC",
+    "last_sample_utc": "2026-11-22 05:54:23 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "113.59.36.217": {
+    "last_sample_utc": "2026-11-22 05:54:01 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "119.130.58.200": {
-    "last_sample_utc": "2026-11-21 17:52:59 UTC",
+    "last_sample_utc": "2026-11-22 06:00:29 UTC",
     "sample_behavior": "SSH authentication alert"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
-   "outside_top_alerts": 110,
-   "approx_source_values": 580,
-   "measured_at_utc": "2026-11-21 18:01 UTC"
+   "outside_top_alerts": 0,
+   "approx_source_values": 495,
+   "measured_at_utc": "2026-11-22 06:00 UTC"
   }
  },
  "misp": {
-  "total": 966,
+  "total": 968,
   "cidrs": [],
   "recent_14d": [
+   {
+    "ip": "123.25.1.226",
+    "date": "2026-11-21",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "111.39.251.55",
+    "date": "2026-11-21",
+    "comment": "Observed source; review locally"
+   },
    {
     "ip": "165.22.52.108",
     "date": "2026-11-21",
@@ -343,39 +353,29 @@
     "ip": "104.243.133.18",
     "date": "2026-11-19",
     "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "138.68.140.111",
-    "date": "2026-11-19",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "109.199.125.10",
-    "date": "2026-11-19",
-    "comment": "Observed source; review locally"
    }
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "61.185.42.66": true,
-   "103.99.207.235": true,
-   "47.100.38.51": true,
-   "218.94.4.146": true,
-   "64.225.120.37": true,
    "60.190.233.178": true,
+   "180.101.184.47": true,
    "222.90.83.22": true,
-   "222.241.144.179": true,
-   "122.165.56.162": true,
+   "47.100.38.51": true,
    "122.165.71.110": true,
+   "218.94.4.146": true,
+   "103.99.207.235": true,
+   "222.133.188.26": true,
    "183.230.9.103": true,
-   "101.43.124.60": true,
    "119.130.58.200": true,
    "220.154.139.216": true,
    "222.210.35.197": true,
+   "122.165.56.162": true,
+   "101.43.124.60": true,
+   "117.173.156.172": true,
    "118.195.183.12": true,
-   "180.101.184.47": true,
-   "222.133.188.26": true,
-   "117.173.156.172": true
+   "61.185.42.66": true,
+   "113.59.36.217": true,
+   "64.225.120.37": true
   }
  },
  "vt": {
@@ -385,16 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-11-11T18:01:56Z",
-   "status": "fail",
-   "why": ""
-  },
-  {
-   "ts": "2026-11-11T22:01:38Z",
-   "status": "fail",
-   "why": ""
-  },
   {
    "ts": "2026-11-12T06:01:45Z",
    "status": "fail",
@@ -584,6 +574,16 @@
    "ts": "2026-11-21T12:01:07Z",
    "status": "ok",
    "why": ""
+  },
+  {
+   "ts": "2026-11-21T18:02:10Z",
+   "status": "ok",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-21T22:02:09Z",
+   "status": "fail",
+   "why": ""
   }
  ],
  "blocklist_n": 0,
@@ -597,43 +597,18 @@
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "cached",
+     "state": "stale",
      "checked_at": "2026-11-19 22:00 UTC",
      "last_attempt": "rate_limited"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "117.173.156.172": {
-   "gn": "malicious",
-   "country": "CN",
-   "org": "unknown",
-   "provider": "China Mobile Communications Co",
-   "otx": 7,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "cached",
-     "checked_at": "2026-11-19 22:00 UTC",
-     "last_attempt": "rate_limited"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -647,18 +622,43 @@
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-19 22:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "117.173.156.172": {
+   "gn": "malicious",
+   "country": "CN",
+   "org": "unknown",
+   "provider": "China Mobile Communications Co",
+   "otx": 7,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-19 22:00 UTC",
+     "last_attempt": "rate_limited"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-21 22:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -672,18 +672,18 @@
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-19 22:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -697,43 +697,18 @@
    "aip": 100,
    "sources": {
     "gn": {
-     "state": "fresh",
+     "state": "stale",
      "checked_at": "2026-11-19 22:00 UTC",
      "last_attempt": "ok"
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "222.210.35.197": {
-   "gn": "malicious",
-   "country": "CN",
-   "org": "unknown",
-   "provider": "CHINANET Sichuan province netw",
-   "otx": 8,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-19 18:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 06:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 06:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -753,12 +728,37 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "222.210.35.197": {
+   "gn": "malicious",
+   "country": "CN",
+   "org": "unknown",
+   "provider": "CHINANET Sichuan province netw",
+   "otx": 8,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-19 18:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "stale",
+     "checked_at": "2026-11-20 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "stale",
+     "checked_at": "2026-11-20 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -778,12 +778,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -803,12 +803,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -828,62 +828,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "122.165.71.110": {
-   "gn": "malicious",
-   "country": "IN",
-   "org": "unknown",
-   "provider": "ABTS Tamilnadu,",
-   "otx": 6,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-19 12:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "222.241.144.179": {
-   "gn": "suspicious",
-   "country": "CN",
-   "org": "unknown",
-   "provider": "CHINANET-HN Hengyang node netw",
-   "otx": 3,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "stale",
-     "checked_at": "2026-11-19 18:00 UTC",
-     "last_attempt": "ok"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -903,12 +853,37 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "122.165.71.110": {
+   "gn": "malicious",
+   "country": "IN",
+   "org": "unknown",
+   "provider": "ABTS Tamilnadu,",
+   "otx": 6,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "stale",
+     "checked_at": "2026-11-19 12:00 UTC",
+     "last_attempt": "ok"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-22 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -928,12 +903,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -953,12 +928,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -976,12 +951,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -999,12 +974,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -1022,12 +997,35 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "113.59.36.217": {
+   "country": "CN",
+   "provider": "China Unicom Hainan province n",
+   "otx": 3,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-22 06:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -1045,12 +1043,12 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
      "state": "fresh",
-     "checked_at": "2026-11-20 22:00 UTC",
+     "checked_at": "2026-11-22 06:00 UTC",
      "last_attempt": "ok"
     }
    }
