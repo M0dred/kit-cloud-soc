@@ -1,94 +1,90 @@
 {
- "generated": "2026-11-22 22:02 UTC",
+ "generated": "2026-11-23 06:01 UTC",
  "wazuh": {
-  "total_7d": 492382,
+  "total_7d": 512311,
   "by_agent": [],
   "top_src": [
    [
     "183.230.9.103",
-    4844
+    5193
    ],
    [
     "117.173.156.172",
-    4783
+    5137
    ],
    [
     "218.94.4.146",
-    4780
+    5123
    ],
    [
     "222.90.83.22",
-    4497
+    4835
    ],
    [
     "222.133.188.26",
-    4178
+    4496
    ],
    [
     "64.225.120.37",
-    2933
+    3137
    ],
    [
     "122.165.56.162",
-    2678
+    2874
    ],
    [
     "103.99.207.235",
-    2629
+    2817
    ],
    [
     "118.195.183.12",
-    2626
+    2814
    ],
    [
     "122.165.71.110",
-    2558
+    2741
    ],
    [
     "101.43.124.60",
-    2557
+    2739
    ],
    [
     "47.100.38.51",
-    2527
+    2700
    ],
    [
     "220.154.139.216",
-    2486
+    2660
    ],
    [
     "61.185.42.66",
-    2445
-   ],
-   [
-    "113.59.36.217",
-    2431
-   ],
-   [
-    "60.190.233.178",
-    2427
+    2625
    ],
    [
     "119.130.58.200",
-    2423
+    2602
+   ],
+   [
+    "60.190.233.178",
+    2597
    ],
    [
     "180.101.184.47",
-    2422
+    2594
+   ],
+   [
+    "113.59.36.217",
+    2566
    ],
    [
     "106.52.167.77",
-    2183
+    2347
    ]
   ],
   "by_day": [
    [
-    "2026-11-15",
-    1393
-   ],
-   [
     "2026-11-16",
-    13346
+    10343
    ],
    [
     "2026-11-17",
@@ -112,92 +108,96 @@
    ],
    [
     "2026-11-22",
-    68908
+    75096
+   ],
+   [
+    "2026-11-23",
+    18137
    ]
   ],
   "source_context": {
    "183.230.9.103": {
-    "last_sample_utc": "2026-11-22 21:52:08 UTC",
+    "last_sample_utc": "2026-11-23 05:54:01 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "117.173.156.172": {
-    "last_sample_utc": "2026-11-22 22:00:35 UTC",
+    "last_sample_utc": "2026-11-23 06:01:15 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "218.94.4.146": {
-    "last_sample_utc": "2026-11-22 21:58:16 UTC",
+    "last_sample_utc": "2026-11-23 05:58:45 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.90.83.22": {
-    "last_sample_utc": "2026-11-22 22:01:09 UTC",
+    "last_sample_utc": "2026-11-23 05:56:29 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.133.188.26": {
-    "last_sample_utc": "2026-11-22 21:59:37 UTC",
+    "last_sample_utc": "2026-11-23 05:58:41 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "64.225.120.37": {
-    "last_sample_utc": "2026-11-22 21:56:32 UTC",
+    "last_sample_utc": "2026-11-23 05:57:39 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "122.165.56.162": {
-    "last_sample_utc": "2026-11-22 21:55:02 UTC",
+    "last_sample_utc": "2026-11-23 05:54:29 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "103.99.207.235": {
-    "last_sample_utc": "2026-11-22 21:54:22 UTC",
+    "last_sample_utc": "2026-11-23 05:57:11 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "118.195.183.12": {
-    "last_sample_utc": "2026-11-22 21:53:44 UTC",
+    "last_sample_utc": "2026-11-23 06:00:55 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "122.165.71.110": {
-    "last_sample_utc": "2026-11-22 21:52:36 UTC",
+    "last_sample_utc": "2026-11-23 06:00:31 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "101.43.124.60": {
-    "last_sample_utc": "2026-11-22 21:52:52 UTC",
+    "last_sample_utc": "2026-11-23 05:52:05 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "47.100.38.51": {
-    "last_sample_utc": "2026-11-22 21:58:27 UTC",
+    "last_sample_utc": "2026-11-23 05:52:17 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "220.154.139.216": {
-    "last_sample_utc": "2026-11-22 21:56:44 UTC",
+    "last_sample_utc": "2026-11-23 05:49:25 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "61.185.42.66": {
-    "last_sample_utc": "2026-11-22 21:57:47 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "113.59.36.217": {
-    "last_sample_utc": "2026-11-22 22:01:04 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "60.190.233.178": {
-    "last_sample_utc": "2026-11-22 21:58:22 UTC",
+    "last_sample_utc": "2026-11-23 06:00:55 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "119.130.58.200": {
-    "last_sample_utc": "2026-11-22 22:00:19 UTC",
+    "last_sample_utc": "2026-11-23 05:50:43 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "60.190.233.178": {
+    "last_sample_utc": "2026-11-23 05:50:39 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "180.101.184.47": {
-    "last_sample_utc": "2026-11-22 22:00:11 UTC",
+    "last_sample_utc": "2026-11-23 05:55:29 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "113.59.36.217": {
+    "last_sample_utc": "2026-11-23 05:59:57 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "106.52.167.77": {
-    "last_sample_utc": "2026-11-22 21:48:16 UTC",
+    "last_sample_utc": "2026-11-23 05:58:49 UTC",
     "sample_behavior": "SSH authentication alert"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
    "outside_top_alerts": 0,
-   "approx_source_values": 453,
-   "measured_at_utc": "2026-11-22 22:01 UTC"
+   "approx_source_values": 452,
+   "measured_at_utc": "2026-11-23 06:01 UTC"
   }
  },
  "misp": {
@@ -357,25 +357,25 @@
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "101.43.124.60": true,
-   "122.165.56.162": true,
-   "64.225.120.37": true,
-   "218.94.4.146": true,
-   "117.173.156.172": true,
-   "60.190.233.178": true,
-   "118.195.183.12": true,
-   "119.130.58.200": true,
-   "220.154.139.216": true,
-   "47.100.38.51": true,
-   "122.165.71.110": true,
-   "183.230.9.103": true,
-   "106.52.167.77": true,
-   "180.101.184.47": true,
    "61.185.42.66": true,
-   "103.99.207.235": true,
-   "222.90.83.22": true,
+   "117.173.156.172": true,
+   "106.52.167.77": true,
+   "218.94.4.146": true,
+   "122.165.56.162": true,
+   "220.154.139.216": true,
+   "101.43.124.60": true,
+   "64.225.120.37": true,
    "222.133.188.26": true,
-   "113.59.36.217": true
+   "119.130.58.200": true,
+   "47.100.38.51": true,
+   "222.90.83.22": true,
+   "113.59.36.217": true,
+   "103.99.207.235": true,
+   "122.165.71.110": true,
+   "60.190.233.178": true,
+   "183.230.9.103": true,
+   "180.101.184.47": true,
+   "118.195.183.12": true
   }
  },
  "vt": {
@@ -385,11 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-11-12T22:01:33Z",
-   "status": "fail",
-   "why": ""
-  },
   {
    "ts": "2026-11-13T06:01:54Z",
    "status": "fail",
@@ -583,6 +578,11 @@
   {
    "ts": "2026-11-22T18:01:22Z",
    "status": "fail",
+   "why": ""
+  },
+  {
+   "ts": "2026-11-22T22:02:05Z",
+   "status": "ok",
    "why": ""
   }
  ],
@@ -936,9 +936,9 @@
     }
    }
   },
-  "113.59.36.217": {
+  "119.130.58.200": {
    "country": "CN",
-   "provider": "China Unicom Hainan province n",
+   "provider": "PYSW SE800-1",
    "otx": 3,
    "aip": 100,
    "sources": {
@@ -982,10 +982,10 @@
     }
    }
   },
-  "119.130.58.200": {
+  "180.101.184.47": {
    "country": "CN",
-   "provider": "PYSW SE800-1",
-   "otx": 3,
+   "provider": "Chinanet Jiangsu Province Netw",
+   "otx": 7,
    "aip": 100,
    "sources": {
     "gn": {
@@ -1005,10 +1005,10 @@
     }
    }
   },
-  "180.101.184.47": {
+  "113.59.36.217": {
    "country": "CN",
-   "provider": "Chinanet Jiangsu Province Netw",
-   "otx": 7,
+   "provider": "China Unicom Hainan province n",
+   "otx": 3,
    "aip": 100,
    "sources": {
     "gn": {
