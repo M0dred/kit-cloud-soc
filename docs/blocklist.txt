@@ -1,5 +1,5 @@
 # kit-cloud SoC public watchlist — REVIEW BEFORE BLOCKING; not proof of compromise
-# Batch: 2026-11-24 22:01 UTC; check status.json; do not use a stale (>24h) list
+# Batch: 2026-11-25 06:03 UTC; check status.json; do not use a stale (>24h) list
 # Scope: at least 20 level 10+ SSH authentication-failure alerts within 24h and independent lookup within 48h
 # Derived from curated MISP Event 1932; excludes unreviewed internal blocklist entries
 # contact: admin@kit-cloud.com

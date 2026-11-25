@@ -1,94 +1,90 @@
 {
- "generated": "2026-11-24 22:01 UTC",
+ "generated": "2026-11-25 06:03 UTC",
  "wazuh": {
-  "total_7d": 675763,
+  "total_7d": 653214,
   "by_agent": [],
   "top_src": [
    [
     "183.230.9.103",
-    6922
+    7126
    ],
    [
     "117.173.156.172",
-    6831
+    7034
    ],
    [
     "218.94.4.146",
-    6760
+    6940
    ],
    [
     "222.90.83.22",
-    6407
+    6603
    ],
    [
     "222.133.188.26",
-    5986
+    6174
    ],
    [
     "64.225.120.37",
-    4149
+    4168
    ],
    [
     "122.165.56.162",
-    3763
+    3827
    ],
    [
     "103.99.207.235",
-    3719
+    3748
    ],
    [
     "118.195.183.12",
-    3718
+    3719
    ],
    [
     "122.165.71.110",
-    3583
+    3612
    ],
    [
     "47.100.38.51",
-    3547
+    3590
    ],
    [
     "101.43.124.60",
-    3520
+    3558
    ],
    [
     "61.185.42.66",
-    3450
-   ],
-   [
-    "180.101.184.47",
-    3397
+    3473
    ],
    [
     "119.130.58.200",
-    3394
-   ],
-   [
-    "113.59.36.217",
-    3393
+    3435
    ],
    [
     "60.190.233.178",
-    3384
+    3418
+   ],
+   [
+    "180.101.184.47",
+    3405
+   ],
+   [
+    "113.59.36.217",
+    3312
+   ],
+   [
+    "122.9.61.90",
+    3195
    ],
    [
     "47.96.141.253",
-    3066
-   ],
-   [
-    "185.177.72.66",
-    3000
+    3140
    ]
   ],
   "by_day": [
    [
-    "2026-11-17",
-    12260
-   ],
-   [
     "2026-11-18",
-    112258
+    77367
    ],
    [
     "2026-11-19",
@@ -112,98 +108,117 @@
    ],
    [
     "2026-11-24",
-    109582
+    115785
+   ],
+   [
+    "2026-11-25",
+    18399
    ]
   ],
   "source_context": {
    "183.230.9.103": {
-    "last_sample_utc": "2026-11-24 21:55:42 UTC",
+    "last_sample_utc": "2026-11-25 06:00:01 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "117.173.156.172": {
-    "last_sample_utc": "2026-11-24 21:55:30 UTC",
+    "last_sample_utc": "2026-11-25 05:58:33 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "218.94.4.146": {
-    "last_sample_utc": "2026-11-24 21:55:54 UTC",
+    "last_sample_utc": "2026-11-25 05:56:41 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.90.83.22": {
-    "last_sample_utc": "2026-11-24 21:57:52 UTC",
+    "last_sample_utc": "2026-11-25 06:00:29 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "222.133.188.26": {
-    "last_sample_utc": "2026-11-24 22:00:08 UTC",
+    "last_sample_utc": "2026-11-25 05:52:51 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "64.225.120.37": {
-    "last_sample_utc": "2026-11-24 21:53:40 UTC",
+    "last_sample_utc": "2026-11-25 05:56:39 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "122.165.56.162": {
-    "last_sample_utc": "2026-11-24 21:58:12 UTC",
+    "last_sample_utc": "2026-11-25 05:56:45 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "103.99.207.235": {
-    "last_sample_utc": "2026-11-24 21:55:14 UTC",
+    "last_sample_utc": "2026-11-25 05:58:49 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "118.195.183.12": {
-    "last_sample_utc": "2026-11-24 21:52:18 UTC",
+    "last_sample_utc": "2026-11-25 06:00:07 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "122.165.71.110": {
-    "last_sample_utc": "2026-11-24 21:52:20 UTC",
+    "last_sample_utc": "2026-11-25 05:56:45 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "47.100.38.51": {
-    "last_sample_utc": "2026-11-24 22:00:52 UTC",
+    "last_sample_utc": "2026-11-25 06:01:49 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "101.43.124.60": {
-    "last_sample_utc": "2026-11-24 21:58:32 UTC",
+    "last_sample_utc": "2026-11-25 05:59:23 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "61.185.42.66": {
-    "last_sample_utc": "2026-11-24 21:54:34 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "180.101.184.47": {
-    "last_sample_utc": "2026-11-24 21:57:22 UTC",
+    "last_sample_utc": "2026-11-25 05:53:25 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "119.130.58.200": {
-    "last_sample_utc": "2026-11-24 21:59:38 UTC",
-    "sample_behavior": "SSH authentication alert"
-   },
-   "113.59.36.217": {
-    "last_sample_utc": "2026-11-24 21:41:00 UTC",
+    "last_sample_utc": "2026-11-25 06:02:19 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "60.190.233.178": {
-    "last_sample_utc": "2026-11-24 21:57:36 UTC",
+    "last_sample_utc": "2026-11-25 05:55:09 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "180.101.184.47": {
+    "last_sample_utc": "2026-11-25 05:59:03 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "113.59.36.217": {
+    "last_sample_utc": "2026-11-25 05:52:49 UTC",
+    "sample_behavior": "SSH authentication alert"
+   },
+   "122.9.61.90": {
+    "last_sample_utc": "2026-11-25 05:10:56 UTC",
     "sample_behavior": "SSH authentication alert"
    },
    "47.96.141.253": {
-    "last_sample_utc": "2026-11-24 21:54:00 UTC",
+    "last_sample_utc": "2026-11-24 23:55:21 UTC",
     "sample_behavior": "SSH authentication alert"
-   },
-   "185.177.72.66": {
-    "last_sample_utc": "2026-11-23 17:18:13 UTC",
-    "sample_behavior": "Web request alert (outcome unverified)"
    }
   },
   "pipeline_24h_coverage": {
    "bucket_limit": 500,
-   "outside_top_alerts": 31552,
-   "approx_source_values": 1525,
-   "measured_at_utc": "2026-11-24 22:00 UTC"
+   "outside_top_alerts": 15640,
+   "approx_source_values": 1203,
+   "measured_at_utc": "2026-11-25 06:03 UTC"
   }
  },
  "misp": {
-  "total": 987,
+  "total": 990,
   "cidrs": [],
   "recent_14d": [
+   {
+    "ip": "85.155.14.61",
+    "date": "2026-11-25",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "103.77.126.52",
+    "date": "2026-11-25",
+    "comment": "Observed source; review locally"
+   },
+   {
+    "ip": "163.7.11.155",
+    "date": "2026-11-25",
+    "comment": "Observed source; review locally"
+   },
    {
     "ip": "36.249.134.44",
     "date": "2026-11-24",
@@ -338,43 +353,28 @@
     "ip": "152.228.217.200",
     "date": "2026-11-20",
     "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "106.251.244.178",
-    "date": "2026-11-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "13.140.144.252",
-    "date": "2026-11-20",
-    "comment": "Observed source; review locally"
-   },
-   {
-    "ip": "120.202.225.130",
-    "date": "2026-11-20",
-    "comment": "Observed source; review locally"
    }
   ],
   "membership_scope": "full Event 1932; legacy ip-dst and new ip-src",
   "top_source_membership": {
-   "47.96.141.253": true,
-   "119.130.58.200": true,
-   "218.94.4.146": true,
-   "117.173.156.172": true,
-   "222.133.188.26": true,
-   "222.90.83.22": true,
-   "64.225.120.37": true,
-   "185.177.72.66": true,
-   "118.195.183.12": true,
-   "113.59.36.217": true,
-   "47.100.38.51": true,
-   "103.99.207.235": true,
-   "183.230.9.103": true,
-   "61.185.42.66": true,
-   "60.190.233.178": true,
-   "180.101.184.47": true,
    "101.43.124.60": true,
+   "64.225.120.37": true,
+   "47.96.141.253": true,
+   "47.100.38.51": true,
+   "61.185.42.66": true,
+   "222.90.83.22": true,
+   "119.130.58.200": true,
+   "183.230.9.103": true,
+   "103.99.207.235": true,
+   "117.173.156.172": true,
    "122.165.56.162": true,
+   "60.190.233.178": true,
+   "122.9.61.90": true,
+   "113.59.36.217": true,
+   "180.101.184.47": true,
+   "118.195.183.12": true,
+   "222.133.188.26": true,
+   "218.94.4.146": true,
    "122.165.71.110": true
   }
  },
@@ -385,11 +385,6 @@
   "agents_down": "withheld"
  },
  "runs": [
-  {
-   "ts": "2026-11-14T22:01:17Z",
-   "status": "ok",
-   "why": ""
-  },
   {
    "ts": "2026-11-15T06:01:35Z",
    "status": "ok",
@@ -584,6 +579,11 @@
    "ts": "2026-11-24T18:01:53Z",
    "status": "fail",
    "why": ""
+  },
+  {
+   "ts": "2026-11-24T22:01:09Z",
+   "status": "ok",
+   "why": ""
   }
  ],
  "blocklist_n": 0,
@@ -628,7 +628,7 @@
     },
     "otx": {
      "state": "fresh",
-     "checked_at": "2026-11-24 06:00 UTC",
+     "checked_at": "2026-11-25 06:00 UTC",
      "last_attempt": "ok"
     },
     "aipdb": {
@@ -911,29 +911,6 @@
     }
    }
   },
-  "180.101.184.47": {
-   "country": "CN",
-   "provider": "Chinanet Jiangsu Province Netw",
-   "otx": 7,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-24 18:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-24 18:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
   "119.130.58.200": {
    "country": "CN",
    "provider": "PYSW SE800-1",
@@ -953,29 +930,6 @@
     "aipdb": {
      "state": "fresh",
      "checked_at": "2026-11-24 18:01 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "113.59.36.217": {
-   "country": "CN",
-   "provider": "China Unicom Hainan province n",
-   "otx": 3,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-24 18:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-24 18:00 UTC",
      "last_attempt": "ok"
     }
    }
@@ -1003,6 +957,75 @@
     }
    }
   },
+  "180.101.184.47": {
+   "country": "CN",
+   "provider": "Chinanet Jiangsu Province Netw",
+   "otx": 7,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-24 18:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-24 18:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "113.59.36.217": {
+   "country": "CN",
+   "provider": "China Unicom Hainan province n",
+   "otx": 3,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-24 18:00 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-24 18:00 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
+  "122.9.61.90": {
+   "country": "CN",
+   "provider": "Huawei Public Cloud Service (H",
+   "otx": 4,
+   "aip": 100,
+   "sources": {
+    "gn": {
+     "state": "not_queried",
+     "checked_at": null,
+     "last_attempt": "unknown"
+    },
+    "otx": {
+     "state": "fresh",
+     "checked_at": "2026-11-24 18:01 UTC",
+     "last_attempt": "ok"
+    },
+    "aipdb": {
+     "state": "fresh",
+     "checked_at": "2026-11-24 18:01 UTC",
+     "last_attempt": "ok"
+    }
+   }
+  },
   "47.96.141.253": {
    "country": "CN",
    "provider": "Aliyun Computing Co., LTD",
@@ -1022,29 +1045,6 @@
     "aipdb": {
      "state": "fresh",
      "checked_at": "2026-11-24 18:00 UTC",
-     "last_attempt": "ok"
-    }
-   }
-  },
-  "185.177.72.66": {
-   "country": "FR",
-   "provider": "FBW NETWORKS SAS",
-   "otx": 50,
-   "aip": 100,
-   "sources": {
-    "gn": {
-     "state": "not_queried",
-     "checked_at": null,
-     "last_attempt": "unknown"
-    },
-    "otx": {
-     "state": "fresh",
-     "checked_at": "2026-11-23 18:00 UTC",
-     "last_attempt": "ok"
-    },
-    "aipdb": {
-     "state": "fresh",
-     "checked_at": "2026-11-23 18:00 UTC",
      "last_attempt": "ok"
     }
    }
