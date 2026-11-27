@@ -33,10 +33,11 @@ function createCountryMap(onSelect) {
   function draw() {
     if (!world) return;
     const shown=visible(), labels=new Map(shown.map(row=>[row.code,row]));
+    const shades=new Map(shown.flatMap(row=>(row.members||[row.code]).map(code=>[code,row])));
     const max=Math.max(1,...shown.map(g=>g.value));
     land.replaceChildren();links.replaceChildren();points.replaceChildren();
     for (const [code,d] of world.land) {
-      const g=labels.get(code), shade=g?` map-v${Math.max(1,Math.ceil(4*g.value/max))}`:"";
+      const g=shades.get(code), shade=g?` map-v${Math.max(1,Math.ceil(4*g.value/max))}`:"";
       add(land,"path",{d,class:`map-country${shade}${g && g.code===active?" map-picked":""}`,"fill-rule":"evenodd"});
     }
     const order=[...shown].sort((a,b)=>Number(a.code===active)-Number(b.code===active));

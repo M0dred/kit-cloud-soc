@@ -27,7 +27,7 @@
     <div id="workspace" hidden>
       <section class="panel map-panel" id="pulse-map" aria-labelledby="pulse-heading">
         <div class="panel-head"><div><h2 id="pulse-heading">Country pulse map</h2><p class="note">Real batch counts · animated highlights, not live traffic.</p></div>
-          <div class="country-controls"><label for="measure">Metric</label><select id="measure"><option value="alerts">Alert counts</option><option value="rows">Source rows</option></select></div>
+          <div class="country-controls"><label for="measure">Metric</label><select id="measure"><option value="alerts">Alert counts</option><option value="rows">Source rows</option></select><label for="country-grouping">Group labels</label><select id="country-grouping"><option value="combined">China: CN + TW + HK</option><option value="separate">Original labels</option></select></div>
         </div>
         <div class="country-controls" id="map-controls" hidden>
           <label for="map-focus">Country</label><select id="map-focus"></select>
@@ -44,7 +44,7 @@
             <g aria-hidden="true"><rect class="map-sink" x="731" y="151" width="153" height="87" rx="12"></rect><circle class="map-junction" cx="731" cy="193" r="5"></circle><text class="map-sink-title" x="808" y="179">Wazuh aggregate</text><text class="map-sink-note" x="808" y="201">Off-map summary</text><text class="map-sink-note" x="808" y="221">Not a destination</text></g>
           </svg>
           <div class="map-legend"><span><i></i> Selected country</span><span>Shading and link width follow the chosen metric</span><span>Dot motion is illustrative</span></div>
-          <p class="note">Markers use country label points, not source coordinates. Links lead to a display summary only. Country limits are approximate (Natural Earth, 1:110m).</p>
+          <p class="note">Markers use representative label points, not source coordinates. A combined group has one marker and link. Map boundaries are unchanged; small labels may have no separate outline at this scale (Natural Earth, 1:110m).</p>
         </div>
       </section>
       <div class="scope-cards" aria-label="Scope of the figures">
@@ -91,6 +91,7 @@
       <section class="panel method" aria-labelledby="method-heading">
         <h2 id="method-heading">What the numbers mean</h2>
         <p>The ranking uses only the public subset of a seven-day top-20 source aggregation. Country labels come from existing IP enrichment and may be missing, cached, or point to hosting, a proxy or shared infrastructure. They do not identify a person or an attack’s origin.</p>
+        <p>The default display groups the original <code>CN</code>, <code>TW</code> and <code>HK</code> labels under China. The detail panel preserves the original counts; <strong>Original labels</strong> splits them. This changes reporting only, not the underlying labels or map boundaries.</p>
         <p>Samples are labels attached to source rows, not per-behavior alert counts. MISP membership and provider coverage are context, not confirmation. No sensor identities, sensor locations, individual addresses or target paths are shown in this view.</p>
       </section>
     </div>

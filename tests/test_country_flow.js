@@ -62,6 +62,8 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   assert.match(text(ui['country-detail']),/Present: 1 · Absent: 0 · Unknown: 0/);
   assert.match(text(ui['country-detail']),/SSH authentication alert: 1/);
   assert.match(text(ui['country-detail']),/GreyNoise\s+0\s+0\s+1\s+0/);
+  assert.match(text(ui['country-detail']),/\(TW\): No published source rows in this batch/);
+  assert.match(text(ui['country-detail']),/\(HK\): No published source rows in this batch/);
   assert.equal(ui['chart-depth'].hidden,true);
   const first=ui['country-bars'].children[0].children[1];assert.equal(first.value,20);assert.equal(first.max,20);
   ui.measure.value='rows';ui.measure.listeners.change();assert.match(groups()[0],/United States/);
@@ -79,6 +81,24 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   const blank=await run({...snapshot,wazuh:{total_7d:42,top_src:[]}},null);
   assert.match(blank['country-heartbeat'].textContent,/heartbeat unavailable/);
   assert.match(text(blank['country-detail']),/does not mean no alerts/);
+  const mixed=structuredClone(snapshot);
+  for (const [i,code,alerts] of [[6,'TW',8],[7,'HK',2],[8,'MO',5]]) {
+    const ip=`192.0.2.${i}`;mixed.wazuh.top_src.push([ip,alerts]);mixed.enrich_meta[ip]={country:code};
+  }
+  const g=await run(mixed), labels=()=>g['country-rows'].children.map(text);
+  assert.match(labels()[0],/China.*30.*62.5%.*3/);
+  assert(labels().some(label=>/Macao|Macau/.test(label)));
+  assert(!labels().some(label=>/Taiwan|Hong Kong/.test(label)));
+  assert.match(text(g['country-detail']),/\(TW\): 1 source rows · 8 bucket alerts/);
+  assert.match(text(g['country-detail']),/\(HK\): 1 source rows · 2 bucket alerts/);
+  const control=g['country-grouping'];control.value='separate';control.listeners.change();
+  assert(labels().some(label=>/Taiwan.*8/.test(label)));
+  assert(labels().some(label=>/Hong Kong.*2/.test(label)));
+  assert.match(labels()[0],/China.*20/);
+  assert.equal(g['selected-alerts'].textContent,'48');
+  control.value='combined';control.listeners.change();assert.match(labels()[0],/China.*30/);
+  assert.equal(g['selected-alerts'].textContent,'48');
+  assert.equal(mixed.enrich_meta['192.0.2.6'].country,'TW');
   const malformed=structuredClone(snapshot);malformed.wazuh.top_src.push([ips[0],1]);
   assert.match((await run(malformed))['country-batch'].textContent,/No verified/);
   assert.match((await run(snapshot,signal,'2026-11-28T02:00Z'))['country-batch'].textContent,/over 24 hours old/);

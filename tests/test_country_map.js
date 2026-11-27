@@ -23,7 +23,7 @@ class Element {
 }
 const script=fs.readFileSync(path.join(docs,'country-map.js'),'utf8');
 const app=fs.readFileSync(path.join(docs,'flow.js'),'utf8');
-async function fixture({shape=world,reduced=false}={}) {
+async function fixture({shape=world,reduced=false,snapshot=data}={}) {
   const ui=Object.fromEntries(ids.map(id=>[id,new Element('div')]));
   ui['chart-flat'].hidden=false;
   const touched=[];let tick=null;
@@ -31,7 +31,7 @@ async function fixture({shape=world,reduced=false}={}) {
   const sandbox={document:{getElementById:id=>ui[id],createElement:tag=>new Element(tag),
     createElementNS:(ns,tag)=>{assert.equal(ns,'http://www.w3.org/2000/svg');return new Element(tag);}},
     Date:Clock,matchMedia:()=>({matches:reduced}),setInterval:(fn,ms)=>{assert.equal(ms,2000);tick=fn;return 1;},clearInterval:()=>{tick=null;},
-    fetch:async p=>{touched.push(p);const values={'data.json':data,'status.json':null,'world-map.json':shape};assert(Object.hasOwn(values,p));
+    fetch:async p=>{touched.push(p);const values={'data.json':snapshot,'status.json':null,'world-map.json':shape};assert(Object.hasOwn(values,p));
       return {ok:values[p]!==null,json:async()=>values[p]};}};
   vm.createContext(sandbox);vm.runInContext(script,sandbox,{timeout:2000});await vm.runInContext(app,sandbox,{timeout:2000});
   // The outline is independent of the snapshot read, so wait one task before checking it.
@@ -42,7 +42,8 @@ async function fixture({shape=world,reduced=false}={}) {
 function getGroups(data) {
   const out=new Map();
   for (const [ip,count] of data.wazuh.top_src) {
-    const code=data.enrich_meta?.[ip]?.country;
+    const label=data.enrich_meta?.[ip]?.country;
+    const code=['TW','HK'].includes(label)?'CN':label;
     if (!code || !Object.hasOwn(world.anchors,code)) continue;
     out.set(code,(out.get(code)||0)+count);
   }
@@ -80,6 +81,18 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
     const low=await fixture({reduced:true});low.ui['map-play'].listeners.click();
     assert(!low.ui['map-arcs'].children.some(c=>c.attrs.class==='map-pulses'));
   }
+  const sample={generated:data.generated,wazuh:{total_7d:7,top_src:[['192.0.2.31',5],['192.0.2.32',2]]},
+    enrich_meta:{'192.0.2.31':{country:'TW'},'192.0.2.32':{country:'HK'}}};
+  const {ui:g}=await fixture({snapshot:sample});
+  const mapPath=code=>g['map-land'].children[world.land.findIndex(([k])=>k===code)];
+  assert.match(g['map-status'].textContent,/Mapped 1 of 1.*China · 7 /);
+  assert.match(mapPath('CN').attrs.class,/map-picked/);
+  assert.match(mapPath('TW').attrs.class,/map-picked/);
+  g['country-grouping'].value='separate';g['country-grouping'].listeners.change();
+  assert.match(g['map-status'].textContent,/Mapped 1 of 2.*Taiwan · 5 /);
+  assert.doesNotMatch(mapPath('CN').attrs.class,/map-picked/);
+  assert.match(mapPath('TW').attrs.class,/map-picked/);
+  assert.equal(g['map-arcs'].children.filter(e=>e.tag==='path').length,1);
   const unavailable=await fixture({shape:null});assert.match(unavailable.ui['map-status'].textContent,/outline unavailable/);
   assert.equal(unavailable.ui.workspace.hidden,false);
   const unsafe={...world,land:[[null,'<svg>'],...world.land.slice(1)]};

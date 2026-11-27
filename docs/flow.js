@@ -8,6 +8,8 @@
   const codes = new Set("AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" "));
   const naming = typeof Intl.DisplayNames==="function"?new Intl.DisplayNames(["en"],{type:"region",fallback:"code"}):null;
   const name = code => code==="unknown"?"Unknown country":(naming?.of(code)||code);
+  // Reporting rollup only; never write back into the snapshot or outline.
+  const chinaLabels = Object.freeze(["CN","TW","HK"]);
   const labels = ["SSH authentication alert","Web request alert (outcome unverified)","Other detection (sample only)","No sample label available"];
   const providers = [["gn","GreyNoise"],["otx","OTX"],["aipdb","AbuseIPDB"]];
   const keys = ["fresh","cached / stale","error / limited","other / unknown"];
@@ -31,7 +33,7 @@
     if (["cached","stale"].includes(status?.state)) return 1;
     return 3;
   }
-  function aggregate(snapshot) {
+  function aggregate(snapshot, combineChina) {
     const rows=snapshot.wazuh?.top_src;
     if (!Array.isArray(rows) || rows.length>20) throw Error("invalid public rows");
     const groups=new Map(), seen=new Set();
@@ -41,10 +43,14 @@
       const [ip,alerts]=row;
       seen.add(ip);
       const meta=own(snapshot.enrich_meta,ip);
-      const code=codes.has(meta?.country)?meta.country:"unknown";
-      if (code!=="unknown") labelled+=1;
-      if (!groups.has(code)) groups.set(code,{code,alerts:0,rows:0,membership:[0,0,0],samples:[0,0,0,0],lookups:providers.map(()=>[0,0,0,0])});
+      const original=codes.has(meta?.country)?meta.country:"unknown";
+      const code=combineChina && chinaLabels.includes(original)?"CN":original;
+      if (original!=="unknown") labelled+=1;
+      if (!groups.has(code)) groups.set(code,{code,alerts:0,rows:0,membership:[0,0,0],samples:[0,0,0,0],
+        lookups:providers.map(()=>[0,0,0,0]),origins:new Map(),members:combineChina && code==="CN"?chinaLabels:[code]});
       const g=groups.get(code);
+      const part=g.origins.get(original)||{alerts:0,rows:0};
+      part.alerts+=alerts;part.rows+=1;g.origins.set(original,part);
       g.alerts+=alerts; subset+=alerts; g.rows+=1;
       if (!n(subset)) throw Error("unsafe aggregate count");
       const member=own(snapshot.misp?.top_source_membership,ip);
@@ -102,7 +108,8 @@
   function render(snapshot,report) {
     const now=Date.now(), batch=utc(snapshot?.generated);
     if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid batch time");
-    const {groups,subset,labelled,rows}=aggregate(snapshot);
+    const grouping=get("country-grouping");
+    let {groups,subset,labelled,rows}=aggregate(snapshot,grouping.value!=="separate");
     get("country-batch").textContent=`Published batch: ${snapshot.generated}.${now-batch>86400000?" Snapshot is over 24 hours old.":""}`;
     get("country-heartbeat").textContent=heartbeat(report,batch,now);
     get("total-alerts").textContent=fmt(snapshot.wazuh.total_7d);
@@ -119,6 +126,14 @@
       if (!g) {add(root,"p","No source buckets to break down; this does not mean no alerts.");return;}
       add(root,"h2",name(g.code));
       add(root,"p",`${fmt(g.alerts)} alerts in the displayed buckets · ${pct(g.alerts,subset)} of this subset · ${fmt(g.rows)} source rows.`);
+      if (g.members.length>1) {
+        add(root,"h3","Original label breakdown · published subset");
+        const origins=add(root,"ul","");
+        for (const code of g.members) {
+          const part=g.origins.get(code);
+          add(origins,"li",`${name(code)} (${code}): ${part?`${fmt(part.rows)} source rows · ${fmt(part.alerts)} bucket alerts`:"No published source rows in this batch"}.`);
+        }
+      }
       add(root,"h3","MISP catalog membership · source rows");
       add(root,"p",`Present: ${fmt(g.membership[0])} · Absent: ${fmt(g.membership[1])} · Unknown: ${fmt(g.membership[2])}.`);
       add(root,"h3","Sample labels · source rows, not event counts");
@@ -139,7 +154,7 @@
     function rerank() {
       metric=sort.value==="rows"?"rows":"alerts";
       const sorted=[...groups.values()].sort((a,b)=>b[metric]-a[metric] || a.code.localeCompare(b.code));
-      if (selected===null) selected=sorted[0]?.code;
+      if (!groups.has(selected)) selected=sorted[0]?.code;
       visible=sorted.slice(0,8);
       const bars=get("country-bars"), body=get("country-rows");bars.replaceChildren();body.replaceChildren();buttons.clear();
       get("region-scope").textContent=sorted.length?`Ranked by ${metric==="rows"?"published source rows":"reported bucket alert counts"}. Chart: ${visible.length} of ${sorted.length} groups; table: all groups.`:"No public source buckets were available in this batch.";
@@ -164,10 +179,17 @@
         svg(part,"title",{},`${name(g.code)}: ${pct(g[metric],size)}`);offset+=width;
       }
       get("share-note").textContent=size?`${name(sorted[0].code)} accounts for ${pct(sorted[0][metric],size)} of the displayed ${metric==="rows"?"source rows":"bucket alert count"}. See the table for exact values.`:"No nonzero share can be calculated for the selected metric.";
-      map?.update(sorted.map(g=>({code:g.code,label:name(g.code),value:g[metric]})),metric,selected);
+      map?.update(sorted.map(g=>({code:g.code,members:g.members,label:name(g.code),value:g[metric]})),metric,selected);
       detail();if (!chart.hidden) drawDepth(visible,metric);
     }
     sort.addEventListener("change",rerank);
+    grouping.addEventListener("change",()=>{
+      const combined=grouping.value!=="separate", active=groups.get(selected);
+      groups=aggregate(snapshot,combined).groups;
+      if (combined && chinaLabels.includes(selected)) selected="CN";
+      else if (!combined && active?.members.length>1 && !groups.has(selected)) selected=active.members.find(code=>groups.has(code));
+      rerank();
+    });
     toggle.addEventListener("click",()=>{
       chart.hidden=!chart.hidden;get("chart-flat").hidden=!chart.hidden;
       toggle.setAttribute("aria-pressed",String(!chart.hidden));toggle.textContent=chart.hidden?"3D view":"2D view";
