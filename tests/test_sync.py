@@ -88,6 +88,8 @@ class StatusOnlySyncTests(unittest.TestCase):
             (repo / 'docs/blocklist.txt').write_text('# fixture, review only\n')
             (repo / 'config.yaml').write_text('sensor_public_ips: {fixture: 203.0.113.10}\n')
             (repo / 'README.md').write_text('initial\n')
+            marker = (ROOT/'docs/subdivisions.json').read_bytes()
+            (repo/'docs/subdivisions.json').write_bytes(marker)
             git(repo, 'add', 'README.md', 'docs')
             git(repo, 'commit', '-m', 'initial')
             git(repo, 'remote', 'add', 'origin', str(remote))
@@ -127,10 +129,7 @@ class StatusOnlySyncTests(unittest.TestCase):
             # its diff must reach the local bare remote in the same commit.
             git(repo, 'fetch', 'origin', 'main')
             git(repo, 'merge', '--ff-only', 'origin/main')
-            for name in ('snapshot_diff.py','subdivision_profile.py','source_policy.py'):
-                shutil.copy(ROOT / name, repo)
-            helper=repo / 'subdivision_profile.py'
-            helper.write_text(helper.read_text().replace("Path('/mnt/storage0/soc-geoatlas')", f"Path({str(tmp/'no-geodata')!r})"))
+            shutil.copy(ROOT/'snapshot_diff.py',repo)
             fixture['generated'] = '2026-11-14 06:01 UTC'
             fixture['wazuh']['total_7d'] = 5
             data.write_text(json.dumps(fixture) + '\n')
@@ -145,12 +144,14 @@ class StatusOnlySyncTests(unittest.TestCase):
             self.assertEqual(artifact['current_utc'], fixture['generated'])
             self.assertEqual(artifact['metrics']['alerts_7d'], [0, 5])
             changed = git(remote, 'diff-tree', '--no-commit-id', '--name-only', '-r', 'main').splitlines()
-            self.assertEqual(set(changed), {'docs/data.json', 'docs/snapshot-diff.json', 'docs/subdivisions.json', 'docs/status.json'})
-            states=json.loads(git(remote,'show','main:docs/subdivisions.json'))
-            self.assertEqual(states['batch_utc'], fixture['generated'])
-            self.assertIsNone(states['countries'])
+            self.assertEqual(set(changed), {'docs/data.json', 'docs/snapshot-diff.json', 'docs/status.json'})
+            self.assertEqual(json.loads(git(remote,'show','main:docs/subdivisions.json'))['state'],'withheld')
             check = subprocess.run(['bash', str(local_script), '--check-only'], capture_output=True, text=True, timeout=20)
             self.assertEqual(check.returncode, 0, check.stderr)
+            (repo/'docs/subdivisions.json').write_text('{"countries":{"US":{}}}')
+            blocked = subprocess.run(['bash', str(local_script), '--check-only'], capture_output=True, text=True, timeout=20)
+            self.assertNotEqual(blocked.returncode,0)
+            self.assertIn('subdivision release is suspended',blocked.stderr)
 
 
 if __name__ == '__main__':

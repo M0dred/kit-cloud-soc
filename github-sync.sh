@@ -28,6 +28,7 @@ assert datetime.strptime(status['last_attempt_utc'], '%Y-%m-%d %H:%M UTC')
 if sys.argv[1]=='--status-only':
     print('GitHub public status privacy gate passed')
     sys.exit(0)
+assert (b/'docs/subdivisions.json').read_bytes() == b'{"schema_version":1,"state":"withheld","reason":"privacy_review"}\n', 'subdivision release is suspended'
 files=[b/'docs/data.json',b/'docs/blocklist.txt']
 d=json.loads(files[0].read_text())
 c=yaml.safe_load((b/'config.yaml').read_text())
@@ -95,7 +96,6 @@ print('GitHub public docs privacy gate passed')
 PY
 if [ "$mode" = "--check-only" ]; then
   python3 "$REPO/snapshot_diff.py" --check
-  python3 "$REPO/subdivision_profile.py" --check
   echo 'GitHub sync check-only: no commit or push'
   exit 0
 fi
@@ -111,8 +111,7 @@ if [ "$mode" != "--status-only" ]; then
   # Only derive the aggregate diff after the privacy gate and remote HEAD check.
   # Status-only updates never generate, read or stage comparison data.
   python3 "$REPO/snapshot_diff.py"
-  python3 "$REPO/subdivision_profile.py"
-  files+=(docs/data.json docs/blocklist.txt docs/snapshot-diff.json docs/subdivisions.json)
+  files+=(docs/data.json docs/blocklist.txt docs/snapshot-diff.json)
 fi
 git add -- "${files[@]}"
 if git diff --cached --quiet -- "${files[@]}"; then

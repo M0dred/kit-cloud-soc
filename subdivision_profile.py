@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Optional offline first-level geography for an already privacy-checked public batch."""
+"""Private first-level geography analysis; never linked from or written to Pages."""
 from __future__ import annotations
 
 import argparse
@@ -152,22 +152,32 @@ def local_profile(raw, root=GEO, now=None):
         return unavailable  # Geography fails closed without blocking other public data.
 
 
+def private_output(value):
+    root = Path.home()/'.local/state/soc-audits'
+    if root.is_symlink() or not root.is_dir() or root.stat().st_uid != os.getuid() or root.stat().st_mode & 0o077:
+        raise ValueError('private audit directory unavailable')
+    target = Path(value).resolve()
+    if target.parent != root.resolve() or target.suffix != '.json':
+        raise ValueError('output must be a JSON file directly in the private audit directory')
+    return target
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--check', action='store_true', help='Validate the stored aggregate without opening a geolocation database')
+    p.add_argument('--private-output', required=True, help='Output within the private audit directory, never Pages')
     a = p.parse_args()
+    try:
+        target = private_output(a.private_output)
+    except (OSError, ValueError):
+        p.error('output must be a JSON file in the restricted audit directory')
     raw = (BASE/'docs/data.json').read_bytes()
-    target = BASE/'docs/subdivisions.json'
-    if a.check:
-        verify(raw, json.loads(target.read_bytes()))
-        return
     out = local_profile(raw)
     verify(raw, out)
     with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as tmp:
         path = Path(tmp.name)
         try:
             tmp.write((json.dumps(out,ensure_ascii=False,indent=2)+'\n').encode());tmp.flush()
-            path.chmod(0o644);path.replace(target)
+            path.chmod(0o600);path.replace(target)
         finally:
             path.unlink(missing_ok=True)
 
