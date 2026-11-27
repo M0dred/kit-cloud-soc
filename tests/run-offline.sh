@@ -8,9 +8,11 @@ python3 -m unittest discover -s src/soc-connector/tests -q
 node --check docs/app.js
 node --check docs/tree.js
 node --check docs/flow.js
+node --check docs/activity.js
 node tests/test_public_ui.js
 node tests/test_public_ui_ux.js
 node tests/test_snapshot_tree.js
 node tests/test_synthetic_flow.js
+node tests/test_real_activity.js
 for script in cron-run.sh backup.sh github-sync.sh; do bash -n "$script"; done
 printf 'Offline SOC checks passed\n'

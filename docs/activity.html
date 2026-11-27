@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Real Alert Activity | kit-cloud SoC</title>
+  <link rel="stylesheet" href="flow.css">
+  <link rel="stylesheet" href="activity.css">
+  <script src="activity.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#heatmap">Skip to heatmap</a>
+  <header>
+    <nav aria-label="Views"><a href="./">← Review-only dashboard</a><a href="flow.html">Synthetic 3D sensor replay</a><span>REAL AGGREGATES · NOT LIVE</span></nav>
+    <h1>Real Alert Activity</h1>
+    <p>Actual Wazuh alert volumes from the public seven-day batch. This page shows volume by UTC date, not where traffic came from, which sensor saw it, or whether an attack succeeded.</p>
+  </header>
+  <main id="heatmap" tabindex="-1">
+    <noscript><p>The heatmap requires JavaScript. <a href="data.json">Read the public aggregate snapshot.</a></p></noscript>
+    <section class="panel" aria-labelledby="heat-heading">
+      <div class="panel-head"><h2 id="heat-heading">Daily volume heatmap · UTC</h2><button type="button" id="show-columns" aria-controls="columns" aria-expanded="false" hidden>Show 3D columns</button></div>
+      <p id="batch-status" role="status">Reading the public batch…</p>
+      <p id="heartbeat" class="note"></p>
+      <p id="coverage" class="note"></p>
+      <ul id="heat-grid" class="heat-grid" aria-label="Alert counts by UTC date"></ul>
+      <p id="heat-scale" class="note"></p>
+      <div id="columns" hidden>
+        <div class="camera">
+          <label for="azimuth">Rotate</label><input id="azimuth" type="range" min="-35" max="35" value="-23"><output id="azimuth-value" for="azimuth"></output>
+          <label for="elevation">Tilt</label><input id="elevation" type="range" min="12" max="35" value="24"><output id="elevation-value" for="elevation"></output>
+        </div>
+        <svg id="volume-scene" viewBox="0 0 720 328" role="img" aria-labelledby="volume-title volume-description">
+          <title id="volume-title">3D columns of observed daily Wazuh volume</title>
+          <desc id="volume-description">An optional perspective of the same daily counts shown in the heatmap. Missing days have no column.</desc>
+          <g id="volume-grid" aria-hidden="true"></g>
+          <g id="volume-bars" aria-hidden="true"></g>
+        </svg>
+        <p class="note">Column height is proportional to recorded alert count. Dates are ordered oldest to newest, left to right; diagonal lines mark the same count levels across days. Exact counts are in the heatmap.</p>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="limits-heading">
+      <h2 id="limits-heading">What this does not show</h2>
+      <p>No hourly or geographical inference is made from daily counts. Multiple alerts can describe the same activity. Sensor identities, paths to targets and outcome evidence are kept private.</p>
+    </section>
+  </main>
+  <footer>Reads only the published aggregate snapshot and heartbeat from this site. No live API calls or third-party resources.</footer>
+</body>
+</html>

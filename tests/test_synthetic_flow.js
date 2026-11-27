@@ -11,7 +11,7 @@ assert.match(fs.readFileSync(path.join(root,'index.html'),'utf8'),/href="flow\.h
 assert.match(html,/SYNTHETIC DEMO/);
 assert.match(html,/connect-src 'none'/);
 assert.match(html,/Not shown \/ unverified/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','flow.js','#content','./']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','flow.js','#content','./','activity.html']);
 const addresses=[...js.matchAll(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g)].map(([ip])=>ip);
 assert.equal(new Set(addresses).size,3);
 assert(addresses.every(ip=>/^(192\.0\.2|198\.51\.100|203\.0\.113)\.\d{1,3}$/.test(ip)));
