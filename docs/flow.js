@@ -121,17 +121,23 @@
     const map=typeof createCountryMap==="function"?createCountryMap(code=>{selected=code;detail();}):null;
     if (!map) get("map-status").textContent="Pulse map unavailable. Rankings and table are still available.";
     function detail() {
-      const root=get("country-detail"), g=groups.get(selected);
-      root.replaceChildren();
+      const root=get("country-detail"), g=groups.get(selected), origins=get("china-origin-counts");
+      root.replaceChildren();origins.replaceChildren();
+      get("map-selection-title").textContent=g?name(g.code):"No selected group";
+      get("map-selection-count").textContent=g?`${fmt(g[metric])} ${metric==="rows"?"source rows":"bucket alerts"}`:"";
+      get("map-selection-share").textContent=g?`${pct(g[metric],metric==="rows"?rows:subset)} of displayed ${metric==="rows"?"source rows":"bucket alerts"}`:"";
       if (!g) {add(root,"p","No source buckets to break down; this does not mean no alerts.");return;}
       add(root,"h2",name(g.code));
       add(root,"p",`${fmt(g.alerts)} alerts in the displayed buckets · ${pct(g.alerts,subset)} of this subset · ${fmt(g.rows)} source rows.`);
       if (g.members.length>1) {
         add(root,"h3","Original label breakdown · published subset");
-        const origins=add(root,"ul","");
+        const detailOrigins=add(root,"ul","");
         for (const code of g.members) {
           const part=g.origins.get(code);
-          add(origins,"li",`${name(code)} (${code}): ${part?`${fmt(part.rows)} source rows · ${fmt(part.alerts)} bucket alerts`:"No published source rows in this batch"}.`);
+          add(detailOrigins,"li",`${name(code)} (${code}): ${part?`${fmt(part.rows)} source rows · ${fmt(part.alerts)} bucket alerts`:"No published source rows in this batch"}.`);
+          const line=add(origins,"li","");
+          const title=code==="TW"?"Taiwan":code==="HK"?"Hong Kong":"CN";
+          add(line,"span",title);add(line,"strong",part?fmt(part[metric]):"No rows");
         }
       }
       add(root,"h3","MISP catalog membership · source rows");
@@ -197,9 +203,16 @@
     });
     for (const id of ["country-angle","country-tilt"]) get(id).addEventListener("input",()=>drawDepth(visible,metric));
     rerank();get("workspace").hidden=false;
-    // The fragment target was initially hidden while the snapshot loaded.
-    const section=globalThis.location?.hash?.slice(1);
-    if (["pulse-map","comparison","breakdown"].includes(section)) get(section).scrollIntoView();
+    get("change-map-metric").addEventListener("click",()=>{get("map-options").open=true;});
+    // Open deep links into collapsed drawers, including when clicked after load.
+    const reveal=()=>{
+      const section=globalThis.location?.hash?.slice(1);
+      if (!["pulse-map","comparison","breakdown"].includes(section)) return;
+      const target=get(section);
+      if (section!=="pulse-map") target.open=true;
+      target.scrollIntoView();
+    };
+    reveal();globalThis.addEventListener?.("hashchange",reveal);
   }
   async function json(path) {
     const res=await fetch(path,{cache:"no-store"});if (!res.ok) throw Error("missing public file");return res.json();

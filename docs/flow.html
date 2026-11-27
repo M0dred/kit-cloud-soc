@@ -17,8 +17,8 @@
   <header>
     <nav aria-label="Views"><a href="./">← Review-only dashboard</a><a href="activity.html">UTC activity heatmap</a><span>REAL BATCH · AGGREGATE ONLY</span></nav>
     <h1>Observed Source Countries</h1>
-    <div class="view-links" aria-label="Visualization shortcuts"><a href="#pulse-map">Pulse map</a><a href="#comparison">2D / 3D ranking</a><a href="#breakdown">Evidence breakdown</a><a href="activity.html">UTC heatmap</a><a href="./#changes">Batch changes</a></div>
-    <p>Seven-day Wazuh observations grouped by the source IP’s published country label. A country label describes the address, not an attacker’s nationality, origin, or a route to a sensor.</p>
+    <p>Seven-day Wazuh batch · country-labelled public source buckets, not attack attribution.</p>
+    <div class="view-links" aria-label="Visualization shortcuts"><a href="#pulse-map">Map</a><a href="#comparison">Rankings</a><a href="#breakdown">Evidence</a><a href="activity.html">UTC heatmap</a><a href="./#changes">Batch changes</a></div>
   </header>
   <main id="content" tabindex="-1">
     <p id="country-batch" role="status">Reading the public snapshot…</p>
@@ -26,14 +26,13 @@
     <noscript><p>This view needs JavaScript to group the published counts.</p></noscript>
     <div id="workspace" hidden>
       <section class="panel map-panel" id="pulse-map" aria-labelledby="pulse-heading">
-        <div class="panel-head"><div><h2 id="pulse-heading">Country pulse map</h2><p class="note">Real batch counts · animated highlights, not live traffic.</p></div>
-          <div class="country-controls"><label for="measure">Metric</label><select id="measure"><option value="alerts">Alert counts</option><option value="rows">Source rows</option></select><label for="country-grouping">Group labels</label><select id="country-grouping"><option value="combined">China: CN + TW + HK</option><option value="separate">Original labels</option></select></div>
+        <div class="map-header"><div><h2 id="pulse-heading">Country pulse map</h2><p class="note">Real batch counts · animated highlights, not live traffic.</p></div>
+          <div class="country-controls" id="map-controls" hidden>
+            <label for="map-focus" class="sr-only">Country</label><select id="map-focus"></select>
+            <button id="map-play" class="map-primary" type="button">Play highlights</button>
+          </div>
         </div>
-        <div class="country-controls" id="map-controls" hidden>
-          <label for="map-focus">Country</label><select id="map-focus"></select>
-          <button id="map-play" type="button">Play highlights</button><button id="map-links-toggle" type="button" aria-pressed="true">Show links</button>
-        </div>
-        <p id="map-status" class="note" role="status">Reading the local world outline…</p>
+        <div class="atlas-layout">
         <div id="map-figure" hidden>
           <svg id="country-map" viewBox="0 0 896 354" role="img" aria-labelledby="map-title map-desc">
             <title id="map-title">Observed source countries and Wazuh batch summary</title>
@@ -43,20 +42,36 @@
             <g id="map-land" aria-hidden="true"></g><g id="map-arcs" aria-hidden="true"></g><g id="map-points" aria-hidden="true"></g>
             <g aria-hidden="true"><rect class="map-sink" x="731" y="151" width="153" height="87" rx="12"></rect><circle class="map-junction" cx="731" cy="193" r="5"></circle><text class="map-sink-title" x="808" y="179">Wazuh aggregate</text><text class="map-sink-note" x="808" y="201">Off-map summary</text><text class="map-sink-note" x="808" y="221">Not a destination</text></g>
           </svg>
-          <div class="map-legend"><span><i></i> Selected country</span><span>Shading and link width follow the chosen metric</span><span>Dot motion is illustrative</span></div>
-          <p class="note">Markers use representative label points, not source coordinates. A combined group has one marker and link. Map boundaries are unchanged; small labels may have no separate outline at this scale (Natural Earth, 1:110m).</p>
+          <p class="note map-footnote">Shading follows the selected metric. Links are illustrative aggregate connections, not routes. Map: Natural Earth.</p>
         </div>
+        <aside class="map-inspector" aria-labelledby="map-selection-title">
+          <p class="map-kicker">Selected group</p><h3 id="map-selection-title">—</h3>
+          <p id="map-selection-count" class="map-count"></p><p id="map-selection-share" class="note"></p>
+          <div id="china-lens" hidden>
+            <h4>Regional focus <small>CN · TW · HK</small></h4>
+            <svg id="china-inset" viewBox="543 128 47 32" role="img" aria-labelledby="inset-title inset-desc">
+              <title id="inset-title">China grouping: Taiwan and Hong Kong in focus</title><desc id="inset-desc">A magnified view of the same public outline; Taiwan is outlined and Hong Kong is marked by a public label point, not a sensor.</desc>
+              <g id="inset-land" aria-hidden="true"></g><g id="inset-labels" aria-hidden="true"></g>
+            </svg>
+            <ul id="china-origin-counts" class="china-origin-counts" aria-label="Counts by original label"></ul>
+          </div>
+          <p id="map-status" class="note" role="status">Reading the local world outline…</p>
+        </aside>
+        </div>
+        <details class="map-options" id="map-options"><summary>Map options</summary>
+          <div class="country-controls"><label for="measure">Metric</label><select id="measure"><option value="alerts">Alert counts</option><option value="rows">Source rows</option></select><label for="country-grouping">Group labels</label><select id="country-grouping"><option value="combined">China: CN + TW + HK</option><option value="separate">Original labels</option></select><button id="map-links-toggle" type="button" aria-pressed="true">Show links</button></div>
+        </details>
       </section>
       <div class="scope-cards" aria-label="Scope of the figures">
         <div class="panel"><span>All Wazuh alerts · 7d</span><strong id="total-alerts"></strong><small>Exact search total, not a country breakdown</small></div>
         <div class="panel"><span>Alerts in displayed source buckets</span><strong id="selected-alerts"></strong><small>Sum for the public, top-20-derived subset</small></div>
         <div class="panel"><span>Country-labelled source rows</span><strong id="labelled-rows"></strong><small>Unknown country is kept separate</small></div>
       </div>
-      <section id="comparison" class="panel" aria-labelledby="compare-heading">
+      <details id="comparison" class="panel report-drawer" aria-labelledby="compare-heading">
+        <summary id="compare-heading">Country rankings <small>Share · 2D · 3D</small></summary>
         <div class="panel-head">
-          <h2 id="compare-heading">Country comparison</h2>
           <div class="country-controls">
-            <a href="#measure">Change metric</a><button id="toggle-depth" type="button" aria-pressed="false">3D view</button>
+            <a href="#map-options" id="change-map-metric">Change metric</a><button id="toggle-depth" type="button" aria-pressed="false">3D view</button>
           </div>
         </div>
         <p class="note" id="region-scope"></p>
@@ -78,8 +93,10 @@
           </svg>
           <p class="note">Height shows the selected count. Positions show rank, not a map or a network route.</p>
         </div>
-      </section>
-      <section class="layout" id="breakdown" aria-label="Country evidence counts">
+      </details>
+      <details id="breakdown" class="panel report-drawer" aria-label="Country evidence counts">
+        <summary>Evidence breakdown <small>Catalog · samples · lookup coverage</small></summary>
+        <div class="layout">
         <div class="panel">
           <h2>Country detail table</h2>
           <p class="note">Select a country to see aggregate catalog membership, sampled behavior labels and lookup coverage.</p>
@@ -87,13 +104,14 @@
           <p class="note">* Share of the displayed source-bucket alert count, not share of all Wazuh alerts.</p>
         </div>
         <div class="panel" id="country-detail" role="region" aria-label="Selected country breakdown" aria-live="polite"></div>
-      </section>
-      <section class="panel method" aria-labelledby="method-heading">
-        <h2 id="method-heading">What the numbers mean</h2>
+        </div>
+      </details>
+      <details class="panel method report-drawer" aria-labelledby="method-heading">
+        <summary id="method-heading">Method and limits</summary>
         <p>The ranking uses only the public subset of a seven-day top-20 source aggregation. Country labels come from existing IP enrichment and may be missing, cached, or point to hosting, a proxy or shared infrastructure. They do not identify a person or an attack’s origin.</p>
         <p>The default display groups the original <code>CN</code>, <code>TW</code> and <code>HK</code> labels under China. The detail panel preserves the original counts; <strong>Original labels</strong> splits them. This changes reporting only, not the underlying labels or map boundaries.</p>
         <p>Samples are labels attached to source rows, not per-behavior alert counts. MISP membership and provider coverage are context, not confirmation. No sensor identities, sensor locations, individual addresses or target paths are shown in this view.</p>
-      </section>
+      </details>
     </div>
   </main>
   <footer>Read-only batch report · Uses only existing public snapshot files · No new lookups or live sensor access.</footer>

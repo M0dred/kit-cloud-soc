@@ -5,6 +5,8 @@ function createCountryMap(onSelect) {
   const land=el("map-land"), links=el("map-arcs"), points=el("map-points");
   const picker=el("map-focus"), play=el("map-play"), toggler=el("map-links-toggle");
   let world=null, groups=[], mode="alerts", active=null, showLinks=true, timer=null;
+  // Public Natural Earth 5.1.2 1:10m label point, not source or sensor coordinates.
+  const hongKong=[564.0,148.1];
   const add=(parent,tag,attrs)=>{
     const node=document.createElementNS("http://www.w3.org/2000/svg",tag);
     for (const [k,v] of Object.entries(attrs)) node.setAttribute(k,String(v));
@@ -26,6 +28,24 @@ function createCountryMap(onSelect) {
   }
   const visible=()=>world?groups.filter(g=>world.anchors.has(g.code)):[];
   const summaryMetric=()=>mode==="rows"?"source rows":"reported bucket alerts";
+  function inset(selected) {
+    const lens=el("china-lens"), shapes=el("inset-land"), annotations=el("inset-labels");
+    lens.hidden=!(selected?.code==="CN" && selected.members?.includes("TW") && world.anchors.has("TW"));
+    shapes.replaceChildren();annotations.replaceChildren();
+    if (lens.hidden) return;
+    for (const [code,d] of world.land) {
+      if (!["CN","TW","PH","VN","JP"].includes(code)) continue;
+      add(shapes,"path",{d,class:`inset-land${code==="CN"||code==="TW"?" inset-selected":""}`,"fill-rule":"evenodd","data-region":code});
+    }
+    const mark=(code,p,dx,dy)=>{
+      const [x,y]=p, lx=x+dx,ly=y+dy;
+      add(annotations,"path",{d:`M ${x} ${y} L ${lx} ${ly-.6}`,class:"inset-leader"});
+      add(annotations,"circle",{cx:x,cy:y,r:.75,class:"inset-dot","data-region":code});
+      const text=add(annotations,"text",{x:lx,y:ly,class:"inset-label","text-anchor":"middle"});text.textContent=code;
+    };
+    mark("TW",world.anchors.get("TW"),7,-5);
+    mark("HK",hongKong,-7,5);
+  }
   function stop() {
     if (timer!==null) clearInterval(timer);
     timer=null;play.textContent="Play highlights";
@@ -38,7 +58,9 @@ function createCountryMap(onSelect) {
     land.replaceChildren();links.replaceChildren();points.replaceChildren();
     for (const [code,d] of world.land) {
       const g=shades.get(code), shade=g?` map-v${Math.max(1,Math.ceil(4*g.value/max))}`:"";
-      add(land,"path",{d,class:`map-country${shade}${g && g.code===active?" map-picked":""}`,"fill-rule":"evenodd"});
+      const picked=g && g.code===active;
+      add(land,"path",{d,class:`map-country${shade}${picked?" map-picked":""}${picked&&g.code!==code?" map-picked-member":""}`,
+        "fill-rule":"evenodd","data-region":code??""});
     }
     const order=[...shown].sort((a,b)=>Number(a.code===active)-Number(b.code===active));
     if (showLinks) for (const g of order) {
@@ -61,14 +83,18 @@ function createCountryMap(onSelect) {
     }
     play.disabled=shown.length===0;
     const selected=groups.find(g=>g.code===active), excluded=groups.length-shown.length;
+    inset(selected);
+    if (!el("china-lens").hidden) {
+      const [x,y]=world.anchors.get("TW");
+      add(points,"circle",{cx:x,cy:y,r:5,class:"map-member-ring","data-region":"TW"});
+    }
     if (selected && labels.has(active)) {
       const [x,y]=world.anchors.get(active);
       const label=add(points,"text",{x,y:Math.max(19,y-11),class:"map-active-label","text-anchor":x>585?"end":"middle"});
       label.textContent=selected.label;
     }
     const excludedNote=excluded?` ${excluded} group${excluded===1?"":"s"} not plotted (unknown label or no outline point); see the table.`:"";
-    const focus=selected?` Selected: ${selected.label} · ${selected.value.toLocaleString()} ${summaryMetric()}${labels.has(selected.code)?".":" (not plotted)."}`:"";
-    el("map-status").textContent=`Mapped ${shown.length} of ${groups.length} published country groups.${excludedNote}${focus}`;
+    el("map-status").textContent=`Mapped ${shown.length} of ${groups.length} published country groups.${excludedNote}`;
   }
   function choose(code,notify) {
     stop();active=code;picker.value=code??"";

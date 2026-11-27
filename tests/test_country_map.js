@@ -66,7 +66,7 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
   if(ranked.length){
     const [code,min]=ranked[0];
     assert.equal(ui['map-focus'].value,code);
-    assert.match(ui['map-status'].textContent,new RegExp(min.toLocaleString()));
+    assert.equal(ui['map-selection-count'].textContent,`${min.toLocaleString()} bucket alerts`);
     ui['map-play'].listeners.click();assert.equal(ui['map-play'].textContent,'Pause highlights');
     assert.equal(dots().length,1);
     assert.equal(dots()[0].children[0].attrs.repeatCount,'indefinite');
@@ -85,11 +85,20 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
     enrich_meta:{'192.0.2.31':{country:'TW'},'192.0.2.32':{country:'HK'}}};
   const {ui:g}=await fixture({snapshot:sample});
   const mapPath=code=>g['map-land'].children[world.land.findIndex(([k])=>k===code)];
-  assert.match(g['map-status'].textContent,/Mapped 1 of 1.*China · 7 /);
+  assert.match(g['map-status'].textContent,/Mapped 1 of 1/);
+  assert.equal(g['map-selection-title'].textContent,'China');
+  assert.equal(g['map-selection-count'].textContent,'7 bucket alerts');
   assert.match(mapPath('CN').attrs.class,/map-picked/);
-  assert.match(mapPath('TW').attrs.class,/map-picked/);
+  assert.match(mapPath('TW').attrs.class,/map-picked-member/);
+  assert.equal(g['china-lens'].hidden,false);
+  assert.match(g['inset-land'].children.find(e=>e.attrs['data-region']==='TW').attrs.class,/inset-selected/);
+  assert.deepEqual(g['inset-labels'].children.filter(e=>e.tag==='circle').map(e=>e.attrs['data-region']),['TW','HK']);
+  assert(g['map-points'].children.some(e=>e.attrs['data-region']==='TW'&&e.attrs.class==='map-member-ring'));
   g['country-grouping'].value='separate';g['country-grouping'].listeners.change();
-  assert.match(g['map-status'].textContent,/Mapped 1 of 2.*Taiwan · 5 /);
+  assert.match(g['map-status'].textContent,/Mapped 1 of 2/);
+  assert.equal(g['map-selection-title'].textContent,'Taiwan');
+  assert.equal(g['map-selection-count'].textContent,'5 bucket alerts');
+  assert.equal(g['china-lens'].hidden,true);
   assert.doesNotMatch(mapPath('CN').attrs.class,/map-picked/);
   assert.match(mapPath('TW').attrs.class,/map-picked/);
   assert.equal(g['map-arcs'].children.filter(e=>e.tag==='path').length,1);

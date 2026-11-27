@@ -9,8 +9,10 @@ const js=fs.readFileSync(path.join(dir,'flow.js'),'utf8');
 assert.match(fs.readFileSync(path.join(dir,'index.html'),'utf8'),/href="flow\.html#pulse-map">Country pulse map/);
 assert.match(html,/REAL BATCH · AGGREGATE ONLY/);
 assert.match(html,/connect-src 'self'/);
-assert.match(html,/not an attacker’s nationality/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#measure']);
+assert.match(html,/not attack attribution/);
+assert.match(html,/<details id="comparison" class="panel report-drawer"/);
+assert.match(html,/<details id="breakdown" class="panel report-drawer"/);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#map-options']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}
@@ -64,9 +66,14 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   assert.match(text(ui['country-detail']),/GreyNoise\s+0\s+0\s+1\s+0/);
   assert.match(text(ui['country-detail']),/\(TW\): No published source rows in this batch/);
   assert.match(text(ui['country-detail']),/\(HK\): No published source rows in this batch/);
+  assert.equal(ui['map-selection-title'].textContent,'China');
+  assert.equal(ui['map-selection-count'].textContent,'20 bucket alerts');
+  assert.match(ui['map-selection-share'].textContent,/60\.6%/);
+  assert.match(text(ui['china-origin-counts']),/CN 20.*Taiwan No rows.*Hong Kong No rows/);
   assert.equal(ui['chart-depth'].hidden,true);
   const first=ui['country-bars'].children[0].children[1];assert.equal(first.value,20);assert.equal(first.max,20);
   ui.measure.value='rows';ui.measure.listeners.change();assert.match(groups()[0],/United States/);
+  assert.equal(ui['map-selection-count'].textContent,'1 source rows');
   ui['country-rows'].children[0].children[0].children[0].listeners.click();
   assert.match(text(ui['country-detail']),/Present: 0 · Absent: 1 · Unknown: 2/);
   assert.match(text(ui['country-detail']),/No sample label available: 3/);
