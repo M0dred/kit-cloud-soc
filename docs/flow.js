@@ -1,144 +1,173 @@
 "use strict";
-// Entirely fictional. Source addresses are RFC 5737 examples; no live data is read.
+// Public country projection: join internally by the already published source key; render aggregates only.
 (() => {
-  const sources = [
-    {id:"s1", label:"192.0.2.24", point:[-228, 91, 52]},
-    {id:"s2", label:"198.51.100.37", point:[-228, 0, -57]},
-    {id:"s3", label:"203.0.113.82", point:[-228, -93, 47]},
-  ];
-  const sensors = [
-    {id:"a", label:"Wazuh Demo A", point:[228, 91, -37]},
-    {id:"b", label:"Wazuh Demo B", point:[228, 0, 63]},
-    {id:"c", label:"Clear NDR Demo", point:[228, -93, -46]},
-  ];
-  const events = [
-    {at:"06:00:04", from:"s1", to:"a", behavior:"SSH authentication event", result:"Rejected in this example; no successful access shown."},
-    {at:"06:00:12", from:"s2", to:"c", behavior:"Inbound session record", result:"Network observation only; application outcome unknown."},
-    {at:"06:00:23", from:"s3", to:"b", behavior:"HTTP request alert", result:"HTTP error in this example; exploitation not established."},
-    {at:"06:00:38", from:"s2", to:"a", behavior:"SSH authentication event", result:"Rejected in this example; no successful access shown."},
-    {at:"06:00:49", from:"s1", to:"c", behavior:"Inbound session record", result:"Separate observation; shared source does not prove the same session or target."},
-    {at:"06:01:04", from:"s3", to:"b", behavior:"Follow-up HTTP request alert", result:"Application outcome and destination asset not verified."},
-  ];
-  const nodes = [...sources, ...sensors];
-  const byNode = new Map(nodes.map(node => [node.id, node]));
   const get = id => document.getElementById(id);
-  const svg = (parent, tag, attrs, text) => {
-    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-    for (const [key, val] of Object.entries(attrs)) el.setAttribute(key, String(val));
-    if (text !== undefined) el.textContent = text;
-    parent.appendChild(el);
-    return el;
+  const n = value => Number.isSafeInteger(value) && value>=0;
+  const fmt = value => n(value)?value.toLocaleString():"N/A";
+  const pct = (value,total) => total>0?`${(100*value/total).toFixed(1)}%`:"N/A";
+  const codes = new Set("AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" "));
+  const naming = typeof Intl.DisplayNames==="function"?new Intl.DisplayNames(["en"],{type:"region",fallback:"code"}):null;
+  const name = code => code==="unknown"?"Unknown country":(naming?.of(code)||code);
+  const labels = ["SSH authentication alert","Web request alert (outcome unverified)","Other detection (sample only)","No sample label available"];
+  const providers = [["gn","GreyNoise"],["otx","OTX"],["aipdb","AbuseIPDB"]];
+  const keys = ["fresh","cached / stale","error / limited","other / unknown"];
+  const own = (obj, key) => obj && Object.hasOwn(obj,key)?obj[key]:undefined;
+  const ipKey = key => typeof key==="string" && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(key) && key.split(".").every(part=>Number(part)<=255 && String(Number(part))===part);
+  const add = (parent,tag,text) => {const el=document.createElement(tag);el.textContent=text;parent.appendChild(el);return el;};
+  const svg = (parent,tag,attrs,text) => {
+    const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
+    for (const [key,val] of Object.entries(attrs)) el.setAttribute(key,String(val));
+    if (text!==undefined) el.textContent=text;
+    parent.appendChild(el);return el;
   };
-  const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
-  const round = n => Math.round(n*10)/10;
-  const stamp = event => `2030-01-01 ${event.at} UTC`;
-  const displayIp = ip => ip.replace(/\.(?=\d+$)/, "[.]");
-  let step = 0, flat = false, timer = null;
-
-  // A small perspective projection: yaw about Y, then tilt about X. The same
-  // fictional coordinates become a flat XY view on request; no WebGL required.
-  function project([x, y, z]) {
-    if (flat) return [370+x, 158-y, 0];
-    const angle = clamp(Number(get("angle").value) || 0, -38, 38) * Math.PI / 180;
-    const yawX = x*Math.cos(angle) - z*Math.sin(angle);
-    const yawZ = x*Math.sin(angle) + z*Math.cos(angle);
-    const tilt = 0.20;
-    const cameraY = y*Math.cos(tilt) - yawZ*Math.sin(tilt);
-    const depth = y*Math.sin(tilt) + yawZ*Math.cos(tilt);
-    const scale = 940/(940+depth);
-    return [round(370+yawX*scale), round(158-cameraY*scale), depth];
+  function utc(stamp) {
+    if (typeof stamp!=="string" || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC$/.test(stamp)) return NaN;
+    const ms=Date.parse(stamp.replace(" ","T").replace(" UTC","Z"));
+    return Number.isFinite(ms) && new Date(ms).toISOString().slice(0,16).replace("T"," ")+" UTC"===stamp?ms:NaN;
   }
-  function renderScene() {
-    const active = events[step];
-    const pts = new Map(nodes.map(node => [node.id, project(node.point)]));
-    const plane = get("plane"), edges = get("edges"), layer = get("nodes");
-    plane.replaceChildren(); edges.replaceChildren(); layer.replaceChildren();
-    const guide = (a, b) => svg(plane, "path", {class:"guides", d:`M ${project(a).slice(0,2).join(" ")} L ${project(b).slice(0,2).join(" ")}`});
-    for (const x of [-250,-125,0,125,250]) guide([x,-112,-122], [x,-112,142]);
-    for (const z of [-122,-56,10,76,142]) guide([-250,-112,z], [250,-112,z]);
-    const drawEdge = (event, selected) => {
-      const [x1,y1] = pts.get(event.from), [x2,y2] = pts.get(event.to);
-      const sense = Math.sign(x2-x1) || 1;
-      const start = x1 + 13*sense, stop = x2 - 17*sense;
-      const middle = round((start+stop)/2);
-      const d = `M ${start} ${y1} C ${middle} ${y1}, ${middle} ${y2}, ${stop} ${y2}`;
-      const attrs = {class:selected?"active":"earlier",d};
-      if (selected) attrs["marker-end"] = "url(#flow-arrow)";
-      svg(edges,"path",attrs);
-      if (selected && timer !== null) svg(edges,"path",{class:"trace",d});
-    };
-    const currentKey = `${active.from}:${active.to}`;
-    const prior = new Map(events.slice(0,step).map(event => [`${event.from}:${event.to}`,event]));
-    prior.delete(currentKey);
-    for (const event of prior.values()) drawEdge(event,false);
-    drawEdge(active,true);
-    const ordered = [...nodes].sort((a,b) => pts.get(b.id)[2]-pts.get(a.id)[2]);
-    for (const node of ordered) {
-      const [x,y] = pts.get(node.id);
-      const selected = node.id === active.from || node.id === active.to ? " selected-node" : "";
-      const source = node.id.startsWith("s");
-      if (source) svg(layer,"circle",{cx:x,cy:y,r:11,class:"source-node"+selected});
-      else svg(layer,"rect",{x:x-12,y:y-12,width:24,height:24,rx:4,class:"sensor-node"+selected});
-      svg(layer,"text",{x,y:y+34,class:"node-label"},source?displayIp(node.label):node.label);
+  function lookup(status) {
+    if (["error","rate_limited"].includes(status?.last_attempt) || ["rate_limited","lookup_failed"].includes(status?.state)) return 2;
+    if (status?.state==="fresh") return 0;
+    if (["cached","stale"].includes(status?.state)) return 1;
+    return 3;
+  }
+  function aggregate(snapshot) {
+    const rows=snapshot.wazuh?.top_src;
+    if (!Array.isArray(rows) || rows.length>20) throw Error("invalid public rows");
+    const groups=new Map(), seen=new Set();
+    let subset=0, labelled=0;
+    for (const row of rows) {
+      if (!Array.isArray(row) || row.length!==2 || !ipKey(row[0]) || seen.has(row[0]) || !n(row[1])) throw Error("invalid source bucket");
+      const [ip,alerts]=row;
+      seen.add(ip);
+      const meta=own(snapshot.enrich_meta,ip);
+      const code=codes.has(meta?.country)?meta.country:"unknown";
+      if (code!=="unknown") labelled+=1;
+      if (!groups.has(code)) groups.set(code,{code,alerts:0,rows:0,membership:[0,0,0],samples:[0,0,0,0],lookups:providers.map(()=>[0,0,0,0])});
+      const g=groups.get(code);
+      g.alerts+=alerts; subset+=alerts; g.rows+=1;
+      if (!n(subset)) throw Error("unsafe aggregate count");
+      const member=own(snapshot.misp?.top_source_membership,ip);
+      g.membership[member===true?0:member===false?1:2]+=1;
+      const sample=labels.indexOf(own(snapshot.wazuh?.source_context,ip)?.sample_behavior);
+      g.samples[sample>=0?sample:3]+=1;
+      providers.forEach(([k],i)=>{g.lookups[i][lookup(own(meta?.sources,k))]+=1;});
     }
-    get("scene-description").textContent = `Fictional IP ${displayIp(byNode.get(active.from).label)} was recorded by ${byNode.get(active.to).label}. Target and compromise not established.`;
+    return {groups,subset,labelled,rows:rows.length};
   }
-  function render() {
-    const event = events[step];
-    get("step").value = String(step+1);
-    get("step").setAttribute("aria-valuetext",`${step+1} of ${events.length}, ${stamp(event)}`);
-    get("step-label").textContent = `Event ${step+1} of ${events.length} · ${stamp(event)} (fictional)`;
-    get("observed-source").textContent = displayIp(byNode.get(event.from).label);
-    get("observer").textContent = byNode.get(event.to).label;
-    get("behavior").textContent = event.behavior;
-    get("result").textContent = event.result;
-    get("previous").disabled = step===0;
-    get("next").disabled = step===events.length-1;
-    get("play").textContent = timer!==null?"Pause":step===events.length-1?"Replay":"Play";
-    for (const [index, button] of buttons.entries()) button.setAttribute("aria-pressed",String(index===step));
-    renderScene();
+  function heartbeat(report,batch,now) {
+    const attempt=utc(report?.last_attempt_utc);
+    if (report?.schema_version!==1 || !["ok","degraded","unknown"].includes(report.state) || !Number.isFinite(attempt) || attempt>now+600000) return "Pipeline heartbeat unavailable. This is a batch, not a live view.";
+    const head=`Last reported attempt: ${report.last_attempt_utc} · ${report.state}.`;
+    if (attempt<batch-15*60000) return `${head} This heartbeat does not verify the displayed batch.`;
+    if (now-attempt>86400000) return `${head} Heartbeat is over 24 hours old.`;
+    if (attempt>batch+15*60000 || report.state==="degraded") return `${head} The chart shows the last published data batch, not a fresh run.`;
+    return head;
   }
-  function pause() {
-    if (timer!==null) clearInterval(timer);
-    timer=null;
+  function drawDepth(list,metric) {
+    const range=(id,low,high,fallback)=>Math.min(high,Math.max(low,Number(get(id).value)||fallback));
+    const yaw=range("country-angle",-30,30,0), tilt=range("country-tilt",12,32,22);
+    get("country-angle-value").textContent=`${yaw}°`;get("country-tilt-value").textContent=`${tilt}°`;
+    const a=yaw*Math.PI/180,b=tilt*Math.PI/180;
+    const view=([x,y,z])=>[360+x*Math.cos(a)+z*Math.sin(a),194-y*Math.cos(b)+(z*Math.cos(a)-x*Math.sin(a))*Math.sin(b)].map(v=>Math.round(v*10)/10);
+    const point=xyz=>view(xyz).join(",");
+    const grid=get("country-guides"), layer=get("country-shapes");
+    grid.replaceChildren();layer.replaceChildren();
+    if (!list.length) return;
+    const max=list[0][metric], height=k=>max?126*k/max:0;
+    const levels=max>1?[0,Math.floor(max/2),max]:max===1?[0,1]:[0];
+    for (const value of levels) {
+      const y=height(value), [x,sy]=view([-267,y,-24]);
+      svg(grid,"polyline",{points:`${point([-258,y,-24])} ${point([258,y,-24])}`,class:"rank-guide"});
+      svg(grid,"text",{x,y:sy+4,class:"rank-tick"},fmt(value));
+    }
+    const spacing=Math.min(120,500/list.length);
+    const layout=list.map((g,i)=>({g,x:(i-(list.length-1)/2)*spacing}));
+    const order=yaw>=0?[...layout].reverse():layout;
+    for (const {g,x} of order) {
+      const t=height(g[metric]), l=x-spacing*.23,r=x+spacing*.23;
+      const face=(p,role)=>svg(layer,"polygon",{points:p.map(point).join(" "),class:`rank-face ${role}${g.code==="unknown"?" rank-unknown":""}`});
+      if (t>0) {
+        const side=yaw>=0?l:r;
+        face([[side,0,-19],[side,0,19],[side,t,19],[side,t,-19]],"rank-side");
+        face([[l,0,19],[r,0,19],[r,t,19],[l,t,19]],"");
+      }
+      face([[l,t,-19],[r,t,-19],[r,t,19],[l,t,19]],"rank-top");
+    }
+    for (const {g,x} of layout) {
+      const [px,py]=view([x,0,35]);
+      svg(layer,"text",{x:px,y:py+18,class:"rank-label"},g.code==="unknown"?"Unknown":g.code);
+    }
   }
-  function go(index) {
-    pause();
-    step=clamp(index,0,events.length-1);
-    render();
+  function render(snapshot,report) {
+    const now=Date.now(), batch=utc(snapshot?.generated);
+    if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid batch time");
+    const {groups,subset,labelled,rows}=aggregate(snapshot);
+    get("country-batch").textContent=`Published batch: ${snapshot.generated}.${now-batch>86400000?" Snapshot is over 24 hours old.":""}`;
+    get("country-heartbeat").textContent=heartbeat(report,batch,now);
+    get("total-alerts").textContent=fmt(snapshot.wazuh.total_7d);
+    get("selected-alerts").textContent=fmt(subset);
+    get("labelled-rows").textContent=`${fmt(labelled)} / ${fmt(rows)}`;
+    const sort=get("measure"), toggle=get("toggle-depth"), chart=get("chart-depth");
+    let selected=null, visible=[], metric="alerts";
+    const buttons=new Map();
+    function detail() {
+      const root=get("country-detail"), g=groups.get(selected);
+      root.replaceChildren();
+      if (!g) {add(root,"p","No source buckets to break down; this does not mean no alerts.");return;}
+      add(root,"h2",name(g.code));
+      add(root,"p",`${fmt(g.alerts)} alerts in the displayed buckets · ${pct(g.alerts,subset)} of this subset · ${fmt(g.rows)} source rows.`);
+      add(root,"h3","MISP catalog membership · source rows");
+      add(root,"p",`Present: ${fmt(g.membership[0])} · Absent: ${fmt(g.membership[1])} · Unknown: ${fmt(g.membership[2])}.`);
+      add(root,"h3","Sample labels · source rows, not event counts");
+      const samples=add(root,"ul","");
+      for (const [i,label] of labels.entries()) add(samples,"li",`${label}: ${fmt(g.samples[i])}`);
+      add(root,"h3","Provider coverage · source rows");
+      const table=add(root,"table","");table.className="lookup-table";table.setAttribute("aria-label","Lookup coverage by provider");
+      const titles=add(add(table,"thead",""),"tr","");
+      for (const label of ["Provider",...keys]) add(titles,"th",label).setAttribute("scope","col");
+      const body=add(table,"tbody","");
+      providers.forEach(([,label],i)=>{
+        const tr=add(body,"tr","");add(tr,"th",label).setAttribute("scope","row");
+        for (const k of g.lookups[i]) add(tr,"td",fmt(k));
+      });
+      const note=add(root,"p","Lookup freshness is per provider; it does not date or verify a country label.");note.className="note";
+      for (const [code,button] of buttons) button.setAttribute("aria-pressed",String(code===selected));
+    }
+    function rerank() {
+      metric=sort.value==="rows"?"rows":"alerts";
+      const sorted=[...groups.values()].sort((a,b)=>b[metric]-a[metric] || a.code.localeCompare(b.code));
+      if (selected===null) selected=sorted[0]?.code;
+      visible=sorted.slice(0,8);
+      const bars=get("country-bars"), body=get("country-rows");bars.replaceChildren();body.replaceChildren();buttons.clear();
+      get("region-scope").textContent=sorted.length?`Ranked by ${metric==="rows"?"published source rows":"reported bucket alert counts"}. Chart: ${visible.length} of ${sorted.length} groups; table: all groups.`:"No public source buckets were available in this batch.";
+      bars.setAttribute("aria-label",metric==="rows"?"Country source row count":"Country bucket alert count");
+      for (const g of visible) {
+        const row=add(bars,"li","");add(row,"span",name(g.code));
+        const meter=add(row,"meter","");meter.max=Math.max(1,visible[0][metric]);meter.value=g[metric];
+        meter.setAttribute("aria-label",`${name(g.code)}: ${fmt(g[metric])}`);add(row,"strong",fmt(g[metric]));
+      }
+      for (const g of sorted) {
+        const row=add(body,"tr",""),button=add(add(row,"td",""),"button",name(g.code));button.type="button";
+        buttons.set(g.code,button);button.addEventListener("click",()=>{selected=g.code;detail();});
+        for (const value of [fmt(g.alerts),pct(g.alerts,subset),fmt(g.rows)]) add(row,"td",value).className="num";
+      }
+      if (!visible.length) toggle.hidden=true;
+      detail();if (!chart.hidden) drawDepth(visible,metric);
+    }
+    sort.addEventListener("change",rerank);
+    toggle.addEventListener("click",()=>{
+      chart.hidden=!chart.hidden;get("chart-flat").hidden=!chart.hidden;
+      toggle.setAttribute("aria-pressed",String(!chart.hidden));toggle.textContent=chart.hidden?"3D view":"2D view";
+      if (!chart.hidden) drawDepth(visible,metric);
+    });
+    for (const id of ["country-angle","country-tilt"]) get(id).addEventListener("input",()=>drawDepth(visible,metric));
+    rerank();get("workspace").hidden=false;
   }
-  const buttons = events.map((event,index) => {
-    const li=document.createElement("li"), button=document.createElement("button");
-    button.type="button";
-    button.textContent=`${event.at} UTC · ${displayIp(byNode.get(event.from).label)} → ${byNode.get(event.to).label}`;
-    button.addEventListener("click",()=>go(index));
-    li.appendChild(button);get("event-list").appendChild(li);
-    return button;
-  });
-  get("step").max=String(events.length);
-  get("step").addEventListener("input",()=>go(Number(get("step").value)-1));
-  get("previous").addEventListener("click",()=>go(step-1));
-  get("next").addEventListener("click",()=>go(step+1));
-  get("play").addEventListener("click",()=>{
-    if (timer!==null) {pause();render();return;}
-    if (step===events.length-1) step=0;
-    timer=setInterval(()=>{
-      step+=1;
-      if (step>=events.length-1) {step=events.length-1;pause();}
-      render();
-    },2000);  // Stepped demo schedule; not real-time packet timing.
-    render();
-  });
-  get("angle").addEventListener("input",()=>{
-    get("angle-label").textContent=`${get("angle").value}°`;
-    renderScene();
-  });
-  get("flat").addEventListener("click",()=>{
-    flat=!flat;
-    get("flat").setAttribute("aria-pressed",String(flat));
-    get("angle").disabled=flat;
-    renderScene();
-  });
-  render();
-  get("replay").hidden=false;
+  async function json(path) {
+    const res=await fetch(path,{cache:"no-store"});if (!res.ok) throw Error("missing public file");return res.json();
+  }
+  return Promise.all([json("data.json"),json("status.json").catch(()=>null)])
+    .then(([snapshot,status])=>render(snapshot,status))
+    .catch(()=>{get("workspace").hidden=true;get("country-batch").textContent="No verified public country comparison is available. Missing is not zero activity.";});
 })();
