@@ -6,11 +6,6 @@
   const count = n => Number.isSafeInteger(n) && n >= 0;
   const fmt = n => n.toLocaleString();
   const asDate = ms => new Date(ms).toISOString().slice(0, 10);
-  function utc(stamp) {
-    if (typeof stamp !== "string" || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC$/.test(stamp)) return NaN;
-    const ms = Date.parse(stamp.replace(" ", "T").replace(" UTC", "Z"));
-    return Number.isFinite(ms) && new Date(ms).toISOString().slice(0, 16).replace("T", " ")+" UTC" === stamp ? ms : NaN;
-  }
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const add = (parent, tag, text) => {
     const el = document.createElement(tag);
@@ -44,17 +39,6 @@
       seen.add(row[0]);
     }
     return [...dates].map(([date,n],index) => ({date,n,edge:index===0||index===dates.size-1}));
-  }
-  function heartbeat(report, batchTime, now) {
-    const time=utc(report?.last_attempt_utc);
-    if (report?.schema_version!==1 || !["ok","degraded","unknown"].includes(report.state) ||
-        !Number.isFinite(time) || time>now+600000) return "Pipeline heartbeat unavailable; not a live chart.";
-    const label=`Last reported attempt: ${report.last_attempt_utc} · ${report.state}.`;
-    if (time<batchTime-15*60000) return `${label} The heartbeat is older than this batch; publication status is unverified.`;
-    if (now-time>dayMs) return `${label} The heartbeat is over 24 hours old.`;
-    if (report.state==="degraded") return `${label} This is the last available published batch, not a fresh run.`;
-    if (time>batchTime+15*60000) return `${label} This chart's batch is older than that attempt.`;
-    return label;
   }
   function drawColumns(days, top) {
     const turn=clamp(Number(get("azimuth").value)||0,-35,35), tilt=clamp(Number(get("elevation").value)||24,12,35);
@@ -95,15 +79,15 @@
     }
   }
   function render(snapshot,report) {
-    const now=Date.now(), batch=utc(snapshot?.generated);
+    const now=Date.now(), batch=PublicView.utc(snapshot?.generated);
     if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid public timestamp");
     const rows=buckets(snapshot,batch), seen=rows.filter(day=>day.n!==null);
     const max=Math.max(0,...seen.map(day=>day.n));
     const sum=seen.reduce((a,day)=>a+day.n,0), total=snapshot.wazuh?.total_7d;
     const agrees=seen.length===rows.length && count(total) && sum===total;
-    const stale=now-batch>dayMs?" This snapshot is over 24 hours old.":"";
-    get("batch-status").textContent=`Published batch: ${snapshot.generated}.${stale}`;
-    get("heartbeat").textContent=heartbeat(report,batch,now);
+    const status=PublicView.status(snapshot.generated,report,now);
+    get("batch-status").textContent=status.batchText;
+    get("heartbeat").textContent=`${status.latest} ${status.note}`;
     const countNote=count(total)?`Published 7-day total: ${fmt(total)} alerts.`:"7-day total unavailable.";
     const caveat=agrees?"Daily counts reconcile to the total.":seen.length<rows.length?
       "Daily coverage is incomplete; missing is not zero.":"Daily values cannot be reconciled to a verified seven-day total.";

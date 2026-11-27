@@ -5,11 +5,11 @@ const path = require('node:path');
 const vm = require('node:vm');
 const docs = path.resolve(__dirname, '../docs');
 const html = fs.readFileSync(path.join(docs,'activity.html'),'utf8');
-const script = fs.readFileSync(path.join(docs,'activity.js'),'utf8');
+const script = fs.readFileSync(path.join(docs,'public-view.js'),'utf8')+'\n'+fs.readFileSync(path.join(docs,'activity.js'),'utf8');
 assert.match(html,/REAL AGGREGATES · NOT LIVE/);
 assert.match(html,/connect-src 'self'/);
 assert.match(html,/No hourly or geographical inference/);
-assert.match(fs.readFileSync(path.join(docs,'index.html'),'utf8'),/href="activity\.html">Real activity heatmap/);
+assert.match(fs.readFileSync(path.join(docs,'index.html'),'utf8'),/href="activity\.html">UTC activity/);
 assert(!/source_context|top_src|enrich_meta|by_agent|destination_ip/.test(script));
 const nodes = [...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id);
 assert.equal(nodes.length,new Set(nodes).size);
@@ -41,7 +41,7 @@ async function run(data, status=report, now='2026-11-27T05:03:00Z') {
 (async()=>{
   const r=await run(fixture);
   assert.match(r['batch-status'].textContent,/26 12:01 UTC/);
-  assert.match(r.heartbeat.textContent,/22:01 UTC · degraded.*not a fresh run/);
+  assert.match(r.heartbeat.textContent,/22:01 UTC · degraded.*last published/);
   assert.match(r.coverage.textContent,/28 alerts.*reconcile.*may be partial/);
   assert.equal(r['heat-grid'].children.length,8);
   assert.equal(r['heat-grid'].children[0].className,'heat-0');
@@ -63,7 +63,7 @@ async function run(data, status=report, now='2026-11-27T05:03:00Z') {
   const missing=structuredClone(fixture);missing.wazuh.by_day.splice(1,1);
   const m=await run(missing,null);
   assert.match(m.coverage.textContent,/missing is not zero/);
-  assert.match(m.heartbeat.textContent,/unavailable/);
+  assert.match(m.heartbeat.textContent,/heartbeat unverified/);
   assert.equal(m['heat-grid'].children[1].className,'heat-unknown');
   assert.equal(m['heat-grid'].children[1].children[1].textContent,'N/A');
   m['show-columns'].handlers.click();
@@ -73,9 +73,9 @@ async function run(data, status=report, now='2026-11-27T05:03:00Z') {
   const duplicate=structuredClone(fixture);duplicate.wazuh.by_day[1]=duplicate.wazuh.by_day[0];
   assert.match((await run(duplicate))['batch-status'].textContent,/No verified/);
   assert.match((await run(null))['batch-status'].textContent,/No verified/);
-  assert.match((await run(fixture,report,'2026-11-28T03:00:00Z'))['batch-status'].textContent,/over 24 hours old/);
+  assert.match((await run(fixture,report,'2026-11-28T03:00:00Z'))['batch-status'].textContent,/stale/);
   const published=JSON.parse(fs.readFileSync(path.join(docs,'data.json'),'utf8'));
   const actual=await run(published,null,new Date(Date.parse(published.generated.replace(' UTC','Z').replace(' ','T'))+3600000).toISOString());
-  assert.match(actual['batch-status'].textContent,/Published batch:/);
+  assert.match(actual['batch-status'].textContent,/Snapshot /);
   console.log('Real activity: aggregate-only daily heatmap, UTC, optional 3D, missing and degraded checks OK');
 })().catch(error=>{console.error(error);process.exitCode=1;});

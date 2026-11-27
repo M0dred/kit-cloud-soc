@@ -38,6 +38,7 @@ async function load(diff, data=snapshot) {
     return {ok:url !== 'snapshot-diff.json' || diff !== undefined,
       json:async()=>({'data.json':data,'status.json':signal,'snapshot-diff.json':diff})[url]};
   }});
+  vm.runInContext(fs.readFileSync(path.join(docs,'public-view.js'),'utf8'),sandbox,{timeout:2000});
   vm.runInContext(treeScript,sandbox,{timeout:2000});
   await vm.runInContext(appScript,sandbox,{timeout:2000});
   return {state,tree,ids,calls};
@@ -70,7 +71,7 @@ async function load(diff, data=snapshot) {
     const other=await load(diff);
     assert.match(other.state.textContent,/could be verified/);
     assert.equal(other.tree.children.length,0);
-    assert.equal(other.ids.kpis.children.length,4);
+    assert.equal(other.ids.kpis.children.length,2);
   }
   const empty=await load({...baseline,previous_utc:null,metrics:null,sources:null});
   assert.match(empty.state.textContent,/No previous comparable batch/);

@@ -152,8 +152,10 @@ class DashboardTests(unittest.TestCase):
                    "destination_ip": "203.0.113.10", "agent_name": "private-agent"}
         ctx = dash.public_sample_context([private])
         self.assertEqual(ctx, {"last_sample_utc": "2026-10-22 06:00:00 UTC",
-                               "sample_behavior": "SSH authentication alert"})
+                               "sample_behavior": "SSH-related alert (outcome unverified)"})
         self.assertNotIn("203.0.113.10", json.dumps(ctx))
+        self.assertEqual(dash.public_sample_context([{'rule':'sshd: Service started'}])['sample_behavior'],
+                         'SSH-related alert (outcome unverified)')
         self.assertEqual(dash.public_sample_context([{"rule": "unrecognized 203.0.113.10"}]),
                          {"last_sample_utc": None, "sample_behavior": "Other detection (sample only)"})
 
@@ -190,7 +192,7 @@ class DashboardTests(unittest.TestCase):
             self.assertTrue(pub_data['misp']['top_source_membership'][ip])
             self.assertEqual(pub_data['wazuh']['by_agent'], [])
             self.assertEqual(pub_data['wazuh']['source_context'][ip]['sample_behavior'],
-                             'SSH authentication alert')
+                             'SSH-related alert (outcome unverified)')
             self.assertEqual(pub_data['wazuh']['source_context'][ip]['last_sample_utc'],
                              '2026-10-22 06:00:00 UTC')
 

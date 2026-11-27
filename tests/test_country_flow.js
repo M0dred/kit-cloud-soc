@@ -5,7 +5,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const dir=path.join(__dirname,'../docs');
 const html=fs.readFileSync(path.join(dir,'flow.html'),'utf8');
-const js=fs.readFileSync(path.join(dir,'flow.js'),'utf8');
+const js=fs.readFileSync(path.join(dir,'public-view.js'),'utf8')+'\n'+fs.readFileSync(path.join(dir,'flow.js'),'utf8');
 assert.match(fs.readFileSync(path.join(dir,'index.html'),'utf8'),/href="flow\.html#pulse-map">Country pulse map/);
 assert.match(html,/REAL BATCH · AGGREGATE ONLY/);
 assert.match(html,/connect-src 'self'/);
@@ -13,7 +13,7 @@ assert.match(html,/not attack attribution/);
 assert.match(html,/Lookup coverage/);
 assert.match(html,/<details id="comparison" class="panel report-drawer"/);
 assert.match(html,/<details id="breakdown" class="panel report-drawer"/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['design.css','flow.css','country-flow.css','country-map.css','public-view.js','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}
@@ -63,7 +63,7 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   assert.equal(stripe.length,3);
   assert(Math.abs(stripe.reduce((a,e)=>a+Number(e.attrs.width),0)-1000)<1e-8);
   assert.match(text(ui['country-detail']),/Present: 1 · Absent: 0 · Unknown: 0/);
-  assert.match(text(ui['country-detail']),/SSH authentication alert: 1/);
+  assert.match(text(ui['country-detail']),/SSH-related alert \(outcome unverified\): 1/);
   assert.match(text(ui['country-detail']),/GreyNoise\s+0\s+0\s+1\s+0/);
   assert.match(text(ui['country-detail']),/\(TW\): No published source rows in this batch/);
   assert.match(text(ui['country-detail']),/\(HK\): No published source rows in this batch/);
@@ -98,7 +98,7 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   assert.equal(ui['country-bars'].children[0].children[1].max,100);
   ui.measure.value='alerts';ui.measure.listeners.change();assert.equal(ui['share-strip'].hidden,false);
   const blank=await run({...snapshot,wazuh:{total_7d:42,top_src:[]}},null);
-  assert.match(blank['country-heartbeat'].textContent,/heartbeat unavailable/);
+  assert.match(blank['country-heartbeat'].textContent,/heartbeat unverified/);
   assert.match(text(blank['country-detail']),/does not mean no alerts/);
   const mixed=structuredClone(snapshot);
   for (const [i,code,alerts] of [[6,'TW',8],[7,'HK',2],[8,'MO',5]]) {
@@ -120,7 +120,7 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   assert.equal(mixed.enrich_meta['192.0.2.6'].country,'TW');
   const malformed=structuredClone(snapshot);malformed.wazuh.top_src.push([ips[0],1]);
   assert.match((await run(malformed))['country-batch'].textContent,/No verified/);
-  assert.match((await run(snapshot,signal,'2026-11-28T02:00Z'))['country-batch'].textContent,/over 24 hours old/);
+  assert.match((await run(snapshot,signal,'2026-11-28T02:00Z'))['country-batch'].textContent,/stale/);
   const real=JSON.parse(fs.readFileSync(path.join(dir,'data.json'),'utf8'));
   const now=new Date(Date.parse(real.generated.replace(' UTC','Z').replace(' ','T'))+3600000).toISOString();
   const actual=await run(real,null,now);

@@ -10,7 +10,7 @@
   const name = code => code==="unknown"?"Unknown country":(naming?.of(code)||code);
   // Reporting rollup only; never write back into the snapshot or outline.
   const chinaLabels = Object.freeze(["CN","TW","HK"]);
-  const labels = ["SSH authentication alert","Web request alert (outcome unverified)","Other detection (sample only)","No sample label available"];
+  const labels = ["SSH-related alert (outcome unverified)","Web request alert (outcome unverified)","Other detection (sample only)","No sample label available"];
   const providers = [["gn","GreyNoise"],["otx","OTX"],["aipdb","AbuseIPDB"]];
   const keys = ["fresh","cached / stale","error / limited","other / unknown"];
   const own = (obj, key) => obj && Object.hasOwn(obj,key)?obj[key]:undefined;
@@ -22,11 +22,6 @@
     if (text!==undefined) el.textContent=text;
     parent.appendChild(el);return el;
   };
-  function utc(stamp) {
-    if (typeof stamp!=="string" || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC$/.test(stamp)) return NaN;
-    const ms=Date.parse(stamp.replace(" ","T").replace(" UTC","Z"));
-    return Number.isFinite(ms) && new Date(ms).toISOString().slice(0,16).replace("T"," ")+" UTC"===stamp?ms:NaN;
-  }
   const freshResult = status => status?.state==="fresh" && status.last_attempt==="ok";
   function lookup(status) {
     if (["error","rate_limited"].includes(status?.last_attempt) || ["rate_limited","lookup_failed"].includes(status?.state)) return 2;
@@ -57,20 +52,11 @@
       if (!n(subset)) throw Error("unsafe aggregate count");
       const member=own(snapshot.misp?.top_source_membership,ip);
       g.membership[member===true?0:member===false?1:2]+=1;
-      const sample=labels.indexOf(own(snapshot.wazuh?.source_context,ip)?.sample_behavior);
+      const sample=labels.indexOf(PublicView.sampleLabel(own(snapshot.wazuh?.source_context,ip)?.sample_behavior));
       g.samples[sample>=0?sample:3]+=1;
       providers.forEach(([k],i)=>{g.lookups[i][lookup(own(meta?.sources,k))]+=1;});
     }
     return {groups,subset,labelled,rows:rows.length};
-  }
-  function heartbeat(report,batch,now) {
-    const attempt=utc(report?.last_attempt_utc);
-    if (report?.schema_version!==1 || !["ok","degraded","unknown"].includes(report.state) || !Number.isFinite(attempt) || attempt>now+600000) return "Pipeline heartbeat unavailable. This is a batch, not a live view.";
-    const head=`Last reported attempt: ${report.last_attempt_utc} · ${report.state}.`;
-    if (attempt<batch-15*60000) return `${head} This heartbeat does not verify the displayed batch.`;
-    if (now-attempt>86400000) return `${head} Heartbeat is over 24 hours old.`;
-    if (attempt>batch+15*60000 || report.state==="degraded") return `${head} The chart shows the last published data batch, not a fresh run.`;
-    return head;
   }
   function drawDepth(list,metric) {
     const range=(id,low,high,fallback)=>Math.min(high,Math.max(low,Number(get(id).value)||fallback));
@@ -131,12 +117,13 @@
     note.textContent=`UTC daily totals, not by country. First/last days may be partial.${known.length<8?" Missing days are gaps.":""}`;
   }
   function render(snapshot,report) {
-    const now=Date.now(), batch=utc(snapshot?.generated);
+    const now=Date.now(), batch=PublicView.utc(snapshot?.generated);
     if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid batch time");
     const grouping=get("country-grouping");
     let {groups,subset,labelled,rows}=aggregate(snapshot,grouping.value!=="separate");
-    get("country-batch").textContent=`Published batch: ${snapshot.generated}.${now-batch>86400000?" Snapshot is over 24 hours old.":""}`;
-    get("country-heartbeat").textContent=heartbeat(report,batch,now);
+    const status=PublicView.status(snapshot.generated,report,now);
+    get("country-batch").textContent=status.batchText;
+    get("country-heartbeat").textContent=`${status.latest} ${status.note}`;
     get("total-alerts").textContent=fmt(snapshot.wazuh.total_7d);trend(snapshot.wazuh,batch);
     get("selected-alerts").textContent=fmt(subset);
     get("labelled-rows").textContent=`${fmt(labelled)} / ${fmt(rows)}`;
@@ -220,6 +207,7 @@
       }
       get("share-note").textContent=size?`${name(sorted[0].code)} accounts for ${pct(sorted[0][metric],size)} of the displayed ${metric==="rows"?"source rows":"bucket alert count"}. See the table for exact values.`:"No nonzero share can be calculated for the selected metric.";
       map?.update(sorted.map(g=>({code:g.code,members:g.members,label:name(g.code),value:g[metric],
+        native:new Map([...g.origins].map(([code,part])=>[code,coverage?100*part.covered/part.rows:part[metric]])),
         countLabel:coverage?`${formatMetric(g)} · ${g.covered}/${g.rows} fresh`:fmt(g[metric])})),metric,selected);
       detail();if (!chart.hidden) drawDepth(visible,metric);
     }

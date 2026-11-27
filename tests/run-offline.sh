@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 export SOC_TEST_USE_SNAPSHOT=1
 python3 -m unittest discover -s tests -q
 python3 -m unittest discover -s src/soc-connector/tests -q
+node --check docs/public-view.js
 node --check docs/app.js
 node --check docs/tree.js
 node --check docs/flow.js

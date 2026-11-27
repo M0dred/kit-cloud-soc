@@ -4,8 +4,9 @@ import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from subdivision_profile import local_profile, profile, verify
+from subdivision_profile import local_profile, private_output, profile, verify
 
 IPS = ['8.8.8.8','8.8.4.4','9.9.9.9','1.1.1.1','4.2.2.1']  # Local fixtures; never queried.
 STAMP = '2026-11-26 12:01 UTC'
@@ -49,6 +50,16 @@ class SubdivisionTests(unittest.TestCase):
         y=copy.deepcopy(x);y['countries']['US']['subdivisions'][0]['name']='8.8.8.8'
         with self.assertRaisesRegex(ValueError,'invalid subdivision cell'):
             verify(raw,y)
+
+    def test_exact_profile_output_stays_outside_public_repo(self):
+        with TemporaryDirectory() as folder, patch.object(Path,'home',return_value=Path(folder)):
+            restricted=Path(folder)/'.local/state/soc-audits';restricted.mkdir(mode=0o700,parents=True)
+            self.assertEqual(private_output(restricted/'geo.json'), restricted/'geo.json')
+            with self.assertRaisesRegex(ValueError,'private audit directory'):
+                private_output(Path(folder)/'docs/subdivisions.json')
+            restricted.chmod(0o755)
+            with self.assertRaisesRegex(ValueError,'unavailable'):
+                private_output(restricted/'geo.json')
 
     def test_optional_database_unavailable_without_mutation(self):
         raw=fixture()

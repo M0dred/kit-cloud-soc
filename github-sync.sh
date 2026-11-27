@@ -45,7 +45,7 @@ assert d['wazuh']['by_agent']==[]
 context=d['wazuh']['source_context']
 assert set(context)=={ip for ip,_ in d['wazuh']['top_src']}
 assert all(set(v)=={'last_sample_utc','sample_behavior'} for v in context.values())
-assert all(v['sample_behavior'] in {'SSH authentication alert',
+assert all(v['sample_behavior'] in {'SSH authentication alert', 'SSH-related alert (outcome unverified)',
   'Web request alert (outcome unverified)', 'Other detection (sample only)',
   'No alert sample available'} for v in context.values())
 assert all(v['last_sample_utc'] is None or

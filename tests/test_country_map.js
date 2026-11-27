@@ -33,7 +33,9 @@ async function fixture({shape=world,reduced=false,snapshot=data}={}) {
     Date:Clock,matchMedia:()=>({matches:reduced}),setInterval:(fn,ms)=>{assert.equal(ms,2000);tick=fn;return 1;},clearInterval:()=>{tick=null;},
     fetch:async p=>{touched.push(p);const values={'data.json':snapshot,'status.json':null,'world-map.json':shape};assert(Object.hasOwn(values,p));
       return {ok:values[p]!==null,json:async()=>values[p]};}};
-  vm.createContext(sandbox);vm.runInContext(script,sandbox,{timeout:2000});await vm.runInContext(app,sandbox,{timeout:2000});
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(docs,'public-view.js'),'utf8'),sandbox,{timeout:2000});
+  vm.runInContext(script,sandbox,{timeout:2000});await vm.runInContext(app,sandbox,{timeout:2000});
   // The outline is independent of the snapshot read, so wait one task before checking it.
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(touched.sort(),['data.json','status.json','world-map.json']);
@@ -115,6 +117,11 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
   assert.match(mapPath('TW').attrs.class,/map-zero/);
   assert.doesNotMatch(mapPath('US').attrs.class,/map-zero/);
   mapPath('TW').listeners.click();assert.equal(g['map-selection-count'].textContent,'0.0%');
+  const one={...sample,wazuh:{total_7d:5,top_src:[['192.0.2.31',5]]},enrich_meta:{'192.0.2.31':{country:'CN'}}};
+  const {ui:u}=await fixture({snapshot:one});
+  const tw=u['map-land'].children.find(x=>x.attrs['data-region']==='TW');
+  assert.match(tw.attrs.class,/map-picked-member/);assert.doesNotMatch(tw.attrs.class,/map-v[1-4]|map-zero/);
+  assert.doesNotMatch(u['inset-land'].children.find(x=>x.attrs['data-region']==='TW').attrs.class,/inset-observed/);
   const unavailable=await fixture({shape:null});assert.match(unavailable.ui['map-status'].textContent,/outline unavailable/);
   assert.equal(unavailable.ui.workspace.hidden,false);
   const unsafe={...world,land:[[null,'<svg>'],...world.land.slice(1)]};

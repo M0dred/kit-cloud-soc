@@ -38,7 +38,7 @@ function createCountryMap(onSelect) {
       li.appendChild(swatch);li.appendChild(txt);list.appendChild(li);
     };
     const coverage=mode==="coverage";
-    caption.textContent=!shown?"No plotted observations.":coverage?"Fresh lookup coverage · fixed 0–100% scale":`${mode==="rows"?"Source count":"Alert volume"} · scale set by the largest mapped group in this batch`;
+    caption.textContent=!shown?"No plotted observations.":coverage?"Fresh lookup coverage · fixed 0–100% scale":`${mode==="rows"?"Source count":"Alert volume"} · fill scale set by the largest mapped original label in this batch`;
     item("map-unobserved","Not in mapped subset");
     if (!shown) return;
     item("map-zero",coverage?"0% fresh coverage":"0 in selected metric");
@@ -57,7 +57,7 @@ function createCountryMap(onSelect) {
     if (lens.hidden) return;
     for (const [code,d] of world.land) {
       if (!["CN","TW","PH","VN","JP"].includes(code)) continue;
-      add(shapes,"path",{d,class:`inset-land${code==="CN"||code==="TW"?" inset-selected":""}`,"fill-rule":"evenodd","data-region":code});
+      add(shapes,"path",{d,class:`inset-land${code==="CN"||code==="TW"?" inset-selected":""}${selected.native.has(code)?" inset-observed":""}`,"fill-rule":"evenodd","data-region":code});
     }
     const mark=(code,p,dx,dy)=>{
       const [x,y]=p, lx=x+dx,ly=y+dy;
@@ -77,13 +77,15 @@ function createCountryMap(onSelect) {
     const shown=visible(), labels=new Map(shown.map(row=>[row.code,row]));
     const shades=new Map(shown.flatMap(row=>(row.members||[row.code]).map(code=>[code,row])));
     const coverage=mode==="coverage", showPulse=showLinks&&!coverage;
-    const max=coverage?100:Math.max(0,...shown.map(g=>g.value));
-    const denominator=Math.max(1,max);
+    const geometryCodes=new Set(world.land.map(([code])=>code));
+    const max=coverage?100:Math.max(0,...shown.flatMap(g=>[...g.native].filter(([code])=>geometryCodes.has(code)).map(([,v])=>v)));
+    const denominator=Math.max(1,max), groupDenominator=coverage?100:Math.max(1,...shown.map(g=>g.value));
     el("country-map").setAttribute("viewBox",showPulse?"0 0 896 354":"0 0 705 354");
     el("map-destination").setAttribute("class",showPulse?"":"map-hidden");
     land.replaceChildren();links.replaceChildren();points.replaceChildren();legend(max,shown.length);
     for (const [code,d] of world.land) {
-      const g=shades.get(code), band=g?` ${shade(g.value,denominator)} map-selectable`:"";
+      const g=shades.get(code), v=g?.native.get(code);
+      const band=g?`${Number.isFinite(v)?` ${shade(v,denominator)}`:""} map-selectable`:"";
       const picked=g && g.code===active;
       const shape=add(land,"path",{d,class:`map-country${band}${picked?" map-picked":""}${picked&&g.code!==code?" map-picked-member":""}`,
         "fill-rule":"evenodd","data-region":code??""});
@@ -94,7 +96,7 @@ function createCountryMap(onSelect) {
       const [x,y]=world.anchors.get(g.code), selected=g.code===active;
       const bendY=Math.max(22,y-32-(725-x)*.12);
       const d=`M ${x} ${y} C ${Math.round((x+725)/2)} ${bendY} 670 193 725 193`;
-      const width=(.8+4*Math.sqrt(g.value/denominator)).toFixed(2);
+      const width=(.8+4*Math.sqrt(g.value/groupDenominator)).toFixed(2);
       add(links,"path",{d,class:selected?"map-link-active":"map-link","stroke-width":width});
       if (selected && timer!==null && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
         const dot=add(links,"circle",{r:4,class:"map-pulses"});
@@ -102,7 +104,7 @@ function createCountryMap(onSelect) {
       }
     }
     for (const g of order) {
-      const [x,y]=world.anchors.get(g.code), r=2.5+3.2*Math.sqrt(g.value/denominator), selected=g.code===active;
+      const [x,y]=world.anchors.get(g.code), r=2.5+3.2*Math.sqrt(g.value/groupDenominator), selected=g.code===active;
       add(points,"circle",{cx:x,cy:y,r,class:`map-dot${selected?" map-dot-focus":""}`});
       const hit=add(points,"circle",{cx:x,cy:y,r:r+3,class:"map-dot-hit"});
       const title=add(hit,"title",{});title.textContent=mode==="coverage"?`${g.label}: ${g.countLabel}`:`${g.label}: ${g.countLabel} ${summaryMetric()}`;

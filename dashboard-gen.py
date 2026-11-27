@@ -103,7 +103,7 @@ def public_sample_context(samples):
     sample = samples[0]
     desc = str(sample.get("rule") or "").lower()
     if "ssh" in desc or "sshd" in desc:
-        behavior = "SSH authentication alert"
+        behavior = "SSH-related alert (outcome unverified)"
     elif any(word in desc for word in ("http", "web server", "nginx", "apache")):
         behavior = "Web request alert (outcome unverified)"
     else:

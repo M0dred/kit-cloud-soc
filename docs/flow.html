@@ -6,9 +6,11 @@
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
   <title>Source Evidence Atlas | kit-cloud SoC</title>
+  <link rel="stylesheet" href="design.css">
   <link rel="stylesheet" href="flow.css">
   <link rel="stylesheet" href="country-flow.css">
   <link rel="stylesheet" href="country-map.css">
+  <script src="public-view.js" defer></script>
   <script src="country-map.js" defer></script>
   <script src="flow.js" defer></script>
 </head>
@@ -40,7 +42,7 @@
             <g id="map-destination" class="map-hidden" aria-hidden="true"><rect class="map-sink" x="731" y="151" width="153" height="87" rx="12"></rect><circle class="map-junction" cx="731" cy="193" r="5"></circle><text class="map-sink-title" x="808" y="179">Wazuh aggregate</text><text class="map-sink-note" x="808" y="201">Off-map summary</text><text class="map-sink-note" x="808" y="221">Not a destination</text></g>
           </svg>
           <div class="map-key" aria-label="Choropleth legend"><p id="map-legend-caption" class="note"></p><ul id="map-legend-values"></ul></div>
-          <p class="note map-footnote">Map: Natural Earth. Optional pulse links are illustrative aggregate connections, not routes or live events.</p>
+          <p class="note map-footnote">Fill shows observed original labels; outlines mark selection, even with no rows. Dots represent grouped totals. Optional pulse links are not routes or live events.</p>
         </div>
         <aside class="map-inspector" aria-labelledby="map-selection-title">
           <p class="map-kicker">Selected group</p><h3 id="map-selection-title">—</h3>
@@ -51,7 +53,7 @@
           <div id="china-lens" hidden>
             <h4>Regional focus <small>CN · TW · HK</small></h4>
             <svg id="china-inset" viewBox="543 128 47 32" role="img" aria-labelledby="inset-title inset-desc">
-              <title id="inset-title">China grouping: Taiwan and Hong Kong in focus</title><desc id="inset-desc">A magnified view of the same public outline; Taiwan is outlined and Hong Kong is marked by a public label point, not a sensor.</desc>
+              <title id="inset-title">China grouping: Taiwan and Hong Kong in focus</title><desc id="inset-desc">A magnified view of the same public outline; Taiwan is outlined even without observations; Hong Kong is marked by a public label point, not a sensor.</desc>
               <g id="inset-land" aria-hidden="true"></g><g id="inset-labels" aria-hidden="true"></g>
             </svg>
             <ul id="china-origin-counts" class="china-origin-counts" aria-label="Counts by original label"></ul>
