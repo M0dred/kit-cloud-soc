@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Synthetic 3D Sensor Flow | kit-cloud SoC</title>
+  <link rel="stylesheet" href="flow.css">
+  <script src="flow.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to replay</a>
+  <header>
+    <nav aria-label="Dashboard"><a href="./">← Review-only dashboard</a><span>SYNTHETIC DEMO</span></nav>
+    <h1>3D Sensor Flow</h1>
+    <p>Replay fictional network observations from example sources to example sensors. This is not live telemetry, a map of real infrastructure, or a verified attack route.</p>
+  </header>
+  <main id="content" tabindex="-1">
+    <noscript><p>Interactive replay requires JavaScript. The diagram represents sample sources observed by fictional Wazuh and Clear NDR sensors; it does not show a target or compromise.</p></noscript>
+    <div id="replay" class="layout" hidden>
+      <section class="panel" aria-labelledby="scene-heading">
+        <div class="panel-head"><h2 id="scene-heading">Observation diagram</h2><button type="button" id="flat" aria-pressed="false">2D view</button></div>
+        <div class="camera"><label for="angle">Rotate view</label><input id="angle" type="range" min="-38" max="38" step="2" value="-18"><output id="angle-label" for="angle">−18°</output></div>
+        <svg id="scene" viewBox="0 0 740 330" role="img" aria-labelledby="scene-title scene-description">
+          <title id="scene-title">Example sources and sensors</title>
+          <desc id="scene-description">Fictional observations. Events and endpoints are also available in the text replay.</desc>
+          <defs>
+            <marker id="flow-arrow" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path class="arrow" d="M 0 0 L 10 5 L 0 10 Z"/></marker>
+          </defs>
+          <text class="zone" x="20" y="28">EXAMPLE SOURCES</text>
+          <text class="zone" x="720" y="28" text-anchor="end">EXAMPLE SENSORS</text>
+          <g id="plane" aria-hidden="true"></g>
+          <g id="edges" aria-hidden="true"></g>
+          <g id="nodes" aria-hidden="true"></g>
+        </svg>
+        <p class="legend"><strong>Solid arrow:</strong> selected observation · <strong>Dashed line:</strong> earlier observation · <strong>Target:</strong> not shown.</p>
+        <p class="note">Edges mean “recorded by,” not “attacked.” Distances, positions and line movement are illustrative, not geography, traffic volume or network topology.</p>
+      </section>
+      <section class="panel replay-panel" aria-labelledby="replay-heading">
+        <h2 id="replay-heading">Replay · UTC</h2>
+        <div class="commands">
+          <button type="button" id="previous">Previous</button><button type="button" id="play">Play</button><button type="button" id="next">Next</button>
+        </div>
+        <label for="step">Observation step</label><input id="step" type="range" min="1" max="1" value="1">
+        <p class="note" id="step-label" role="status"></p>
+        <dl class="facts">
+          <dt>Source</dt><dd id="observed-source"></dd>
+          <dt>Recorded by</dt><dd id="observer"></dd>
+          <dt>Observation</dt><dd id="behavior"></dd>
+          <dt>Result</dt><dd id="result"></dd>
+          <dt>Target asset</dt><dd>Not shown / unverified</dd>
+        </dl>
+        <details><summary>All example events</summary><ol id="event-list"></ol></details>
+      </section>
+    </div>
+  </main>
+  <footer>Offline-capable illustration · Uses documentation-only IP addresses · No backend, telemetry calls, external lookups or SOC writes.</footer>
+</body>
+</html>

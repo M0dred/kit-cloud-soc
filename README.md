@@ -2,7 +2,7 @@
 
 **Evidence before escalation.** A homelab SOC pipeline connecting **Wazuh → local threat DB → GreyNoise/OTX/AbuseIPDB → MISP Event 1932 → cautiously filtered VirusTotal community comments**.
 
-[**Open the review-only dashboard**](https://m0dred.github.io/kit-cloud-soc/) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
+[**Open the review-only dashboard**](https://m0dred.github.io/kit-cloud-soc/) · [Synthetic 3D Sensor Flow](https://m0dred.github.io/kit-cloud-soc/flow.html) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
 
 ![Pipeline state from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.state&label=pipeline)
 ![Last pipeline attempt from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.last_attempt_utc&label=last%20attempt%20UTC)
@@ -13,6 +13,8 @@
 [![Public, privacy-checked dashboard preview](docs/dashboard-preview.png)](https://m0dred.github.io/kit-cloud-soc/)
 
 *Illustrative snapshot from the existing public Pages dashboard. Open the live page for its current privacy-checked snapshot and explicit staleness warnings.*
+
+**3D Sensor Flow** is a separate, offline-capable demo with fictional Wazuh and Clear NDR sensors and documentation-only IP addresses. Rotate the diagram, replay example UTC events, or switch to 2D. Edges mean “recorded by,” not a network route or a confirmed attack. The demo does not load the public snapshot or connect to any SOC service.
 
 **Batch changes** compares the displayed snapshot with the preceding published data batch. Expand the tree for alert, coverage, catalog, watchlist and top-source-set changes. The rolling windows overlap; a source leaving the displayed set is not cleared or presumed absent. Heartbeat-only updates do not change the comparison. The diff contains counts, not historical source addresses.
 
