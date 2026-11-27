@@ -4,7 +4,7 @@ function createCountryMap(onSelect) {
   const el=id=>document.getElementById(id), anchorCode=code=>/^[A-Z]{2}$/.test(code);
   const land=el("map-land"), links=el("map-arcs"), points=el("map-points");
   const picker=el("map-focus"), play=el("map-play"), toggler=el("map-links-toggle");
-  let world=null, groups=[], mode="alerts", active=null, showLinks=true, timer=null;
+  let world=null, groups=[], mode="alerts", active=null, showLinks=false, timer=null;
   // Public Natural Earth 5.1.2 1:10m label point, not source or sensor coordinates.
   const hongKong=[564.0,148.1];
   const add=(parent,tag,attrs)=>{
@@ -27,7 +27,29 @@ function createCountryMap(onSelect) {
     return {land:doc.land,anchors};
   }
   const visible=()=>world?groups.filter(g=>world.anchors.has(g.code)):[];
-  const summaryMetric=()=>mode==="rows"?"source rows":"reported bucket alerts";
+  const summaryMetric=()=>mode==="coverage"?"fresh lookup coverage":mode==="rows"?"source rows":"reported bucket alerts";
+  const shade=(value,max)=>value===0?"map-zero":`map-v${Math.min(4,Math.ceil(4*value/max))}`;
+  function legend(max,shown) {
+    const list=el("map-legend-values"), caption=el("map-legend-caption");
+    list.replaceChildren();
+    const item=(cls,label)=>{
+      const li=document.createElement("li"), swatch=document.createElement("i"), txt=document.createElement("span");
+      swatch.className=`map-swatch ${cls}`;swatch.setAttribute("aria-hidden","true");txt.textContent=label;
+      li.appendChild(swatch);li.appendChild(txt);list.appendChild(li);
+    };
+    const coverage=mode==="coverage";
+    caption.textContent=!shown?"No plotted observations.":coverage?"Fresh lookup coverage · fixed 0–100% scale":`${mode==="rows"?"Source count":"Alert volume"} · scale set by the largest mapped group in this batch`;
+    item("map-unobserved","Not in mapped subset");
+    if (!shown) return;
+    item("map-zero",coverage?"0% fresh coverage":"0 in selected metric");
+    let previous=0;
+    for (let i=1;i<=4;i+=1) {
+      const upper=coverage?25*i:Math.floor(max*i/4);
+      if (upper<=previous) continue;
+      item(`map-v${i}`,coverage?`>${previous}–${upper}%`:`${(previous+1).toLocaleString()}–${upper.toLocaleString()}`);
+      previous=upper;
+    }
+  }
   function inset(selected) {
     const lens=el("china-lens"), shapes=el("inset-land"), annotations=el("inset-labels");
     lens.hidden=!(selected?.code==="CN" && selected.members?.includes("TW") && world.anchors.has("TW"));
@@ -48,26 +70,31 @@ function createCountryMap(onSelect) {
   }
   function stop() {
     if (timer!==null) clearInterval(timer);
-    timer=null;play.textContent="Play highlights";
+    timer=null;play.textContent="Play pulse";
   }
   function draw() {
     if (!world) return;
     const shown=visible(), labels=new Map(shown.map(row=>[row.code,row]));
     const shades=new Map(shown.flatMap(row=>(row.members||[row.code]).map(code=>[code,row])));
-    const max=Math.max(1,...shown.map(g=>g.value));
-    land.replaceChildren();links.replaceChildren();points.replaceChildren();
+    const coverage=mode==="coverage", showPulse=showLinks&&!coverage;
+    const max=coverage?100:Math.max(0,...shown.map(g=>g.value));
+    const denominator=Math.max(1,max);
+    el("country-map").setAttribute("viewBox",showPulse?"0 0 896 354":"0 0 705 354");
+    el("map-destination").setAttribute("class",showPulse?"":"map-hidden");
+    land.replaceChildren();links.replaceChildren();points.replaceChildren();legend(max,shown.length);
     for (const [code,d] of world.land) {
-      const g=shades.get(code), shade=g?` map-v${Math.max(1,Math.ceil(4*g.value/max))}`:"";
+      const g=shades.get(code), band=g?` ${shade(g.value,denominator)} map-selectable`:"";
       const picked=g && g.code===active;
-      add(land,"path",{d,class:`map-country${shade}${picked?" map-picked":""}${picked&&g.code!==code?" map-picked-member":""}`,
+      const shape=add(land,"path",{d,class:`map-country${band}${picked?" map-picked":""}${picked&&g.code!==code?" map-picked-member":""}`,
         "fill-rule":"evenodd","data-region":code??""});
+      if (g) shape.addEventListener("click",()=>choose(g.code,true));
     }
     const order=[...shown].sort((a,b)=>Number(a.code===active)-Number(b.code===active));
-    if (showLinks) for (const g of order) {
+    if (showPulse) for (const g of order) {
       const [x,y]=world.anchors.get(g.code), selected=g.code===active;
       const bendY=Math.max(22,y-32-(725-x)*.12);
       const d=`M ${x} ${y} C ${Math.round((x+725)/2)} ${bendY} 670 193 725 193`;
-      const width=(.8+4*Math.sqrt(g.value/max)).toFixed(2);
+      const width=(.8+4*Math.sqrt(g.value/denominator)).toFixed(2);
       add(links,"path",{d,class:selected?"map-link-active":"map-link","stroke-width":width});
       if (selected && timer!==null && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
         const dot=add(links,"circle",{r:4,class:"map-pulses"});
@@ -75,13 +102,14 @@ function createCountryMap(onSelect) {
       }
     }
     for (const g of order) {
-      const [x,y]=world.anchors.get(g.code), r=2.5+3.2*Math.sqrt(g.value/max), selected=g.code===active;
+      const [x,y]=world.anchors.get(g.code), r=2.5+3.2*Math.sqrt(g.value/denominator), selected=g.code===active;
       add(points,"circle",{cx:x,cy:y,r,class:`map-dot${selected?" map-dot-focus":""}`});
       const hit=add(points,"circle",{cx:x,cy:y,r:r+3,class:"map-dot-hit"});
-      const title=add(hit,"title",{});title.textContent=`${g.label}: ${g.value.toLocaleString()} ${summaryMetric()}`;
+      const title=add(hit,"title",{});title.textContent=mode==="coverage"?`${g.label}: ${g.countLabel}`:`${g.label}: ${g.countLabel} ${summaryMetric()}`;
       hit.addEventListener("click",()=>choose(g.code,true));
     }
-    play.disabled=shown.length===0;
+    play.hidden=coverage;play.disabled=shown.length===0;
+    toggler.disabled=coverage;
     const selected=groups.find(g=>g.code===active), excluded=groups.length-shown.length;
     inset(selected);
     if (!el("china-lens").hidden) {
@@ -105,7 +133,8 @@ function createCountryMap(onSelect) {
   toggler.addEventListener("click",()=>{showLinks=!showLinks;toggler.setAttribute("aria-pressed",String(showLinks));draw();});
   play.addEventListener("click",()=>{
     if (timer!==null) {stop();draw();return;}
-    const ranked=visible();if (!ranked.length) return;
+    const ranked=visible();if (!ranked.length || mode==="coverage") return;
+    showLinks=true;toggler.setAttribute("aria-pressed","true");
     let index=0;
     const show=()=>{active=ranked[index].code;picker.value=active;onSelect(active);draw();};
     timer=setInterval(()=>{
@@ -113,7 +142,7 @@ function createCountryMap(onSelect) {
       if (index===ranked.length) {stop();draw();return;}
       show();
     },2000);
-    play.textContent="Pause highlights";show();
+    play.textContent="Pause pulse";show();
   });
   const ready=(async()=>{
     try {

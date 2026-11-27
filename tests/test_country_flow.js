@@ -10,9 +10,10 @@ assert.match(fs.readFileSync(path.join(dir,'index.html'),'utf8'),/href="flow\.ht
 assert.match(html,/REAL BATCH · AGGREGATE ONLY/);
 assert.match(html,/connect-src 'self'/);
 assert.match(html,/not attack attribution/);
+assert.match(html,/Lookup coverage/);
 assert.match(html,/<details id="comparison" class="panel report-drawer"/);
 assert.match(html,/<details id="breakdown" class="panel report-drawer"/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#map-options']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}
@@ -26,10 +27,10 @@ const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id);
 assert.equal(ids.length,new Set(ids).size);
 const ips=['192.0.2.1','192.0.2.2','192.0.2.3','192.0.2.4','192.0.2.5'];
 const snapshot={generated:'2026-11-26 12:01 UTC',wazuh:{total_7d:42,
-  top_src:[[ips[0],20],[ips[1],4],[ips[2],6],[ips[3],0],[ips[4],3]],
+  top_src:[[ips[0],20],[ips[1],4],[ips[2],6],[ips[3],0],[ips[4],3]],by_day:[['2026-11-20',12],['2026-11-22',30]],
   source_context:{[ips[0]]:{sample_behavior:'SSH authentication alert'},[ips[1]]:{sample_behavior:'PRIVATE_RAW_SAMPLE'}}},
   misp:{top_source_membership:{[ips[0]]:true,[ips[1]]:false}},
-  enrich_meta:{[ips[0]]:{country:'CN',sources:{otx:{state:'fresh'},gn:{state:'fresh',last_attempt:'rate_limited'}}},
+  enrich_meta:{[ips[0]]:{country:'CN',sources:{otx:{state:'fresh',last_attempt:'ok'},gn:{state:'fresh',last_attempt:'rate_limited'},aipdb:{state:'fresh',last_attempt:'ok'}}},
     [ips[1]]:{country:'US'},[ips[2]]:{country:'US'},[ips[3]]:{country:'US'},[ips[4]]:{country:'XX'}}};
 const signal={schema_version:1,state:'degraded',last_attempt_utc:'2026-11-26 22:01 UTC'};
 async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
@@ -68,6 +69,9 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   assert.match(text(ui['country-detail']),/\(HK\): No published source rows in this batch/);
   assert.equal(ui['map-selection-title'].textContent,'China');
   assert.equal(ui['map-selection-count'].textContent,'20 bucket alerts');
+  assert.match(ui['map-lookup-evidence'].textContent,/1 of 1 source rows/);
+  assert.match(ui['overall-trend-note'].textContent,/not by country.*gaps/);
+  assert.equal((ui['overall-series'].children.at(-1).attrs.d.match(/M/g)||[]).length,2);
   assert.match(ui['map-selection-share'].textContent,/60\.6%/);
   assert.match(text(ui['china-origin-counts']),/CN 20.*Taiwan No rows.*Hong Kong No rows/);
   assert.equal(ui['chart-depth'].hidden,true);
@@ -85,6 +89,14 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   const start=positions();ui['country-angle'].value='30';ui['country-angle'].listeners.input();assert.notEqual(positions(),start);
   const rotated=positions();ui['country-tilt'].value='32';ui['country-tilt'].listeners.input();assert.notEqual(positions(),rotated);
   ui['toggle-depth'].listeners.click();assert.equal(ui['chart-flat'].hidden,false);
+  ui.measure.value='coverage';ui.measure.listeners.change();
+  assert.equal(ui['toggle-depth'].hidden,true);
+  assert.equal(ui['share-strip'].hidden,true);
+  assert.equal(ui['map-selection-count'].textContent,'0.0%'); // selected US: known denominator, no fresh results
+  assert.match(ui['map-lookup-evidence'].textContent,/0 of 3/);
+  assert.equal(ui['country-bars'].children[0].children[1].value,100); // two successful providers still count as one source
+  assert.equal(ui['country-bars'].children[0].children[1].max,100);
+  ui.measure.value='alerts';ui.measure.listeners.change();assert.equal(ui['share-strip'].hidden,false);
   const blank=await run({...snapshot,wazuh:{total_7d:42,top_src:[]}},null);
   assert.match(blank['country-heartbeat'].textContent,/heartbeat unavailable/);
   assert.match(text(blank['country-detail']),/does not mean no alerts/);

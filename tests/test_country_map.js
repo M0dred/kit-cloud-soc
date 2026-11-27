@@ -11,7 +11,7 @@ const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id);
 assert.equal(ids.length,new Set(ids).size);
 assert.match(html,/id="pulse-map".*?aria-labelledby=/);
 assert.match(html,/Not a destination/);
-assert.match(html,/animated highlights, not live traffic/);
+assert.match(html,/not routes or live events/);
 assert.match(html,/connect-src 'self'/);
 assert.equal(world.source,'Natural Earth 5.1.2 / admin 0 countries 1:110m');
 class Element {
@@ -59,15 +59,20 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
   const dots=()=>ui['map-arcs'].children.filter(e=>e.attrs.class==='map-pulses');
   assert.equal(tick(),null);
   assert.equal(ui['map-land'].children.length,world.land.length);
-  assert.equal(paths().length,ranked.length);
-  assert(paths().every(path=>path.attrs.d.endsWith('725 193')));
+  assert.equal(paths().length,0);
+  assert.equal(ui['country-map'].attrs.viewBox,'0 0 705 354');
+  assert.equal(ui['map-destination'].attrs.class,'map-hidden');
+  assert(ui['map-legend-values'].children.some(c=>includesIp(c).includes('Not in mapped subset')));
   const raw=Object.values(ui).map(includesIp).join(' ');
   assert(data.wazuh.top_src.every(([ip])=>!raw.includes(ip)));
   if(ranked.length){
     const [code,min]=ranked[0];
     assert.equal(ui['map-focus'].value,code);
     assert.equal(ui['map-selection-count'].textContent,`${min.toLocaleString()} bucket alerts`);
-    ui['map-play'].listeners.click();assert.equal(ui['map-play'].textContent,'Pause highlights');
+    ui['map-play'].listeners.click();assert.equal(ui['map-play'].textContent,'Pause pulse');
+    assert.equal(paths().length,ranked.length);
+    assert(paths().every(path=>path.attrs.d.endsWith('725 193')));
+    assert.equal(ui['country-map'].attrs.viewBox,'0 0 896 354');
     assert.equal(dots().length,1);
     assert.equal(dots()[0].children[0].attrs.repeatCount,'indefinite');
     if(ranked.length>1){tick()();assert.equal(ui['map-focus'].value,ranked[1][0]);}
@@ -78,6 +83,10 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
     assert(ui['country-rows'].children.some(tr=>tr.children[0].children[0].attrs['aria-pressed']==='true'));
     ui['map-links-toggle'].listeners.click();assert.equal(paths().length,0);assert.equal(ui['map-links-toggle'].attrs['aria-pressed'],'false');
     ui['map-links-toggle'].listeners.click();assert.equal(paths().length,ranked.length);
+    ui.measure.value='coverage';ui.measure.listeners.change();
+    assert.equal(ui['map-play'].hidden,true);assert.equal(paths().length,0);
+    assert.match(ui['map-legend-caption'].textContent,/fixed 0–100%/);
+    assert.equal(ui['map-legend-values'].children.length,6);
     const low=await fixture({reduced:true});low.ui['map-play'].listeners.click();
     assert(!low.ui['map-arcs'].children.some(c=>c.attrs.class==='map-pulses'));
   }
@@ -101,7 +110,11 @@ function includesIp(node){return [node.textContent,...node.children.map(includes
   assert.equal(g['china-lens'].hidden,true);
   assert.doesNotMatch(mapPath('CN').attrs.class,/map-picked/);
   assert.match(mapPath('TW').attrs.class,/map-picked/);
-  assert.equal(g['map-arcs'].children.filter(e=>e.tag==='path').length,1);
+  assert.equal(g['map-arcs'].children.filter(e=>e.tag==='path').length,0);
+  g.measure.value='coverage';g.measure.listeners.change();
+  assert.match(mapPath('TW').attrs.class,/map-zero/);
+  assert.doesNotMatch(mapPath('US').attrs.class,/map-zero/);
+  mapPath('TW').listeners.click();assert.equal(g['map-selection-count'].textContent,'0.0%');
   const unavailable=await fixture({shape:null});assert.match(unavailable.ui['map-status'].textContent,/outline unavailable/);
   assert.equal(unavailable.ui.workspace.hidden,false);
   const unsafe={...world,land:[[null,'<svg>'],...world.land.slice(1)]};
