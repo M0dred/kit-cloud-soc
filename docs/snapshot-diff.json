@@ -1,29 +1,29 @@
 {
   "schema_version": 1,
-  "current_utc": "2026-11-26 12:01 UTC",
-  "previous_utc": "2026-11-26 06:06 UTC",
+  "current_utc": "2026-11-27 12:01 UTC",
+  "previous_utc": "2026-11-26 12:01 UTC",
   "metrics": {
     "alerts_7d": [
-      607502,
-      595961
+      595961,
+      554961
     ],
     "misp_ip_attributes": [
-      999,
-      1001
+      1001,
+      1009
     ],
     "watchlist": [
       0,
       0
     ],
     "outside_top_500_alerts": [
-      350,
-      286
+      286,
+      107
     ]
   },
   "sources": {
-    "entered": 1,
-    "left": 1,
-    "retained": 18,
-    "changed_alert_counts": 17
+    "entered": 2,
+    "left": 2,
+    "retained": 17,
+    "changed_alert_counts": 15
   }
 }
