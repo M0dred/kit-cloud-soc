@@ -130,7 +130,7 @@
     svg(root,"path",{d:line,class:"atlas-trend-line"});
     note.textContent=`UTC daily totals, not by country. First/last days may be partial.${known.length<8?" Missing days are gaps.":""}`;
   }
-  function render(snapshot,report) {
+  function render(snapshot,report,snapshotHash) {
     const now=Date.now(), batch=utc(snapshot?.generated);
     if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid batch time");
     const grouping=get("country-grouping");
@@ -144,10 +144,12 @@
     let selected=null, visible=[], metric="alerts";
     const buttons=new Map();
     const map=typeof createCountryMap==="function"?createCountryMap(code=>{selected=code;detail();}):null;
+    const sub=typeof createSubdivisionPanel==="function"?createSubdivisionPanel(snapshot.generated,snapshotHash):null;
     if (!map) get("map-status").textContent="Pulse map unavailable. Rankings and table are still available.";
     function detail() {
       const root=get("country-detail"), g=groups.get(selected), origins=get("china-origin-counts");
       root.replaceChildren();origins.replaceChildren();
+      sub?.focus(g?g.members.map(code=>({code,name:name(code),rows:g.origins.get(code)?.rows??0,alerts:g.origins.get(code)?.alerts??0})):null);
       get("map-selection-title").textContent=g?name(g.code):"No selected group";
       get("map-selection-count").textContent=!g?"":metric==="coverage"?pct(g.covered,g.rows):`${fmt(g[metric])} ${metric==="rows"?"source rows":"bucket alerts"}`;
       get("map-selection-share").textContent=!g?"":metric==="coverage"?"Fresh lookup coverage at batch time":`${pct(g[metric],metric==="rows"?rows:subset)} of displayed ${metric==="rows"?"source rows":"bucket alerts"}`;
@@ -241,7 +243,7 @@
     // Open deep links into collapsed drawers, including when clicked after load.
     const reveal=()=>{
       const section=globalThis.location?.hash?.slice(1);
-      if (!["pulse-map","comparison","breakdown"].includes(section)) return;
+      if (!["pulse-map","comparison","breakdown","subdivisions"].includes(section)) return;
       const target=get(section);
       if (section!=="pulse-map") target.open=true;
       target.scrollIntoView();
@@ -251,7 +253,17 @@
   async function json(path) {
     const res=await fetch(path,{cache:"no-store"});if (!res.ok) throw Error("missing public file");return res.json();
   }
-  return Promise.all([json("data.json"),json("status.json").catch(()=>null)])
-    .then(([snapshot,status])=>render(snapshot,status))
+  async function batch() {
+    const res=await fetch("data.json",{cache:"no-store"});if (!res.ok) throw Error("missing public batch");
+    if (typeof res.arrayBuffer!=="function" || !globalThis.crypto?.subtle || typeof TextDecoder!=="function")
+      return {snapshot:await res.json(),hash:null};
+    const bytes=await res.arrayBuffer(), snapshot=JSON.parse(new TextDecoder().decode(bytes));
+    let hash=null;
+    try {hash=Array.from(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256",bytes)),n=>n.toString(16).padStart(2,"0")).join("");}
+    catch (_) { /* Continue with country figures only. */ }
+    return {snapshot,hash};
+  }
+  return Promise.all([batch(),json("status.json").catch(()=>null)])
+    .then(([{snapshot,hash},status])=>render(snapshot,status,hash))
     .catch(()=>{get("workspace").hidden=true;get("country-batch").textContent="No verified public country comparison is available. Missing is not zero activity.";});
 })();

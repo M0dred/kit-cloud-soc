@@ -13,7 +13,7 @@ assert.match(html,/not attack attribution/);
 assert.match(html,/Lookup coverage/);
 assert.match(html,/<details id="comparison" class="panel report-drawer"/);
 assert.match(html,/<details id="breakdown" class="panel report-drawer"/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','subdivisions.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#subdivisions','#breakdown','activity.html','./#changes','#subdivisions','#breakdown','activity.html','#measure','https://db-ip.com/']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}

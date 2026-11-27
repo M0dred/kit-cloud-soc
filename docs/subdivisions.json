@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "batch_utc": "2026-11-26 12:01 UTC",
+  "snapshot_sha256": "96adf7b2119ae62c9c48d502425c81e7b066365556c98befad95692cbf152ca7",
+  "minimum_rows": 3,
+  "database_build_utc": "2026-11-01 02:52 UTC",
+  "countries": {
+    "CN": {
+      "subdivisions": [
+        {
+          "name": "Guangdong",
+          "rows": 3,
+          "alerts": 14695
+        },
+        {
+          "name": "Jiangsu",
+          "rows": 3,
+          "alerts": 11439
+        }
+      ],
+      "withheld_rows": 7,
+      "withheld_alerts": 24517
+    },
+    "FR": {
+      "subdivisions": [],
+      "withheld_rows": 1,
+      "withheld_alerts": 3000
+    },
+    "IN": {
+      "subdivisions": [],
+      "withheld_rows": 3,
+      "withheld_alerts": 11217
+    },
+    "NL": {
+      "subdivisions": [],
+      "withheld_rows": 1,
+      "withheld_alerts": 2739
+    },
+    "US": {
+      "subdivisions": [],
+      "withheld_rows": 1,
+      "withheld_alerts": 4164
+    }
+  }
+}

@@ -32,12 +32,15 @@ class StatusOnlySyncTests(unittest.TestCase):
             data.write_text('old safe snapshot')
             diff = repo / 'docs/snapshot-diff.json'
             diff.write_text('last public comparison')
-            git(repo, 'add', 'docs/status.json', 'docs/data.json', 'docs/snapshot-diff.json')
+            states = repo / 'docs/subdivisions.json'
+            states.write_text('last public state profile')
+            git(repo, 'add', 'docs/status.json', 'docs/data.json', 'docs/snapshot-diff.json', 'docs/subdivisions.json')
             git(repo, 'commit', '-m', 'initial')
             git(repo, 'remote', 'add', 'origin', str(remote))
             git(repo, 'push', '-u', 'origin', 'main')
             data.write_text('unreviewed private contents - must never sync')
             diff.write_text('unreviewed local comparison - must never sync')
+            states.write_text('unreviewed local state profile - must never sync')
             status.write_text(json.dumps({'schema_version': 1, 'state': 'degraded',
                                           'last_attempt_utc': '2026-10-27 22:01 UTC'}))
             script = (ROOT / 'github-sync.sh').read_text().replace(
@@ -55,6 +58,7 @@ class StatusOnlySyncTests(unittest.TestCase):
             self.assertEqual(git(remote, 'show', 'main:docs/data.json'), 'old safe snapshot')
             self.assertIn('docs/data.json', git(repo, 'status', '--short'))
             self.assertEqual(git(remote, 'show', 'main:docs/snapshot-diff.json'), 'last public comparison')
+            self.assertEqual(git(remote, 'show', 'main:docs/subdivisions.json'), 'last public state profile')
             self.assertEqual(git(repo, 'diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'), 'docs/status.json')
 
     def test_remote_advance_refuses_publish_without_discarding_local_snapshot(self):
@@ -123,7 +127,10 @@ class StatusOnlySyncTests(unittest.TestCase):
             # its diff must reach the local bare remote in the same commit.
             git(repo, 'fetch', 'origin', 'main')
             git(repo, 'merge', '--ff-only', 'origin/main')
-            shutil.copy(ROOT / 'snapshot_diff.py', repo)
+            for name in ('snapshot_diff.py','subdivision_profile.py','source_policy.py'):
+                shutil.copy(ROOT / name, repo)
+            helper=repo / 'subdivision_profile.py'
+            helper.write_text(helper.read_text().replace("Path('/mnt/storage0/soc-geoatlas')", f"Path({str(tmp/'no-geodata')!r})"))
             fixture['generated'] = '2026-11-14 06:01 UTC'
             fixture['wazuh']['total_7d'] = 5
             data.write_text(json.dumps(fixture) + '\n')
@@ -138,7 +145,10 @@ class StatusOnlySyncTests(unittest.TestCase):
             self.assertEqual(artifact['current_utc'], fixture['generated'])
             self.assertEqual(artifact['metrics']['alerts_7d'], [0, 5])
             changed = git(remote, 'diff-tree', '--no-commit-id', '--name-only', '-r', 'main').splitlines()
-            self.assertEqual(set(changed), {'docs/data.json', 'docs/snapshot-diff.json', 'docs/status.json'})
+            self.assertEqual(set(changed), {'docs/data.json', 'docs/snapshot-diff.json', 'docs/subdivisions.json', 'docs/status.json'})
+            states=json.loads(git(remote,'show','main:docs/subdivisions.json'))
+            self.assertEqual(states['batch_utc'], fixture['generated'])
+            self.assertIsNone(states['countries'])
             check = subprocess.run(['bash', str(local_script), '--check-only'], capture_output=True, text=True, timeout=20)
             self.assertEqual(check.returncode, 0, check.stderr)
 

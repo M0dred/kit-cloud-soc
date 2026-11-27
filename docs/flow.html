@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="country-flow.css">
   <link rel="stylesheet" href="country-map.css">
   <script src="country-map.js" defer></script>
+  <script src="subdivisions.js" defer></script>
   <script src="flow.js" defer></script>
 </head>
 <body>
@@ -18,7 +19,7 @@
     <nav aria-label="Views"><a href="./">← Review-only dashboard</a><a href="activity.html">UTC activity heatmap</a><span>REAL BATCH · AGGREGATE ONLY</span></nav>
     <h1>Source Evidence Atlas</h1>
     <p>Where the published alert volume concentrates, and where the evidence is thin.</p>
-    <div class="view-links" aria-label="Visualization shortcuts"><a href="#pulse-map">Map</a><a href="#comparison">Rankings</a><a href="#breakdown">Evidence</a><a href="activity.html">UTC heatmap</a><a href="./#changes">Batch changes</a></div>
+    <div class="view-links" aria-label="Visualization shortcuts"><a href="#pulse-map">Map</a><a href="#comparison">Rankings</a><a href="#subdivisions">States / provinces</a><a href="#breakdown">Evidence</a><a href="activity.html">UTC heatmap</a><a href="./#changes">Batch changes</a></div>
   </header>
   <main id="content" tabindex="-1">
     <p id="country-batch" role="status">Reading the public snapshot…</p>
@@ -47,7 +48,7 @@
           <p id="map-selection-count" class="map-count"></p><p id="map-selection-share" class="note"></p>
           <div class="country-controls map-picker" id="map-controls" hidden><label for="map-focus" class="sr-only">Country</label><select id="map-focus"></select><button id="map-play" type="button">Play pulse</button></div>
           <p class="map-evidence" id="map-lookup-evidence"></p>
-          <a class="map-detail-link" href="#breakdown">Open evidence ↓</a>
+          <div class="country-controls"><a class="map-detail-link" href="#subdivisions">States / provinces ↓</a><a class="map-detail-link" href="#breakdown">Open evidence ↓</a></div>
           <div id="china-lens" hidden>
             <h4>Regional focus <small>CN · TW · HK</small></h4>
             <svg id="china-inset" viewBox="543 128 47 32" role="img" aria-labelledby="inset-title inset-desc">
@@ -94,6 +95,12 @@
           </svg>
           <p class="note">Height shows the selected count. Positions show rank, not a map or a network route.</p>
         </div>
+      </details>
+      <details id="subdivisions" class="panel report-drawer" aria-label="Subdivisions of the selected country">
+        <summary>States and provinces <small>Selected country · published subset</small></summary>
+        <p id="subdivision-status" class="note" role="status">No verified subdivision profile loaded yet.</p>
+        <div id="subdivision-profile" class="country-scroll"></div>
+        <p class="note">First-level regions only. Small groups, country-label disagreements and unknowns are combined as <strong>Not subdivided</strong>. These are approximate classifications of source addresses, not people or sensor locations. Geolocation data: <a href="https://db-ip.com/" rel="noopener noreferrer">DB-IP</a> (City Lite, CC BY 4.0).</p>
       </details>
       <details id="breakdown" class="panel report-drawer" aria-label="Country evidence counts">
         <summary>Evidence breakdown <small>Catalog · samples · lookup coverage</small></summary>
