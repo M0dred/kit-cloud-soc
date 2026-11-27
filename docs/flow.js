@@ -111,6 +111,8 @@
     const sort=get("measure"), toggle=get("toggle-depth"), chart=get("chart-depth");
     let selected=null, visible=[], metric="alerts";
     const buttons=new Map();
+    const map=typeof createCountryMap==="function"?createCountryMap(code=>{selected=code;detail();}):null;
+    if (!map) get("map-status").textContent="Pulse map unavailable. Rankings and table are still available.";
     function detail() {
       const root=get("country-detail"), g=groups.get(selected);
       root.replaceChildren();
@@ -149,10 +151,20 @@
       }
       for (const g of sorted) {
         const row=add(body,"tr",""),button=add(add(row,"td",""),"button",name(g.code));button.type="button";
-        buttons.set(g.code,button);button.addEventListener("click",()=>{selected=g.code;detail();});
+        buttons.set(g.code,button);button.addEventListener("click",()=>{selected=g.code;map?.focus(selected);detail();});
         for (const value of [fmt(g.alerts),pct(g.alerts,subset),fmt(g.rows)]) add(row,"td",value).className="num";
       }
       if (!visible.length) toggle.hidden=true;
+      const segments=get("share-segments"), size=sorted.reduce((a,g)=>a+g[metric],0);
+      segments.replaceChildren();let offset=0;
+      for (const [k,g] of sorted.entries()) {
+        const width=size?1000*g[metric]/size:0;
+        if (width<=0) continue;
+        const part=svg(segments,"rect",{x:offset,y:0,width,height:18,class:`share-band share-${k%6}${g.code==="unknown"?" share-unknown":""}`});
+        svg(part,"title",{},`${name(g.code)}: ${pct(g[metric],size)}`);offset+=width;
+      }
+      get("share-note").textContent=size?`${name(sorted[0].code)} accounts for ${pct(sorted[0][metric],size)} of the displayed ${metric==="rows"?"source rows":"bucket alert count"}. See the table for exact values.`:"No nonzero share can be calculated for the selected metric.";
+      map?.update(sorted.map(g=>({code:g.code,label:name(g.code),value:g[metric]})),metric,selected);
       detail();if (!chart.hidden) drawDepth(visible,metric);
     }
     sort.addEventListener("change",rerank);
@@ -163,6 +175,9 @@
     });
     for (const id of ["country-angle","country-tilt"]) get(id).addEventListener("input",()=>drawDepth(visible,metric));
     rerank();get("workspace").hidden=false;
+    // The fragment target was initially hidden while the snapshot loaded.
+    const section=globalThis.location?.hash?.slice(1);
+    if (["pulse-map","comparison","breakdown"].includes(section)) get(section).scrollIntoView();
   }
   async function json(path) {
     const res=await fetch(path,{cache:"no-store"});if (!res.ok) throw Error("missing public file");return res.json();

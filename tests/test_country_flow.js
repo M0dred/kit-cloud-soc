@@ -6,11 +6,11 @@ const vm=require('node:vm');
 const dir=path.join(__dirname,'../docs');
 const html=fs.readFileSync(path.join(dir,'flow.html'),'utf8');
 const js=fs.readFileSync(path.join(dir,'flow.js'),'utf8');
-assert.match(fs.readFileSync(path.join(dir,'index.html'),'utf8'),/href="flow\.html">Observed source countries/);
+assert.match(fs.readFileSync(path.join(dir,'index.html'),'utf8'),/href="flow\.html#pulse-map">Country pulse map/);
 assert.match(html,/REAL BATCH · AGGREGATE ONLY/);
 assert.match(html,/connect-src 'self'/);
 assert.match(html,/not an attacker’s nationality/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','flow.js','#content','./','activity.html']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['flow.css','country-flow.css','country-map.css','country-map.js','flow.js','#content','./','activity.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#measure']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}
@@ -55,6 +55,10 @@ async function run(data, report=signal, now='2026-11-27T05:11:00Z') {
   const groups=()=>ui['country-rows'].children.map(text);
   assert.match(groups()[0],/China.*20.*60.6%.*1/);
   assert.match(groups()[2],/Unknown country.*3/);
+  assert.match(ui['share-note'].textContent,/China accounts for 60\.6%/);
+  const stripe=ui['share-segments'].children;
+  assert.equal(stripe.length,3);
+  assert(Math.abs(stripe.reduce((a,e)=>a+Number(e.attrs.width),0)-1000)<1e-8);
   assert.match(text(ui['country-detail']),/Present: 1 · Absent: 0 · Unknown: 0/);
   assert.match(text(ui['country-detail']),/SSH authentication alert: 1/);
   assert.match(text(ui['country-detail']),/GreyNoise\s+0\s+0\s+1\s+0/);

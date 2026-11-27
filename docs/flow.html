@@ -8,6 +8,8 @@
   <title>Observed Source Countries | kit-cloud SoC</title>
   <link rel="stylesheet" href="flow.css">
   <link rel="stylesheet" href="country-flow.css">
+  <link rel="stylesheet" href="country-map.css">
+  <script src="country-map.js" defer></script>
   <script src="flow.js" defer></script>
 </head>
 <body>
@@ -15,6 +17,7 @@
   <header>
     <nav aria-label="Views"><a href="./">← Review-only dashboard</a><a href="activity.html">UTC activity heatmap</a><span>REAL BATCH · AGGREGATE ONLY</span></nav>
     <h1>Observed Source Countries</h1>
+    <div class="view-links" aria-label="Visualization shortcuts"><a href="#pulse-map">Pulse map</a><a href="#comparison">2D / 3D ranking</a><a href="#breakdown">Evidence breakdown</a><a href="activity.html">UTC heatmap</a><a href="./#changes">Batch changes</a></div>
     <p>Seven-day Wazuh observations grouped by the source IP’s published country label. A country label describes the address, not an attacker’s nationality, origin, or a route to a sensor.</p>
   </header>
   <main id="content" tabindex="-1">
@@ -22,20 +25,46 @@
     <p class="note" id="country-heartbeat"></p>
     <noscript><p>This view needs JavaScript to group the published counts.</p></noscript>
     <div id="workspace" hidden>
+      <section class="panel map-panel" id="pulse-map" aria-labelledby="pulse-heading">
+        <div class="panel-head"><div><h2 id="pulse-heading">Country pulse map</h2><p class="note">Real batch counts · animated highlights, not live traffic.</p></div>
+          <div class="country-controls"><label for="measure">Metric</label><select id="measure"><option value="alerts">Alert counts</option><option value="rows">Source rows</option></select></div>
+        </div>
+        <div class="country-controls" id="map-controls" hidden>
+          <label for="map-focus">Country</label><select id="map-focus"></select>
+          <button id="map-play" type="button">Play highlights</button><button id="map-links-toggle" type="button" aria-pressed="true">Show links</button>
+        </div>
+        <p id="map-status" class="note" role="status">Reading the local world outline…</p>
+        <div id="map-figure" hidden>
+          <svg id="country-map" viewBox="0 0 896 354" role="img" aria-labelledby="map-title map-desc">
+            <title id="map-title">Observed source countries and Wazuh batch summary</title>
+            <desc id="map-desc">A world outline with aggregate country links to an off-map summary; no sensor location or network path is shown. Use the country menu or table for values.</desc>
+            <rect class="map-water" x="11" y="9" width="685" height="329" rx="10"></rect>
+            <path class="map-lines" d="M17 73H686M17 133H686M17 193H686M17 253H686M17 313H686M129 13V331M240 13V331M352 13V331M464 13V331M575 13V331"></path>
+            <g id="map-land" aria-hidden="true"></g><g id="map-arcs" aria-hidden="true"></g><g id="map-points" aria-hidden="true"></g>
+            <g aria-hidden="true"><rect class="map-sink" x="731" y="151" width="153" height="87" rx="12"></rect><circle class="map-junction" cx="731" cy="193" r="5"></circle><text class="map-sink-title" x="808" y="179">Wazuh aggregate</text><text class="map-sink-note" x="808" y="201">Off-map summary</text><text class="map-sink-note" x="808" y="221">Not a destination</text></g>
+          </svg>
+          <div class="map-legend"><span><i></i> Selected country</span><span>Shading and link width follow the chosen metric</span><span>Dot motion is illustrative</span></div>
+          <p class="note">Markers use country label points, not source coordinates. Links lead to a display summary only. Country limits are approximate (Natural Earth, 1:110m).</p>
+        </div>
+      </section>
       <div class="scope-cards" aria-label="Scope of the figures">
         <div class="panel"><span>All Wazuh alerts · 7d</span><strong id="total-alerts"></strong><small>Exact search total, not a country breakdown</small></div>
         <div class="panel"><span>Alerts in displayed source buckets</span><strong id="selected-alerts"></strong><small>Sum for the public, top-20-derived subset</small></div>
         <div class="panel"><span>Country-labelled source rows</span><strong id="labelled-rows"></strong><small>Unknown country is kept separate</small></div>
       </div>
-      <section class="panel" aria-labelledby="compare-heading">
+      <section id="comparison" class="panel" aria-labelledby="compare-heading">
         <div class="panel-head">
           <h2 id="compare-heading">Country comparison</h2>
           <div class="country-controls">
-            <label for="measure">Rank by</label><select id="measure"><option value="alerts">Alert counts</option><option value="rows">Source rows</option></select>
-            <button id="toggle-depth" type="button" aria-pressed="false">3D view</button>
+            <a href="#measure">Change metric</a><button id="toggle-depth" type="button" aria-pressed="false">3D view</button>
           </div>
         </div>
         <p class="note" id="region-scope"></p>
+        <div id="share-strip" class="share-strip">
+          <h3>Share of the displayed subset</h3>
+          <svg viewBox="0 0 1000 18" preserveAspectRatio="none" role="img" aria-labelledby="share-title"><title id="share-title">Relative share by country</title><g id="share-segments" aria-hidden="true"></g></svg>
+          <p id="share-note" class="note"></p>
+        </div>
         <div id="chart-flat"><ul id="country-bars" class="country-bars" aria-label="Country alert volume"></ul></div>
         <div id="chart-depth" hidden>
           <div class="camera">
@@ -50,7 +79,7 @@
           <p class="note">Height shows the selected count. Positions show rank, not a map or a network route.</p>
         </div>
       </section>
-      <section class="layout" aria-label="Country evidence counts">
+      <section class="layout" id="breakdown" aria-label="Country evidence counts">
         <div class="panel">
           <h2>Country detail table</h2>
           <p class="note">Select a country to see aggregate catalog membership, sampled behavior labels and lookup coverage.</p>

@@ -2,7 +2,7 @@
 
 **Evidence before escalation.** A homelab SOC pipeline connecting **Wazuh → local threat DB → GreyNoise/OTX/AbuseIPDB → MISP Event 1932 → cautiously filtered VirusTotal community comments**.
 
-[**Open the review-only dashboard**](https://m0dred.github.io/kit-cloud-soc/) · [Real Activity Heatmap](https://m0dred.github.io/kit-cloud-soc/activity.html) · [Observed Source Countries](https://m0dred.github.io/kit-cloud-soc/flow.html) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
+[**Open the review-only dashboard**](https://m0dred.github.io/kit-cloud-soc/) · [Real Activity Heatmap](https://m0dred.github.io/kit-cloud-soc/activity.html) · [Country Pulse Map](https://m0dred.github.io/kit-cloud-soc/flow.html#pulse-map) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
 
 ![Pipeline state from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.state&label=pipeline)
 ![Last pipeline attempt from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.last_attempt_utc&label=last%20attempt%20UTC)
@@ -16,7 +16,9 @@
 
 **Real Activity Heatmap** shows the published Wazuh daily UTC counts, with optional rotatable and tiltable 3D columns. The first and last dates of the rolling window may be partial, and missing daily values stay distinct from zero. No hourly, geographical or sensor-to-target conclusions are drawn.
 
-**Observed Source Countries** replaces the simulated replay with a country-only breakdown of the real, published top-source subset. Switch between alert counts and source rows, select a country for aggregate catalog membership, sample labels and provider coverage, or toggle a 3D rank view. Unknown country is not guessed. Positions represent rank, not geography, and source address geolocation is not attribution. The new view does not render addresses, sensor identities, sensor locations or target paths, or make new external lookups.
+**Country Pulse Map** uses country-only totals from the real, published top-source subset. The map starts paused; **Play highlights** steps by rank, not UTC event order. Moving dots and lines connect country label points to an off-map Wazuh summary, never to a real sensor or target. Toggle links for a shaded map, change the metric (alerts or source rows), or use the share strip, 2D/3D rankings and evidence breakdown. Unknown labels and groups without an outline point remain in the table. Existing IP country labels are not attribution, and no new lookups are made.
+
+The bundled outline is [Natural Earth public-domain data](https://www.naturalearthdata.com/about/terms-of-use/), 1:110m admin-0 countries, tag `v5.1.2`. It is served locally as `docs/world-map.json`, with approximate boundaries and country label points. To regenerate, supply the pinned upstream `ne_110m_admin_0_countries.geojson` to `python3 tools/build_world_map.py <geojson> docs/world-map.json`; the tool verifies its SHA-256 before conversion.
 
 **Batch changes** compares the displayed snapshot with the preceding published data batch. Expand the tree for alert, coverage, catalog, watchlist and top-source-set changes. The rolling windows overlap; a source leaving the displayed set is not cleared or presumed absent. Heartbeat-only updates do not change the comparison. The diff contains counts, not historical source addresses.
 
