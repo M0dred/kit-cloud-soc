@@ -14,6 +14,10 @@
 
 *Illustrative snapshot from the existing public Pages dashboard. Open the live page for its current privacy-checked snapshot and explicit staleness warnings.*
 
+**Batch changes** compares the displayed snapshot with the preceding published data batch. Expand the tree for alert, coverage, catalog, watchlist and top-source-set changes. The rolling windows overlap; a source leaving the displayed set is not cleared or presumed absent. Heartbeat-only updates do not change the comparison. The diff contains counts, not historical source addresses.
+
+Select a source to open an optional external lookup (GreyNoise, AlienVault OTX, AbuseIPDB, VirusTotal, Shodan or BGP/ASN). It opens only when clicked and sends the selected source IP to that provider; links do not imply that the scheduled pipeline queried that provider.
+
 ```mermaid
 flowchart LR
   W[Wazuh alerts] --> P[Bounded enrichment]
@@ -68,7 +72,7 @@ The report shows top-500 coverage and upstream list versions. If any list is una
 - The legacy direct IP batch-push and bulk DB export paths in `soc-connector.py` are retired: they did not apply the 1932 sharing checks. Private DB evidence is not a public comment source. The standalone VT job refuses to assume an empty deduplication or daily ledger if one is missing.
 - **MISP publication:** the flat managed event must have the expected ID, a complete attribute inventory and confirmed published state. An ambiguous/failed add or publish leaves a private intent record (`misp-publish-pending.json`); unpublished or conflicting changes require authenticated human reconciliation. A later read may clear the intent only when the server already confirms the expected IDS-disabled attributes were published. Do not delete a pending record or publish someone else's edits simply to turn a run green. The read-before-publish comparison is not a server-side transaction.
 - **Historical display corrections:** a separately reviewed public projection can be labeled with `public_revision`. The snapshot time and actual run heartbeat are not advanced. A new scheduled data snapshot supersedes the correction.
-- **GitHub sync:** publishes privacy-checked `docs/data.json`, `docs/blocklist.txt` and `docs/status.json` after a complete run. `--status-only` publishes only the sanitized heartbeat. If sync fails after the first heartbeat write, the local heartbeat is corrected to `degraded`; the remote can still retain an old heartbeat while publishing is unavailable, so its age and independent notifications matter. A hard non-active Agent is a health failure on every run, including baseline; sleep-prone Agents remain warnings. Manager inventory is paginated and validated; a missing tracked Agent stays unknown until it reappears or an approved decommission is reconciled. Failed dashboard enrichment fallback fails the snapshot rather than silently publishing empty enrichment; DB-only AS context remains private.
+- **GitHub sync:** publishes privacy-checked `docs/data.json`, `docs/blocklist.txt`, `docs/snapshot-diff.json` and `docs/status.json` after a full data publication. `--status-only` publishes only the sanitized heartbeat. If sync fails after the first heartbeat write, the local heartbeat is corrected to `degraded`; the remote can still retain an old heartbeat while publishing is unavailable, so its age and independent notifications matter. A hard non-active Agent is a health failure on every run, including baseline; sleep-prone Agents remain warnings. Manager inventory is paginated and validated; a missing tracked Agent stays unknown until it reappears or an approved decommission is reconciled. Failed dashboard enrichment fallback fails the snapshot rather than silently publishing empty enrichment; DB-only AS context remains private.
 - **Run history:** operator-verified status corrections are appended privately to the cron log, can only mark a completed run as failed, and appear in public run history on the next safe snapshot without exposing their reasons.
 - **Local detailed dashboard:** lives in `dashboard/` and is ignored by Git. Private `ndr-evidence.json` retains bounded NDR alert samples and is not committed.
 - **UTC `02:30`:** `backup.sh` writes a verified, root-only recovery archive to `/mnt/storage0/soc-backups`. It contains secrets and must never be uploaded. `backup-health.py` checks the current UTC day's archive after each SOC run and reports absent, corrupt or unsafe backups without forcing an otherwise safe public sync.
@@ -100,7 +104,9 @@ Live code updates to the skill must be reviewed and copied into `src/` before a 
 
 ## Local verification
 
-For a manual dry run of VT selection (no posts):
+To preview only the static dashboard on your own machine, from the repository root run `python3 -m http.server --bind 127.0.0.1 --directory docs 8000`, then open `http://127.0.0.1:8000/`. Do not serve the repository root. No SOC credentials are needed for this preview or `bash tests/run-offline.sh`.
+
+For an operator dry run of VT selection (no posts; requires the private configuration and reads MISP):
 
 ```bash
 python3 vt_comment_new.py --dry-run --max 3 --days 7

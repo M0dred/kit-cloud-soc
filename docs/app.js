@@ -13,8 +13,8 @@ const number = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const metric = value => typeof value==="number" && Number.isSafeInteger(value) && value>=0
   ? value.toLocaleString() : "N/A";
 const defang = ip => {const i=ip.lastIndexOf("."); return i<0 ? ip : ip.slice(0,i)+"[.]"+ip.slice(i+1);};
-const validIP = ip => typeof ip==="string" && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip)
-  && ip.split(".").every(o=>Number(o)<=255);
+const validIP = ip => typeof ip==="string" && /^(?:(?:0|[1-9]\d{0,2})\.){3}(?:0|[1-9]\d{0,2})$/.test(ip)
+  && ip.split(".").every(o=>Number(o)<=255 && String(Number(o))===o);
 const parseUtc = stamp => Date.parse(String(stamp||"").replace(" UTC","Z").replace(" ","T"));
 const snapshotAgeHours = (stamp, now=Date.now()) => {
   const parsed=parseUtc(stamp);
@@ -105,11 +105,16 @@ function renderDetail(ip,count,meta,membership,sourceContext){
     "Web request alert (outcome unverified)":"Review request sequence and response outcomes locally; HTTP errors alone do not show exploitation.",
     "Other detection (sample only)":"Inspect the original alert, affected asset and subsequent auth/process outcomes locally."};
   add(root,"p","Next local check: "+(next[sourceContext?.sample_behavior]||"Locate the original alert and verify its outcome locally."));
-  const refs=add(root,"div","Public lookups: ","refs");
-  for(const [label,prefix] of [["VT","https://www.virustotal.com/gui/ip-address/"],
-    ["AbuseIPDB","https://www.abuseipdb.com/check/"],["GreyNoise","https://viz.greynoise.io/ip/"]]){
-    const link=add(refs,"a",label);link.href=prefix+ip;link.target="_blank";link.rel="noopener noreferrer";
+  if(!validIP(ip)) return;
+  const refs=add(root,"div","Public lookups (new tab): ","refs");
+  for(const [label,prefix] of [["GreyNoise","https://viz.greynoise.io/ip/"],
+    ["AlienVault OTX","https://otx.alienvault.com/indicator/ip/"], ["AbuseIPDB","https://www.abuseipdb.com/check/"],
+    ["VirusTotal","https://www.virustotal.com/gui/ip-address/"], ["Shodan","https://www.shodan.io/host/"],
+    ["BGP / ASN","https://bgp.he.net/ip/"]]){
+    const link=add(refs,"a",label);link.href=prefix+ip;link.target="_blank";
+    link.rel="noopener noreferrer";link.referrerPolicy="no-referrer";
   }
+  add(root,"p","Clicking opens the selected source IP on a third-party site. Results may differ from this snapshot; links do not mean a lookup was run.","dim");
 }
 function renderSources(d){
   const table=byId("src");const rows=Array.isArray(d.wazuh?.top_src)?d.wazuh.top_src:[];
@@ -229,6 +234,7 @@ async function main(){
       add(note,'span',` Display correction ${d.public_revision.corrected_utc}: country and GreyNoise labels corrected from the same batch; legacy watchlist withdrawn pending a scheduled evidence check. No new run or observation is implied.`);
     }
     renderCards(d);renderDaily(d);renderSources(d);renderMisp(d);renderRuns(d);renderFeeds();
+    if(typeof renderSnapshotDiff==="function") await renderSnapshotDiff(byId("changes"), d);
   }catch(e){
     byId("gen").textContent="Public snapshot unavailable: "+e.message;
     byId("status-pill").textContent="UNAVAILABLE";byId("status-pill").className="pill bad";

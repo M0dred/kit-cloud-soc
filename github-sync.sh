@@ -93,7 +93,8 @@ def scan_credentials(obj):
 scan_credentials(c)
 print('GitHub public docs privacy gate passed')
 PY
-if [ "${1:-}" = "--check-only" ]; then
+if [ "$mode" = "--check-only" ]; then
+  python3 "$REPO/snapshot_diff.py" --check
   echo 'GitHub sync check-only: no commit or push'
   exit 0
 fi
@@ -106,7 +107,10 @@ if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
 fi
 files=(docs/status.json)
 if [ "$mode" != "--status-only" ]; then
-  files+=(docs/data.json docs/blocklist.txt)
+  # Only derive the aggregate diff after the privacy gate and remote HEAD check.
+  # Status-only updates never generate, read or stage comparison data.
+  python3 "$REPO/snapshot_diff.py"
+  files+=(docs/data.json docs/blocklist.txt docs/snapshot-diff.json)
 fi
 git add -- "${files[@]}"
 if git diff --cached --quiet -- "${files[@]}"; then

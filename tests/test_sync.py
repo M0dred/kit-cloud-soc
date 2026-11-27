@@ -1,6 +1,7 @@
 """Offline status-only Git sync against a local bare remote; no SOC credentials."""
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -29,11 +30,14 @@ class StatusOnlySyncTests(unittest.TestCase):
                                           'last_attempt_utc': '2026-10-27 06:03 UTC'}))
             data = repo / 'docs/data.json'
             data.write_text('old safe snapshot')
-            git(repo, 'add', 'docs/status.json', 'docs/data.json')
+            diff = repo / 'docs/snapshot-diff.json'
+            diff.write_text('last public comparison')
+            git(repo, 'add', 'docs/status.json', 'docs/data.json', 'docs/snapshot-diff.json')
             git(repo, 'commit', '-m', 'initial')
             git(repo, 'remote', 'add', 'origin', str(remote))
             git(repo, 'push', '-u', 'origin', 'main')
             data.write_text('unreviewed private contents - must never sync')
+            diff.write_text('unreviewed local comparison - must never sync')
             status.write_text(json.dumps({'schema_version': 1, 'state': 'degraded',
                                           'last_attempt_utc': '2026-10-27 22:01 UTC'}))
             script = (ROOT / 'github-sync.sh').read_text().replace(
@@ -50,6 +54,8 @@ class StatusOnlySyncTests(unittest.TestCase):
             self.assertEqual(git(repo, 'show', 'HEAD:docs/data.json'), 'old safe snapshot')
             self.assertEqual(git(remote, 'show', 'main:docs/data.json'), 'old safe snapshot')
             self.assertIn('docs/data.json', git(repo, 'status', '--short'))
+            self.assertEqual(git(remote, 'show', 'main:docs/snapshot-diff.json'), 'last public comparison')
+            self.assertEqual(git(repo, 'diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'), 'docs/status.json')
 
     def test_remote_advance_refuses_publish_without_discarding_local_snapshot(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -112,6 +118,29 @@ class StatusOnlySyncTests(unittest.TestCase):
             self.assertEqual(data.read_text(), local_data)
             self.assertEqual(status.read_text(), local_status)
             self.assertEqual(git(repo, 'diff', '--cached', '--name-only'), '')
+
+            # After the operator reviews the upstream change, a new batch and
+            # its diff must reach the local bare remote in the same commit.
+            git(repo, 'fetch', 'origin', 'main')
+            git(repo, 'merge', '--ff-only', 'origin/main')
+            shutil.copy(ROOT / 'snapshot_diff.py', repo)
+            fixture['generated'] = '2026-11-14 06:01 UTC'
+            fixture['wazuh']['total_7d'] = 5
+            data.write_text(json.dumps(fixture) + '\n')
+            status.write_text(json.dumps({'schema_version': 1, 'state': 'ok',
+                                          'last_attempt_utc': fixture['generated']}))
+            diff = repo / 'docs/snapshot-diff.json'
+            diff.write_text('unreviewed bytes')
+            result = subprocess.run(['bash', str(local_script)], capture_output=True, text=True, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            artifact = json.loads(git(remote, 'show', 'main:docs/snapshot-diff.json'))
+            self.assertEqual(artifact['previous_utc'], '2026-11-13 22:01 UTC')
+            self.assertEqual(artifact['current_utc'], fixture['generated'])
+            self.assertEqual(artifact['metrics']['alerts_7d'], [0, 5])
+            changed = git(remote, 'diff-tree', '--no-commit-id', '--name-only', '-r', 'main').splitlines()
+            self.assertEqual(set(changed), {'docs/data.json', 'docs/snapshot-diff.json', 'docs/status.json'})
+            check = subprocess.run(['bash', str(local_script), '--check-only'], capture_output=True, text=True, timeout=20)
+            self.assertEqual(check.returncode, 0, check.stderr)
 
 
 if __name__ == '__main__':
