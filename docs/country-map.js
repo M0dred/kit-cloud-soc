@@ -74,9 +74,10 @@ function createCountryMap(onSelect) {
   }
   function draw() {
     if (!world) return;
+    globe?.update(groups,mode,active,view==="live"?freshUntil:0);
     const shown=visible(), labels=new Map(shown.map(row=>[row.code,row]));
     const shades=new Map(shown.flatMap(row=>(row.members||[row.code]).map(code=>[code,row])));
-    const coverage=mode==="coverage", showPulse=showLinks&&!coverage&&view==="snapshot";
+    const coverage=mode==="coverage", inGlobe=Boolean(globe?.visible()), showPulse=showLinks&&!coverage&&view==="snapshot"&&!inGlobe;
     const highlight=view==="live"&&Date.now()<freshUntil&&!globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const geometryCodes=new Set(world.land.map(([code])=>code));
     const max=coverage?100:Math.max(0,...shown.flatMap(g=>[...g.native].filter(([code])=>geometryCodes.has(code)).map(([,v])=>v)));
@@ -112,8 +113,8 @@ function createCountryMap(onSelect) {
       const title=add(hit,"title",{});title.textContent=mode==="coverage"?`${g.label}: ${g.countLabel}`:`${g.label}: ${g.countLabel} ${summaryMetric()}`;
       hit.addEventListener("click",()=>choose(g.code,true));
     }
-    play.hidden=coverage||view!=="snapshot";play.disabled=shown.length===0;
-    toggler.hidden=view!=="snapshot";toggler.disabled=coverage;
+    play.hidden=coverage||view!=="snapshot"||inGlobe;play.disabled=shown.length===0;
+    toggler.hidden=view!=="snapshot"||inGlobe;toggler.disabled=coverage;
     const selected=groups.find(g=>g.code===active), excluded=groups.length-shown.length;
     inset(selected);
     if (!el("china-lens").hidden) {
@@ -148,10 +149,13 @@ function createCountryMap(onSelect) {
     },2000);
     play.textContent="Pause pulse";show();
   });
+  const globe=typeof createCountryGlobe==='function'?createCountryGlobe(code=>choose(code,true),()=>{stop();draw();}):null;
   const ready=(async()=>{
     try {
       const res=await fetch("world-map.json",{cache:"force-cache"});if (!res.ok) throw Error("outline unavailable");
-      world=geometry(await res.json());el("map-controls").hidden=false;el("map-figure").hidden=false;draw();
+      world=geometry(await res.json());
+      try{globe?.setWorld(world);}catch(_){/* The flat map still works without a globe. */}
+      el("map-controls").hidden=false;el("map-figure").hidden=false;draw();
     } catch (_) {el("map-status").textContent="Map outline unavailable. The country table and rankings still use the published batch.";}
   })();
   return {ready, update(rows,metric,code,options={}){

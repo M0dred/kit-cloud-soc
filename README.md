@@ -18,6 +18,8 @@ The Evidence Brief leads with batch time, the last known pipeline attempt, the e
 
 [**SOC data flow**](https://m0dred.github.io/kit-cloud-soc/data-flow.html) traces the logical Collection → Enrichment → Action relationships. Selection highlights upstream and downstream dependencies and shows what may cross each trust boundary. Published heartbeat is context, not per-node health or a map of assets.
 
+Choose **3D globe** on the country map to rotate the same public country aggregates on an orthographic globe. Point positions are public label locations, not sensors or attack endpoints. The globe works with snapshots, Live follow, and replay, with no map service or new data source.
+
 On the country map, **Live follow** highlights a newly verified published batch as it arrives. **Replay batches** steps through a small archive of reviewed publication times, plus eligible batches seen in the current tab. Replay reuses country aggregates from the published 7-day source subsets. Windows overlap, gaps are possible, and neither mode plays back individual alerts, inferred routes or sensor data.
 
 Design references: [Shodan country filters](https://help.shodan.io/the-basics/search-query-fundamentals), [Censys aggregation and drill-down](https://docs.censys.com/docs/ls-api), and [GreyNoise Visualizer](https://docs.greynoise.io/docs/using-the-greynoise-visualizer). These are interaction references only; the atlas neither queries those products nor imports their data, map styles, or libraries.

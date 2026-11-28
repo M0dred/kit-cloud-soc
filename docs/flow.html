@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="country-map.css">
   <script src="public-view.js" defer></script>
   <script src="published-refresh.js" defer></script>
+  <script src="country-globe.js" defer></script>
   <script src="country-map.js" defer></script>
   <script src="flow-timeline.js" defer></script>
   <script src="flow.js" defer></script>
@@ -35,7 +36,7 @@
           <div class="country-controls"><label for="measure" class="sr-only">Map metric</label><select id="measure"><option value="alerts">Alert volume</option><option value="rows">Source count</option><option value="coverage">Lookup coverage</option></select></div>
         </div>
         <div class="map-modes">
-          <div class="country-controls"><label for="map-view">Map view</label><select id="map-view"><option value="snapshot">Latest snapshot</option><option value="live">Live follow</option><option value="replay">Replay batches</option></select></div>
+          <div class="country-controls"><label for="map-view">Map view</label><select id="map-view"><option value="snapshot">Latest snapshot</option><option value="live">Live follow</option><option value="replay">Replay batches</option></select><button id="globe-toggle" type="button" aria-pressed="false" aria-controls="globe-stage" hidden>3D globe</button></div>
           <p id="map-view-note" class="note">Only reviewed public aggregates; not live telemetry.</p>
           <div id="replay-controls" hidden>
             <p id="replay-stamp" class="replay-stamp" role="status"></p>
@@ -44,6 +45,7 @@
         </div>
         <div class="atlas-layout">
         <div id="map-figure" hidden>
+          <div id="flat-map">
           <svg id="country-map" viewBox="0 0 705 354" role="img" aria-labelledby="map-title map-desc">
             <title id="map-title">Observed source countries and Wazuh batch summary</title>
             <desc id="map-desc">A world outline with aggregate country links to an off-map summary; no sensor location or network path is shown. Use the country menu or table for values.</desc>
@@ -54,6 +56,13 @@
           </svg>
           <div class="map-key" aria-label="Choropleth legend"><p id="map-legend-caption" class="note"></p><ul id="map-legend-values"></ul></div>
           <p class="note map-footnote">Fill shows observed original labels; outlines mark selection, even with no rows. Dots represent grouped totals. Optional pulse links are not routes or live events.</p>
+          </div>
+          <div id="globe-stage" hidden>
+            <canvas id="country-globe" width="720" height="520" role="img" aria-label="Rotating globe of published source-country aggregates" aria-describedby="globe-guide globe-legend">Use the country menu and table to read the aggregate values.</canvas>
+            <div class="country-controls globe-controls" aria-label="Globe orientation"><button id="globe-west" type="button" aria-label="Rotate west">←</button><button id="globe-east" type="button" aria-label="Rotate east">→</button><button id="globe-up" type="button" aria-label="Tilt north">↑</button><button id="globe-down" type="button" aria-label="Tilt south">↓</button><button id="globe-center" type="button">Center selected</button></div>
+            <p id="globe-guide" class="note">Drag or rotate with the buttons. Points are country label positions, not observed source or target locations.</p>
+            <p id="globe-legend" class="note"></p>
+          </div>
         </div>
         <aside class="map-inspector" aria-labelledby="map-selection-title">
           <p class="map-kicker">Selected group</p><h3 id="map-selection-title">—</h3>

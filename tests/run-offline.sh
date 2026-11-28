@@ -13,6 +13,7 @@ node --check docs/flow.js
 node --check docs/data-flow.js
 node --check docs/flow-timeline.js
 node --check docs/country-map.js
+node --check docs/country-globe.js
 node --check docs/activity.js
 node tests/test_public_ui.js
 node tests/test_public_ui_ux.js
@@ -22,6 +23,7 @@ node tests/test_country_flow.js
 node tests/test_flow_timeline.js
 node tests/test_data_flow.js
 node tests/test_country_map.js
+node tests/test_country_globe.js
 node tests/test_real_activity.js
 for script in cron-run.sh backup.sh github-sync.sh; do bash -n "$script"; done
 printf 'Offline SOC checks passed\n'
