@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>SOC data flow · kit-cloud SoC</title>
+  <link rel="stylesheet" href="design.css"><link rel="stylesheet" href="data-flow.css">
+  <script src="public-view.js" defer></script><script src="data-flow.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to data flow</a>
+  <header class="masthead"><a href="./">kit-cloud <b>SoC</b></a><nav aria-label="Views"><a href="./">Evidence brief</a><a href="flow.html#pulse-map">Country map</a><a href="classic.html">Classic dashboard</a></nav></header>
+  <main id="content" class="container" tabindex="-1">
+    <div class="flow-lead"><div><p class="flow-kicker">Architecture</p><h1>SOC data flow</h1><p class="note">Select a component to trace what it reads, what it sends, and where review is required.</p></div><p id="graph-heartbeat" class="note" role="status">Checking published heartbeat…</p></div>
+    <div class="flow-tools"><button id="graph-all" type="button" aria-pressed="false">Show all connections</button><span><i class="line-key" aria-hidden="true"></i> Scheduled or gated</span><span><i class="line-key dashed" aria-hidden="true"></i> Analyst / on demand</span><span class="note">Arrows are dependencies, not observed traffic.</span></div>
+    <noscript><p>The interactive graph requires JavaScript. In brief: Wazuh → local store and selected source lookups → MISP 1932 → independent review and privacy gates → Pages or eligible VT comments. NDR, Arkime and local logs provide private evidence.</p></noscript>
+    <div class="graph-layout">
+      <section class="graph-stage" id="graph-stage" aria-label="Component relationship graph">
+        <div class="graph-lanes" id="graph-lanes"></div>
+        <svg id="graph-wires" aria-hidden="true"><defs><marker id="wire-tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1L7 4L0 7Z"></path></marker></defs><g id="wire-layer"></g></svg>
+      </section>
+      <div id="graph-dock" class="graph-dock" aria-label="Component details"><aside id="graph-detail" class="panel graph-detail" aria-labelledby="node-title" hidden>
+        <p class="flow-kicker" id="node-layer"></p><h2 id="node-title"></h2><p id="node-note"></p>
+        <p class="node-boundary" id="node-boundary"></p>
+        <div id="node-links"></div>
+      </aside></div>
+    </div>
+    <details class="panel graph-scope"><summary>What this graph does not show</summary><p>Operators review logs and session evidence privately. This view contains no asset inventory, alert details, credentials, sensor addresses, or live paths. The public heartbeat describes a scheduled attempt, not the health of an individual service or relationship. A catalog entry or IP reputation score does not prove compromise.</p><p>Automatic blocking and VirusTotal voting are disabled. Shodan and BGP/ASN links are optional external references, not scheduled enrichment. XSOAR is a design reference, not an installed service.</p></details>
+  </main>
+  <footer class="container">kit-cloud SoC · Read-only architecture · <a href="./#method">Evidence scope and limits</a></footer>
+</body>
+</html>

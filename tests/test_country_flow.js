@@ -13,7 +13,7 @@ assert.match(html,/not attack attribution/);
 assert.match(html,/Lookup coverage/);
 assert.match(html,/<details id="comparison" class="panel report-drawer"/);
 assert.match(html,/<details id="breakdown" class="panel report-drawer"/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['design.css','flow.css','country-flow.css','country-map.css','public-view.js','published-refresh.js','country-map.js','flow-timeline.js','flow.js','#content','./','activity.html','classic.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['design.css','flow.css','country-flow.css','country-map.css','public-view.js','published-refresh.js','country-map.js','flow-timeline.js','flow.js','#content','./','activity.html','classic.html','data-flow.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}

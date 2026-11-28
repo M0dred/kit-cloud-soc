@@ -10,6 +10,7 @@ node --check docs/published-refresh.js
 node --check docs/app.js
 node --check docs/tree.js
 node --check docs/flow.js
+node --check docs/data-flow.js
 node --check docs/flow-timeline.js
 node --check docs/country-map.js
 node --check docs/activity.js
@@ -19,6 +20,7 @@ node tests/test_published_refresh.js
 node tests/test_snapshot_tree.js
 node tests/test_country_flow.js
 node tests/test_flow_timeline.js
+node tests/test_data_flow.js
 node tests/test_country_map.js
 node tests/test_real_activity.js
 for script in cron-run.sh backup.sh github-sync.sh; do bash -n "$script"; done
