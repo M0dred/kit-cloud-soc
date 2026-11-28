@@ -4,7 +4,7 @@ function createCountryMap(onSelect) {
   const el=id=>document.getElementById(id), anchorCode=code=>/^[A-Z]{2}$/.test(code);
   const land=el("map-land"), links=el("map-arcs"), points=el("map-points");
   const picker=el("map-focus"), play=el("map-play"), toggler=el("map-links-toggle");
-  let world=null, groups=[], mode="alerts", active=null, showLinks=false, timer=null;
+  let world=null, groups=[], mode="alerts", active=null, showLinks=false, timer=null, view="snapshot", freshUntil=0;
   // Public Natural Earth 5.1.2 1:10m label point, not source or sensor coordinates.
   const hongKong=[564.0,148.1];
   const add=(parent,tag,attrs)=>{
@@ -76,7 +76,8 @@ function createCountryMap(onSelect) {
     if (!world) return;
     const shown=visible(), labels=new Map(shown.map(row=>[row.code,row]));
     const shades=new Map(shown.flatMap(row=>(row.members||[row.code]).map(code=>[code,row])));
-    const coverage=mode==="coverage", showPulse=showLinks&&!coverage;
+    const coverage=mode==="coverage", showPulse=showLinks&&!coverage&&view==="snapshot";
+    const highlight=view==="live"&&Date.now()<freshUntil&&!globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const geometryCodes=new Set(world.land.map(([code])=>code));
     const max=coverage?100:Math.max(0,...shown.flatMap(g=>[...g.native].filter(([code])=>geometryCodes.has(code)).map(([,v])=>v)));
     const denominator=Math.max(1,max), groupDenominator=coverage?100:Math.max(1,...shown.map(g=>g.value));
@@ -105,13 +106,14 @@ function createCountryMap(onSelect) {
     }
     for (const g of order) {
       const [x,y]=world.anchors.get(g.code), r=2.5+3.2*Math.sqrt(g.value/groupDenominator), selected=g.code===active;
+      if(highlight&&g.value>0)add(points,"circle",{cx:x,cy:y,r:r+3,class:"map-live-ring"});
       add(points,"circle",{cx:x,cy:y,r,class:`map-dot${selected?" map-dot-focus":""}`});
       const hit=add(points,"circle",{cx:x,cy:y,r:r+3,class:"map-dot-hit"});
       const title=add(hit,"title",{});title.textContent=mode==="coverage"?`${g.label}: ${g.countLabel}`:`${g.label}: ${g.countLabel} ${summaryMetric()}`;
       hit.addEventListener("click",()=>choose(g.code,true));
     }
-    play.hidden=coverage;play.disabled=shown.length===0;
-    toggler.disabled=coverage;
+    play.hidden=coverage||view!=="snapshot";play.disabled=shown.length===0;
+    toggler.hidden=view!=="snapshot";toggler.disabled=coverage;
     const selected=groups.find(g=>g.code===active), excluded=groups.length-shown.length;
     inset(selected);
     if (!el("china-lens").hidden) {
@@ -123,7 +125,7 @@ function createCountryMap(onSelect) {
       const label=add(points,"text",{x,y:Math.max(19,y-11),class:"map-active-label","text-anchor":x>585?"end":"middle"});
       label.textContent=selected.label;
     }
-    const excludedNote=excluded?` ${excluded} group${excluded===1?"":"s"} not plotted (unknown label or no outline point); see the table.`:"";
+    const excludedNote=excluded?` ${excluded} group${excluded===1?"":"s"} not plotted (unknown label or no outline point); see the ${view==="replay"?"country selector":"table"}.`:"";
     el("map-status").textContent=`Mapped ${shown.length} of ${groups.length} published country groups.${excludedNote}`;
   }
   function choose(code,notify) {
@@ -135,7 +137,7 @@ function createCountryMap(onSelect) {
   toggler.addEventListener("click",()=>{showLinks=!showLinks;toggler.setAttribute("aria-pressed",String(showLinks));draw();});
   play.addEventListener("click",()=>{
     if (timer!==null) {stop();draw();return;}
-    const ranked=visible();if (!ranked.length || mode==="coverage") return;
+    const ranked=visible();if (!ranked.length || mode==="coverage" || view!=="snapshot") return;
     showLinks=true;toggler.setAttribute("aria-pressed","true");
     let index=0;
     const show=()=>{active=ranked[index].code;picker.value=active;onSelect(active);draw();};
@@ -152,8 +154,10 @@ function createCountryMap(onSelect) {
       world=geometry(await res.json());el("map-controls").hidden=false;el("map-figure").hidden=false;draw();
     } catch (_) {el("map-status").textContent="Map outline unavailable. The country table and rankings still use the published batch.";}
   })();
-  return {ready, update(rows,metric,code){
-    groups=rows;mode=metric;picker.replaceChildren();
+  return {ready, update(rows,metric,code,options={}){
+    groups=rows;mode=metric;view=options.view||"snapshot";if(options.fresh)freshUntil=Date.now()+1400;
+    else freshUntil=0;
+    picker.replaceChildren();
     for (const g of groups) {
       const option=document.createElement("option");option.value=g.code;option.textContent=g.label;picker.appendChild(option);
     }

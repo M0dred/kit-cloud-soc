@@ -13,6 +13,7 @@
   <script src="public-view.js" defer></script>
   <script src="published-refresh.js" defer></script>
   <script src="country-map.js" defer></script>
+  <script src="flow-timeline.js" defer></script>
   <script src="flow.js" defer></script>
 </head>
 <body>
@@ -33,6 +34,14 @@
         <div class="map-header"><div><h2 id="pulse-heading">Geographic overview</h2><p class="note">Country labels are IP context, not attack attribution.</p></div>
           <div class="country-controls"><label for="measure" class="sr-only">Map metric</label><select id="measure"><option value="alerts">Alert volume</option><option value="rows">Source count</option><option value="coverage">Lookup coverage</option></select></div>
         </div>
+        <div class="map-modes">
+          <div class="country-controls"><label for="map-view">Map view</label><select id="map-view"><option value="snapshot">Latest snapshot</option><option value="live">Live follow</option><option value="replay">Replay batches</option></select></div>
+          <p id="map-view-note" class="note">Only reviewed public aggregates; not live telemetry.</p>
+          <div id="replay-controls" hidden>
+            <p id="replay-stamp" class="replay-stamp" role="status"></p>
+            <div class="country-controls"><button id="replay-prev" type="button" aria-label="Previous batch">Previous</button><button id="replay-play" type="button">Play batches</button><button id="replay-next" type="button" aria-label="Next batch">Next</button><label class="sr-only" for="replay-position">Replay position</label><input id="replay-position" type="range" min="0" max="0" value="0"></div>
+          </div>
+        </div>
         <div class="atlas-layout">
         <div id="map-figure" hidden>
           <svg id="country-map" viewBox="0 0 705 354" role="img" aria-labelledby="map-title map-desc">
@@ -51,7 +60,7 @@
           <p id="map-selection-count" class="map-count"></p><p id="map-selection-share" class="note"></p>
           <div class="country-controls map-picker" id="map-controls" hidden><label for="map-focus" class="sr-only">Country</label><select id="map-focus"></select><button id="map-play" type="button">Play pulse</button></div>
           <p class="map-evidence" id="map-lookup-evidence"></p>
-          <div class="country-controls"><a class="map-detail-link" href="#breakdown">Open evidence ↓</a></div>
+          <div class="country-controls"><a id="map-open-evidence" class="map-detail-link" href="#breakdown">Open evidence ↓</a></div>
           <div id="china-lens" hidden>
             <h4>Regional focus <small>CN · TW · HK</small></h4>
             <svg id="china-inset" viewBox="543 128 47 32" role="img" aria-labelledby="inset-title inset-desc">
@@ -67,6 +76,7 @@
           <div class="country-controls"><label for="country-grouping">Group labels</label><select id="country-grouping"><option value="combined">China: CN + TW + HK</option><option value="separate">Original labels</option></select><button id="map-links-toggle" type="button" aria-pressed="false">Show pulse links</button></div>
         </details>
       </section>
+      <p id="rank-batch-note" class="note" hidden>Totals, rankings and evidence below stay on the current published batch, not the replay frame.</p>
       <div class="scope-cards" aria-label="Scope of the figures">
         <div class="panel"><span>All Wazuh alerts · 7d</span><strong id="total-alerts"></strong><svg id="overall-trend" class="overall-trend" viewBox="0 0 210 37" role="img" aria-labelledby="overall-trend-title"><title id="overall-trend-title">Overall UTC daily volume, not per-country</title><g id="overall-series" aria-hidden="true"></g></svg><small id="overall-trend-note"></small><a class="map-detail-link" href="activity.html">UTC heatmap →</a></div>
         <div class="panel"><span>Alerts in displayed source buckets</span><strong id="selected-alerts"></strong><small>Sum for the public, top-20-derived subset</small></div>

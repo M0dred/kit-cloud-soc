@@ -5,7 +5,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const dir=path.join(__dirname,'../docs');
 const html=fs.readFileSync(path.join(dir,'flow.html'),'utf8');
-const js=['public-view.js','published-refresh.js','flow.js'].map(f=>fs.readFileSync(path.join(dir,f),'utf8')).join('\n');
+const js=['public-view.js','published-refresh.js','flow-timeline.js','flow.js'].map(f=>fs.readFileSync(path.join(dir,f),'utf8')).join('\n');
 assert.match(fs.readFileSync(path.join(dir,'index.html'),'utf8'),/href="flow\.html#pulse-map">Country pulse map/);
 assert.match(html,/REAL BATCH · AGGREGATE ONLY/);
 assert.match(html,/connect-src 'self'/);
@@ -13,7 +13,7 @@ assert.match(html,/not attack attribution/);
 assert.match(html,/Lookup coverage/);
 assert.match(html,/<details id="comparison" class="panel report-drawer"/);
 assert.match(html,/<details id="breakdown" class="panel report-drawer"/);
-assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['design.css','flow.css','country-flow.css','country-map.css','public-view.js','published-refresh.js','country-map.js','flow.js','#content','./','activity.html','classic.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
+assert.deepEqual([...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([,v])=>v),['design.css','flow.css','country-flow.css','country-map.css','public-view.js','published-refresh.js','country-map.js','flow-timeline.js','flow.js','#content','./','activity.html','classic.html','#pulse-map','#comparison','#breakdown','activity.html','./#changes','#breakdown','activity.html','#measure']);
 
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this.hidden=true;this.value='';this.textContent='';}

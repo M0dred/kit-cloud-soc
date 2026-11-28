@@ -121,17 +121,22 @@
     const grouping=get("country-grouping");
     let snapshot=null,groups=new Map(),subset=0,labelled=0,rows=0;
     const sort=get("measure"), toggle=get("toggle-depth"), chart=get("chart-depth");
-    let selected=null, visible=[], metric="alerts";
+    let selected=null, replaySelected=null, visible=[], metric="alerts", sorted=[], replayFrame=null, mapView="snapshot";
     const buttons=new Map();
-    const map=typeof createCountryMap==="function"?createCountryMap(code=>{selected=code;detail();}):null;
+    const map=typeof createCountryMap==="function"?createCountryMap(code=>{
+      if(mapView==="replay"){replaySelected=code;replayDetail();}else{selected=code;detail();}
+    }):null;
+    const timeline=FlowTimeline.connect({known:codes,render(view,frame){mapView=view;replayFrame=frame;renderMap();}});
     if (!map) get("map-status").textContent="Pulse map unavailable. Rankings and table are still available.";
     function detail() {
       const root=get("country-detail"), g=groups.get(selected), origins=get("china-origin-counts");
       root.replaceChildren();origins.replaceChildren();
-      get("map-selection-title").textContent=g?name(g.code):"No selected group";
-      get("map-selection-count").textContent=!g?"":metric==="coverage"?pct(g.covered,g.rows):`${fmt(g[metric])} ${metric==="rows"?"source rows":"bucket alerts"}`;
-      get("map-selection-share").textContent=!g?"":metric==="coverage"?"Fresh lookup coverage at batch time":`${pct(g[metric],metric==="rows"?rows:subset)} of displayed ${metric==="rows"?"source rows":"bucket alerts"}`;
-      get("map-lookup-evidence").textContent=g?`${fmt(g.covered)} of ${fmt(g.rows)} source rows had a fresh successful lookup.`:"";
+      if(mapView!=="replay"){
+        get("map-selection-title").textContent=g?name(g.code):"No selected group";
+        get("map-selection-count").textContent=!g?"":metric==="coverage"?pct(g.covered,g.rows):`${fmt(g[metric])} ${metric==="rows"?"source rows":"bucket alerts"}`;
+        get("map-selection-share").textContent=!g?"":metric==="coverage"?"Fresh lookup coverage at batch time":`${pct(g[metric],metric==="rows"?rows:subset)} of displayed ${metric==="rows"?"source rows":"bucket alerts"}`;
+        get("map-lookup-evidence").textContent=g?`${fmt(g.covered)} of ${fmt(g.rows)} source rows had a fresh successful lookup.`:"";
+      }
       if (!g) {add(root,"p","No source buckets to break down; this does not mean no alerts.");return;}
       add(root,"h2",name(g.code));
       add(root,"p",`${fmt(g.alerts)} alerts in the displayed buckets · ${pct(g.alerts,subset)} of this subset · ${fmt(g.rows)} source rows.`);
@@ -141,9 +146,11 @@
         for (const code of g.members) {
           const part=g.origins.get(code);
           add(detailOrigins,"li",`${name(code)} (${code}): ${part?`${fmt(part.rows)} source rows · ${fmt(part.alerts)} bucket alerts`:"No published source rows in this batch"}.`);
-          const line=add(origins,"li","");
-          const title=code==="TW"?"Taiwan":code==="HK"?"Hong Kong":"CN";
-          add(line,"span",title);add(line,"strong",!part?"No rows":metric==="coverage"?`${part.covered}/${part.rows}`:fmt(part[metric]));
+          if(mapView!=="replay"){
+            const line=add(origins,"li","");
+            const title=code==="TW"?"Taiwan":code==="HK"?"Hong Kong":"CN";
+            add(line,"span",title);add(line,"strong",!part?"No rows":metric==="coverage"?`${part.covered}/${part.rows}`:fmt(part[metric]));
+          }
         }
       }
       add(root,"h3","MISP catalog membership · source rows");
@@ -163,10 +170,43 @@
       const note=add(root,"p","Lookup freshness is per provider; it does not date or verify a country label.");note.className="note";
       for (const [code,button] of buttons) button.setAttribute("aria-pressed",String(code===selected));
     }
-    function rerank() {
+    function replayGroups(){
+      const grouped=new Map();
+      for(const [code,n,alerts] of replayFrame?.countries||[]){
+        const combined=grouping.value!=="separate"&&chinaLabels.includes(code), key=combined?"CN":code;
+        if(!grouped.has(key))grouped.set(key,{code:key,label:name(key),members:combined?chinaLabels:[code],value:0,rows:0,native:new Map()});
+        const g=grouped.get(key);g.value+=alerts;g.rows+=n;g.native.set(code,alerts);
+      }
+      return [...grouped.values()].sort((a,b)=>b.value-a.value||a.code.localeCompare(b.code)).map(g=>({...g,countLabel:fmt(g.value)}));
+    }
+    function replayDetail(list=replayGroups()){
+      const origins=get("china-origin-counts"), g=list.find(x=>x.code===replaySelected);
+      origins.replaceChildren();
+      get("map-selection-title").textContent=g?g.label:replayFrame?"No published country buckets":"No replay frame available";
+      get("map-selection-count").textContent=g?`${fmt(g.value)} bucket alerts`:"";
+      get("map-selection-share").textContent=g?`${fmt(g.rows)} source rows · ${pct(g.value,list.reduce((a,x)=>a+x.value,0))} of this frame's displayed buckets`:"";
+      get("map-lookup-evidence").textContent=replayFrame?`Archived snapshot · ${replayFrame.batch_utc}.`:"Missing data is not zero activity.";
+      if(g?.members.length>1)for(const code of g.members){
+        const line=add(origins,"li","");add(line,"span",name(code));add(line,"strong",g.native.has(code)?fmt(g.native.get(code)):"No rows");
+      }
+    }
+    function renderMap(fresh=false){
+      const replay=mapView==="replay";
+      get("rank-batch-note").hidden=!replay;get("map-open-evidence").hidden=replay;sort.disabled=replay;
+      if(replay){
+        const list=replayGroups();if(!list.some(g=>g.code===replaySelected))replaySelected=list[0]?.code;
+        map?.update(list,"alerts",replaySelected,{view:mapView});replayDetail(list);return;
+      }
+      const coverage=metric==="coverage", formatMetric=g=>coverage?pct(g.covered,g.rows):fmt(g[metric]);
+      map?.update(sorted.map(g=>({code:g.code,members:g.members,label:name(g.code),value:g[metric],
+        native:new Map([...g.origins].map(([code,part])=>[code,coverage?100*part.covered/part.rows:part[metric]])),
+        countLabel:coverage?`${formatMetric(g)} · ${g.covered}/${g.rows} fresh`:fmt(g[metric])})),metric,selected,{view:mapView,fresh});
+      detail();
+    }
+    function rerank(fresh=false) {
       metric=["rows","coverage"].includes(sort.value)?sort.value:"alerts";
       const coverage=metric==="coverage";
-      const sorted=[...groups.values()].sort((a,b)=>b[metric]-a[metric] || (coverage?b.rows-a.rows:0) || a.code.localeCompare(b.code));
+      sorted=[...groups.values()].sort((a,b)=>b[metric]-a[metric] || (coverage?b.rows-a.rows:0) || a.code.localeCompare(b.code));
       const metricLabel=coverage?"fresh lookup coverage":metric==="rows"?"published source rows":"reported bucket alert counts";
       const formatMetric=g=>coverage?pct(g.covered,g.rows):fmt(g[metric]);
       if (!groups.has(selected)) selected=sorted[0]?.code;
@@ -181,7 +221,7 @@
       }
       for (const g of sorted) {
         const row=add(body,"tr",""),button=add(add(row,"td",""),"button",name(g.code));button.type="button";
-        buttons.set(g.code,button);button.addEventListener("click",()=>{selected=g.code;map?.focus(selected);detail();});
+        buttons.set(g.code,button);button.addEventListener("click",()=>{selected=g.code;if(mapView!=="replay")map?.focus(selected);detail();if(mapView==="replay")replayDetail();});
         for (const value of [fmt(g.alerts),pct(g.alerts,subset),fmt(g.rows),`${fmt(g.covered)} / ${fmt(g.rows)}`]) add(row,"td",value).className="num";
       }
       toggle.hidden=coverage||!visible.length;
@@ -199,12 +239,10 @@
         svg(part,"title",{},`${name(g.code)}: ${pct(g[metric],size)}`);offset+=width;
       }
       get("share-note").textContent=size?`${name(sorted[0].code)} accounts for ${pct(sorted[0][metric],size)} of the displayed ${metric==="rows"?"source rows":"bucket alert count"}. See the table for exact values.`:"No nonzero share can be calculated for the selected metric.";
-      map?.update(sorted.map(g=>({code:g.code,members:g.members,label:name(g.code),value:g[metric],
-        native:new Map([...g.origins].map(([code,part])=>[code,coverage?100*part.covered/part.rows:part[metric]])),
-        countLabel:coverage?`${formatMetric(g)} · ${g.covered}/${g.rows} fresh`:fmt(g[metric])})),metric,selected);
-      detail();if (!chart.hidden) drawDepth(visible,metric);
+      if(mapView==="replay")detail();
+      renderMap(fresh);if (!chart.hidden) drawDepth(visible,metric);
     }
-    sort.addEventListener("change",rerank);
+    sort.addEventListener("change",()=>rerank());
     grouping.addEventListener("change",()=>{
       const combined=grouping.value!=="separate", active=groups.get(selected);
       groups=aggregate(snapshot,combined).groups;
@@ -227,12 +265,17 @@
       target.scrollIntoView();
     };
     globalThis.addEventListener?.("hashchange",reveal);
-    return data=>{
-      const first=snapshot===null;snapshot=data;
+    return (data,report,complete)=>{
+      const first=snapshot===null, next=!first&&PublicView.utc(data.generated)>PublicView.utc(snapshot.generated);
+      const eligible=FlowTimeline.eligible(data,report,complete);snapshot=data;
       ({groups,subset,labelled,rows}=aggregate(snapshot,grouping.value!=="separate"));
       get("total-alerts").textContent=fmt(snapshot.wazuh.total_7d);trend(snapshot.wazuh,PublicView.utc(snapshot.generated));
       get("selected-alerts").textContent=fmt(subset);get("labelled-rows").textContent=`${fmt(labelled)} / ${fmt(rows)}`;
-      rerank();get("workspace").hidden=false;if(first)reveal();
+      if(eligible){
+        const countries=[...aggregate(data,false).groups.values()].map(g=>[g.code,g.rows,g.alerts]);
+        timeline.record({batch_utc:data.generated,countries});
+      }
+      rerank(next&&eligible&&timeline.mode()==="live");get("workspace").hidden=false;if(first)reveal();
     };
   }
   let update;
@@ -240,6 +283,6 @@
     if(!data){get("country-batch").textContent="No verified public country comparison is available. Missing is not zero activity.";return;}
     const status=PublicView.status(data.generated,report,Date.now(),complete);
     get("country-batch").textContent=status.batchText;get("country-heartbeat").textContent=`${status.latest} ${status.note}`;
-    if(changed){if(!update)update=layout();update(data);}
+    if(changed){if(!update)update=layout();update(data,report,complete);}
   }}).start();
 })();
