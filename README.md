@@ -2,7 +2,7 @@
 
 **Evidence before escalation.** A homelab SOC pipeline connecting **Wazuh → local threat DB → GreyNoise/OTX/AbuseIPDB → MISP Event 1932 → cautiously filtered VirusTotal community comments**.
 
-[**Open the Evidence Brief**](https://m0dred.github.io/kit-cloud-soc/) · [Real Activity Heatmap](https://m0dred.github.io/kit-cloud-soc/activity.html) · [Country Pulse Map](https://m0dred.github.io/kit-cloud-soc/flow.html#pulse-map) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
+[**Open the Evidence Brief**](https://m0dred.github.io/kit-cloud-soc/) · [Classic Dashboard](https://m0dred.github.io/kit-cloud-soc/classic.html) · [Real Activity Heatmap](https://m0dred.github.io/kit-cloud-soc/activity.html) · [Country Pulse Map](https://m0dred.github.io/kit-cloud-soc/flow.html#pulse-map) · [Public snapshot](docs/data.json) · [Offline tests](tests/run-offline.sh)
 
 ![Pipeline state from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.state&label=pipeline)
 ![Last pipeline attempt from the existing public status.json](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FM0dred%2Fkit-cloud-soc%2Fmain%2Fdocs%2Fstatus.json&query=%24.last_attempt_utc&label=last%20attempt%20UTC)
@@ -10,7 +10,7 @@
 > The heartbeat and batch dashboard can be stale. Neither proves event freshness, compromise, or incident status. There is **no automatic blocking or VT voting**. New automated MISP attributes start with **IDS use disabled (`to_ids=false`)** until an analyst reviews them; older attributes are not changed automatically.
 
 
-The Evidence Brief leads with batch time, the last known pipeline attempt, the exact seven-day total, and the bounded public cohort. A missed scheduled slot is overdue after a 30-minute grace period, even when the last published result was OK. Select a source to open an adjacent desktop inspector or an inline mobile detail. The map and other visualizations are secondary views.
+The Evidence Brief leads with batch time, the last known pipeline attempt, the exact seven-day total, and the bounded public cohort. A missed scheduled slot is overdue after a 30-minute grace period, even when the last published result was OK. Select a source to open an adjacent desktop inspector or an inline mobile detail. The map and other visualizations are secondary views. The classic layout restores the original hero and four KPI tiles on the same protected evidence pipeline and detail controls. These pages check the published heartbeat and batch once per minute while visible (or via **Check now**). Unchanged files keep chart and selection state; the last published batch is not live telemetry and the server-side schedule is unchanged.
 
 **Real Activity Heatmap** shows the published Wazuh daily UTC counts, with optional rotatable and tiltable 3D columns. The first and last dates of the rolling window may be partial, and missing daily values stay distinct from zero. No hourly, geographical or sensor-to-target conclusions are drawn.
 

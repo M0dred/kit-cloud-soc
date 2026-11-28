@@ -11,13 +11,14 @@
   <link rel="stylesheet" href="country-flow.css">
   <link rel="stylesheet" href="country-map.css">
   <script src="public-view.js" defer></script>
+  <script src="published-refresh.js" defer></script>
   <script src="country-map.js" defer></script>
   <script src="flow.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#content">Skip to country analysis</a>
   <header>
-    <nav aria-label="Views"><a href="./">← Review-only dashboard</a><a href="activity.html">UTC activity heatmap</a><span>REAL BATCH · AGGREGATE ONLY</span></nav>
+    <nav aria-label="Views"><a href="./">← Review-only dashboard</a><a href="activity.html">UTC activity heatmap</a><a href="classic.html">Classic dashboard</a><span>REAL BATCH · AGGREGATE ONLY</span></nav>
     <h1>Source Evidence Atlas</h1>
     <p>Where the published alert volume concentrates, and where the evidence is thin.</p>
     <div class="view-links" aria-label="Visualization shortcuts"><a href="#pulse-map">Map</a><a href="#comparison">Rankings</a><a href="#breakdown">Evidence</a><a href="activity.html">UTC heatmap</a><a href="./#changes">Batch changes</a></div>
@@ -25,6 +26,7 @@
   <main id="content" tabindex="-1">
     <p id="country-batch" role="status">Reading the public snapshot…</p>
     <p class="note" id="country-heartbeat"></p>
+    <div class="refresh-line"><span id="refresh-status">Checking published files every minute; not live telemetry.</span><button type="button" id="refresh-now" aria-describedby="refresh-status">Check now</button></div>
     <noscript><p>This view needs JavaScript to group the published counts.</p></noscript>
     <div id="workspace" hidden>
       <section class="panel map-panel" id="pulse-map" aria-labelledby="pulse-heading">

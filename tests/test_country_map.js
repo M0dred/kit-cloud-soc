@@ -35,6 +35,7 @@ async function fixture({shape=world,reduced=false,snapshot=data}={}) {
       return {ok:values[p]!==null,json:async()=>values[p]};}};
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(path.join(docs,'public-view.js'),'utf8'),sandbox,{timeout:2000});
+  vm.runInContext(fs.readFileSync(path.join(docs,'published-refresh.js'),'utf8'),sandbox,{timeout:2000});
   vm.runInContext(script,sandbox,{timeout:2000});await vm.runInContext(app,sandbox,{timeout:2000});
   // The outline is independent of the snapshot read, so wait one task before checking it.
   await new Promise(resolve=>setImmediate(resolve));

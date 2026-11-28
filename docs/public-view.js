@@ -13,7 +13,7 @@ const PublicView = (()=>{
     const slot=[...hours].reverse().map(h=>midnight+h*H).find(t=>t<=cutoff);
     return slot??midnight-day+22*H;
   }
-  function status(batch, report, now=Date.now()) {
+  function status(batch, report, now=Date.now(), verified=true) {
     const b=utc(batch), t=utc(report?.last_attempt_utc), expected=due(now);
     const validBatch=Number.isFinite(b)&&b<=now+600000;
     const valid=report?.schema_version===1&&["ok","degraded","unknown"].includes(report.state)&&Number.isFinite(t)&&t<=now+600000;
@@ -33,6 +33,7 @@ const PublicView = (()=>{
     else if (last==="degraded") {pill="PIPELINE DEGRADED";note="Showing the last published snapshot. Coverage may be incomplete; failure details stay private.";}
     else if (b<t-15*60000) {pill="SNAPSHOT LAGS RUN";note="The last pipeline status is newer than displayed data; verify the batch before using these counts.";}
     else if (t<b-15*60000) {pill="STATUS MISMATCH";note="The heartbeat is older than the displayed data; the latest batch status is not verified.";}
+    if (!verified&&pill==="LAST RUN OK") {pill="REFRESH UNVERIFIED";note="Current refresh incomplete. Showing last verified published values.";}
     return {pill,note,batchText,attempt,heartbeat,latest,overdue,stale};
   }
   const ssh="SSH-related alert (outcome unverified)";

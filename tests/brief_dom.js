@@ -5,7 +5,7 @@ const read=name=>fs.readFileSync(path.join(docs,name),'utf8');
 const markup=read('index.html');
 const snapshot=JSON.parse(read('data.json'));
 const stamp=s=>Date.parse(s.replace(' UTC','Z').replace(' ','T'));
-async function brief(data,report,{now=stamp(snapshot.generated)+3600000,mobile=false}={}){
+async function brief(data,report,{now=stamp(snapshot.generated)+3600000,mobile=false,classic=false}={}){
   let document;
   class Element {
     constructor(tag='div'){this.tag=tag;this.children=[];this.listeners={};this.hidden=false;this.value='';this._text='';this.attrs={};this.parentNode=null;}
@@ -21,16 +21,19 @@ async function brief(data,report,{now=stamp(snapshot.generated)+3600000,mobile=f
     focus(){document.activeElement=this;}
     scrollIntoView(){this.scrolled=true;}
   }
-  const ids=[...markup.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id);
+  const page=classic?read('classic.html'):markup;
+  const ids=[...page.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id);
   const ui=Object.fromEntries(ids.map(id=>[id,new Element()]));
   ui['detail-dock'].appendChild(ui['ioc-detail']);ui['ioc-detail'].hidden=true;
   const calls=[];
-  document={activeElement:null,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),getElementById:id=>ui[id]};
+  document={activeElement:null,body:{dataset:{view:classic?'classic':'brief'}},createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),getElementById:id=>ui[id]};
   const Clock=class extends Date{static now(){return now;}};
+  const feed={data,report,dataAvailable:true,reportAvailable:true};
   const ctx=vm.createContext({document,Date:Clock,matchMedia:()=>({matches:mobile}),fetch:async uri=>{
-    calls.push(uri);return {ok:true,json:async()=>uri==='data.json'?data:report};
+    calls.push(uri);const isData=uri==='data.json';return {ok:isData?feed.dataAvailable:feed.reportAvailable,json:async()=>isData?feed.data:feed.report};
   }});
-  vm.runInContext(read('public-view.js'),ctx,{timeout:2000});await vm.runInContext(read('app.js'),ctx,{timeout:2000});
-  return {ui,calls,document};
+  vm.runInContext(read('public-view.js'),ctx,{timeout:2000});vm.runInContext(read('published-refresh.js'),ctx,{timeout:2000});
+  await vm.runInContext(read('app.js'),ctx,{timeout:2000});
+  return {ui,calls,document,feed};
 }
 module.exports={read,markup,snapshot,stamp,brief};

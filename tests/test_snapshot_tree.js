@@ -39,6 +39,7 @@ async function load(diff, data=snapshot) {
       json:async()=>({'data.json':data,'status.json':signal,'snapshot-diff.json':diff})[url]};
   }});
   vm.runInContext(fs.readFileSync(path.join(docs,'public-view.js'),'utf8'),sandbox,{timeout:2000});
+  vm.runInContext(fs.readFileSync(path.join(docs,'published-refresh.js'),'utf8'),sandbox,{timeout:2000});
   vm.runInContext(treeScript,sandbox,{timeout:2000});
   await vm.runInContext(appScript,sandbox,{timeout:2000});
   return {state,tree,ids,calls};

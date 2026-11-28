@@ -1,0 +1,9 @@
+body[data-view=classic]{--page:#f6f7fc;--text:#232543;--accent:#5c42cf;--accent-pale:#f1efff;--border:#e3e6f0;--muted:#5c6380;--classic-shadow:0 15px 40px rgba(37,33,88,.06)}
+.classic-brand{display:inline-flex;align-items:center;gap:10px}.classic-logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(140deg,#bab0ff,#8b77ff);font-weight:800;color:#131831}
+.classic-hero{margin:10px 0 13px;padding:clamp(18px,3vw,32px);border-radius:18px;background:linear-gradient(125deg,#303066,#5c49ae 66%,#7764cc);color:white;box-shadow:var(--classic-shadow)}
+.classic-hero .eyebrow{color:#e8e2ff}.classic-hero h2{font-size:clamp(24px,3vw,34px);letter-spacing:-.04em;margin:7px 0}.classic-hero p:last-child{color:#eeeaff;max-width:760px;margin:8px 0 0}
+.classic-section-title{margin-top:13px}
+body[data-view=classic] .kpis{border:0;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+body[data-view=classic] .card,body[data-view=classic] .charts section{padding:12px;border:1px solid var(--border);background:white;border-radius:12px;box-shadow:var(--classic-shadow)}
+body[data-view=classic] .charts{margin-bottom:12px}body[data-view=classic] .day-bin rect{fill:#6f59b8}body[data-view=classic] .day-bin.partial rect{fill:#aca0cf}
+@media(max-width:680px){body[data-view=classic] .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}

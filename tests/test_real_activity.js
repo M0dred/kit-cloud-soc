@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const docs = path.resolve(__dirname, '../docs');
 const html = fs.readFileSync(path.join(docs,'activity.html'),'utf8');
-const script = fs.readFileSync(path.join(docs,'public-view.js'),'utf8')+'\n'+fs.readFileSync(path.join(docs,'activity.js'),'utf8');
+const script = ['public-view.js','published-refresh.js','activity.js'].map(f=>fs.readFileSync(path.join(docs,f),'utf8')).join('\n');
 assert.match(html,/REAL AGGREGATES · NOT LIVE/);
 assert.match(html,/connect-src 'self'/);
 assert.match(html,/No hourly or geographical inference/);

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Classic Dashboard · kit-cloud SoC</title>
+  <link rel="stylesheet" href="design.css"><link rel="stylesheet" href="brief.css"><link rel="stylesheet" href="classic.css">
+  <script src="public-view.js" defer></script><script src="published-refresh.js" defer></script><script src="tree.js" defer></script><script src="app.js" defer></script>
+</head>
+<body data-view="classic">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="masthead"><a class="classic-brand" href="classic.html" aria-label="kit-cloud SoC Classic"><span class="classic-logo" aria-hidden="true">kC</span> <b>kit-cloud SoC</b></a><nav aria-label="Views"><a href="#overview">Overview</a><a href="activity.html">UTC activity</a><a href="flow.html#pulse-map">Country pulse map</a><a href="#sources">Sources</a><a href="#changes">Batch changes</a><a href="./">Evidence brief</a></nav></header>
+  <main id="main-content" class="container" tabindex="-1">
+    <div class="brief-title"><div><p class="eyebrow">Public observations</p><h1>Classic dashboard</h1></div><span id="status-pill" class="pill">READING SNAPSHOT</span></div>
+    <section class="classic-hero" aria-label="Purpose"><p class="eyebrow">Evidence before escalation</p><h2>Observed sources. Transparent context.</h2><p>Hunt where these source IPs appear in your own telemetry. Wazuh alerts, reputation and catalog membership guide investigation; none independently establishes exploitation or compromise.</p></section>
+    <div class="data-times"><span id="gen">Snapshot time pending</span><span id="agents">Last attempt pending</span></div>
+    <p id="snapshot-note" class="readout" role="status" aria-label="Snapshot interpretation">Checking the published batch.</p>
+    <div class="refresh-line"><span id="refresh-status">Checking published files every minute while open; not live telemetry.</span><button type="button" id="refresh-now" aria-describedby="refresh-status">Check now</button></div>
+    <noscript><p>JavaScript is required for the interactive brief. <a href="data.json">Public JSON</a>.</p></noscript>
+    <section id="overview" aria-label="Batch in numbers">
+      <h2 class="classic-section-title">At a glance</h2><div class="kpis" id="kpis"></div>
+      <div class="charts">
+        <section aria-labelledby="trend-title"><h2 id="trend-title">Daily alert volume</h2><p class="minor" id="agent-privacy">UTC · first and last dates may be partial.</p><div id="days" class="bars" aria-label="Daily alert volumes"></div><details class="daily-table"><summary>Exact daily counts</summary><div id="day-values" class="daily-values" aria-label="Daily UTC alert counts"></div></details></section>
+        <section aria-labelledby="rank-title"><h2 id="rank-title">Source countries</h2><p class="minor">Alert counts in the displayed source buckets only.</p><div id="brief-ranking"></div><a class="quiet-link" href="flow.html#pulse-map">Explore country map →</a></section>
+      </div>
+    </section>
+    <section id="sources" aria-labelledby="sources-title">
+      <div class="section-head"><div><h2 id="sources-title">Observed sources</h2><p id="source-scope" aria-live="polite">Waiting for published source buckets.</p></div><input id="source-filter" class="search" type="search" placeholder="Filter by IP or provider" aria-label="Filter source IPs"></div>
+      <div class="workbench">
+        <div><table id="src" aria-label="Top public source buckets"><tbody><tr><td>Loading sources…</td></tr></tbody></table></div>
+        <aside id="detail-dock" aria-label="Source evidence"><p id="detail-empty" class="minor">Select a source to see sampled behavior, lookup status and the next local check.</p><div id="ioc-detail" class="ioc-detail" role="region" aria-label="Selected source details" tabindex="-1" hidden></div></aside>
+      </div>
+      <p id="pipeline-coverage" class="minor"></p>
+    </section>
+    <details id="changes" class="drawer" aria-labelledby="changes-title"><summary id="changes-title">Batch changes</summary><p class="minor">Two published batches; the seven-day windows overlap. Heartbeat-only updates do not advance the comparison.</p><p class="minor" role="status">Comparison not yet verified.</p><div class="diff-tree"></div></details>
+    <details id="recent" class="drawer"><summary>Catalog and pipeline history</summary>
+      <p id="catalog-metrics" class="minor"></p><div class="grid"><section><h2>Recent MISP attribute updates</h2><table id="misp" aria-label="Recent MISP attributes"></table></section><section><h2>Prior completed runs</h2><table id="runs" aria-label="Recent pipeline runs"></table></section></div>
+    </details>
+    <details id="method" class="drawer"><summary>Method, limits and public outputs</summary><p>Use this batch for review, not as an incident count or blocking directive. Verify affected asset and outcome in local telemetry before taking action.</p><p id="selection-explain" class="minor"></p><section id="integrations"><h2>Evidence and lookups</h2><div id="feeds" class="feeds"></div><div id="srcs" class="srcs"></div></section></details>
+  </main>
+  <footer>Kit-cloud SoC · Public batch · <a href="activity.html">UTC activity</a> · <a href="data.json">Public JSON</a></footer>
+</body>
+</html>

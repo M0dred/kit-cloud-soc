@@ -21,11 +21,6 @@
     return el;
   };
   const level = (n, top) => n===null?"heat-unknown":n===0?"heat-0":`heat-${Math.ceil(5*n/top)}`;
-  async function getJson(path) {
-    const response = await fetch(path, {cache:"no-store"});
-    if (!response.ok) throw Error("public file unavailable");
-    return response.json();
-  }
   function buckets(snapshot, time) {
     const published = snapshot.wazuh?.by_day;
     if (!Array.isArray(published) || published.length>8) throw Error("invalid daily buckets");
@@ -78,16 +73,20 @@
       svg(plot,"text",{x:sx,y:Number(sy)+14,class:"volume-date"},date.slice(5));
     }
   }
-  function render(snapshot,report) {
-    const now=Date.now(), batch=PublicView.utc(snapshot?.generated);
-    if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid public timestamp");
-    const rows=buckets(snapshot,batch), seen=rows.filter(day=>day.n!==null);
-    const max=Math.max(0,...seen.map(day=>day.n));
+  let rows=[],max=0;
+  const toggle=get("show-columns"), controls=get("columns");
+  toggle.addEventListener("click",()=>{
+    controls.hidden=!controls.hidden;
+    toggle.textContent=controls.hidden?"Show 3D columns":"Hide 3D columns";
+    toggle.setAttribute("aria-expanded",String(!controls.hidden));
+    if(!controls.hidden)drawColumns(rows,max);
+  });
+  for(const id of ["azimuth","elevation"])get(id).addEventListener("input",()=>drawColumns(rows,max));
+  function render(snapshot) {
+    rows=buckets(snapshot,PublicView.utc(snapshot.generated));const seen=rows.filter(day=>day.n!==null);
+    max=Math.max(0,...seen.map(day=>day.n));
     const sum=seen.reduce((a,day)=>a+day.n,0), total=snapshot.wazuh?.total_7d;
     const agrees=seen.length===rows.length && count(total) && sum===total;
-    const status=PublicView.status(snapshot.generated,report,now);
-    get("batch-status").textContent=status.batchText;
-    get("heartbeat").textContent=`${status.latest} ${status.note}`;
     const countNote=count(total)?`Published 7-day total: ${fmt(total)} alerts.`:"7-day total unavailable.";
     const caveat=agrees?"Daily counts reconcile to the total.":seen.length<rows.length?
       "Daily coverage is incomplete; missing is not zero.":"Daily values cannot be reconciled to a verified seven-day total.";
@@ -102,17 +101,14 @@
     get("heat-scale").textContent=seen.length===0?"No daily counts available.":max===0?
       "Published daily counts shown here are zero; missing cells are separate.":
       `Color is relative to this batch: 0 to ${fmt(max)} alerts. Hatched cells mean no published value. Use numbers for comparison.`;
-    if (seen.length===0) return;
-    const toggle=get("show-columns"), controls=get("columns");toggle.hidden=false;
-    toggle.addEventListener("click",()=>{
-      controls.hidden=!controls.hidden;
-      toggle.textContent=controls.hidden?"Show 3D columns":"Hide 3D columns";
-      toggle.setAttribute("aria-expanded",String(!controls.hidden));
-      if (!controls.hidden) drawColumns(rows,max);
-    });
-    for (const id of ["azimuth","elevation"]) get(id).addEventListener("input",()=>drawColumns(rows,max));
+    toggle.hidden=seen.length===0;
+    if(!seen.length){controls.hidden=true;toggle.textContent="Show 3D columns";toggle.setAttribute("aria-expanded","false");}
+    if(!controls.hidden)drawColumns(rows,max);
   }
-  return Promise.all([getJson("data.json"),getJson("status.json").catch(()=>null)])
-    .then(([data,report])=>render(data,report))
-    .catch(()=>{get("batch-status").textContent="No verified public daily batch is available. Do not infer zero activity.";});
+  return publishedRefresh({accept:d=>{buckets(d,PublicView.utc(d.generated));return true;},paint:({data,report,changed,complete})=>{
+    if(!data){get("batch-status").textContent="No verified public daily batch is available. Do not infer zero activity.";return;}
+    const s=PublicView.status(data.generated,report,Date.now(),complete);
+    get("batch-status").textContent=s.batchText;get("heartbeat").textContent=`${s.latest} ${s.note}`;
+    if(changed)render(data);
+  }}).start();
 })();

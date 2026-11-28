@@ -34,10 +34,13 @@ function counts(rows){
 }
 function renderCards(d,rows){
   const root=byId("kpis");root.replaceChildren();
-  for(const [title,value,note] of [
-    ["All Wazuh alerts · 7d",metric(d.wazuh.total_7d),"Exact query total; not an incident count."],
-    ["Public source buckets",`${metric(rows.length)} of top 20`,`${metric(counts(rows))} bucket alerts in the displayed subset.`],
-  ]){
+  const volume=["All Wazuh alerts · 7d",metric(d.wazuh.total_7d),"Exact query total; not an incident count."];
+  const cards=document.body?.dataset?.view==="classic"?[volume,
+    ["MISP 1932 attributes",metric(d.misp?.total),"Catalog, not incidents."],
+    ["VT ledger entries",metric(d.vt?.posted_total),"Local deduplication; not a verified post count."],
+    ["Public watchlist",metric(d.blocklist_n),"Review before action."]]:[volume,
+    ["Public source buckets",`${metric(rows.length)} of top 20`,`${metric(counts(rows))} bucket alerts in the displayed subset.`]];
+  for(const [title,value,note] of cards){
     const card=add(root,"div","","card");add(card,"h2",title);add(card,"div",value,"big");add(card,"p",note,"ksub");
   }
   byId("catalog-metrics").textContent=`MISP IP attributes: ${metric(d.misp?.total)} · Public watchlist: ${metric(d.blocklist_n)} · VT deduplication entries (not a verified post count): ${metric(d.vt?.posted_total)}.`;
@@ -110,6 +113,7 @@ function renderSources(d,rows){
   const table=byId("src"),dock=byId("detail-dock"),root=byId("ioc-detail"),empty=byId("detail-empty"),filter=byId("source-filter");
   const narrow=globalThis.matchMedia?.("(max-width:680px)");
   let active=null,expansion=null;
+  const byButton=new WeakMap();
   function dockDetail(){
     dock.appendChild(root);expansion?.remove?.();expansion=null;
   }
@@ -125,11 +129,13 @@ function renderSources(d,rows){
     dockDetail();root.hidden=true;root.replaceChildren();empty.hidden=false;
     if(restore) b?.focus?.();
   }
-  const coverage=d.wazuh?.pipeline_24h_coverage||{};
-  byId("pipeline-coverage").textContent=count(coverage.outside_top_alerts)
-    ?`Separate 24h pipeline: top ${metric(coverage.bucket_limit)} buckets, ${metric(coverage.outside_top_alerts)} bucket alerts outside that cap. This is not the 7d source table.`
-    :"Separate 24h pipeline truncation is not measured for this snapshot.";
-  function draw(){
+  function updateCoverage(){
+    const coverage=d.wazuh?.pipeline_24h_coverage||{};
+    byId("pipeline-coverage").textContent=count(coverage.outside_top_alerts)
+      ?`Separate 24h pipeline: top ${metric(coverage.bucket_limit)} buckets, ${metric(coverage.outside_top_alerts)} bucket alerts outside that cap. This is not the 7d source table.`
+      :"Separate 24h pipeline truncation is not measured for this snapshot.";
+  }
+  function draw(keep=null,refocus=false,focusedIP=null){
     const query=filter.value.trim().toLowerCase().replaceAll("[.]",".");table.replaceChildren();
     const body=addHeading(table,["Source","Country","7d alerts","MISP"],["","","num","catalog-column"]);
     let shown=0;
@@ -139,21 +145,33 @@ function renderSources(d,rows){
       if(!ip.includes(query)&&!String(meta.provider||meta.org||"").toLowerCase().includes(query))continue;
       const tr=row(body,["",meta.country||"—",metric(n),member===true?"Yes":member===false?"No":"Unknown"],["","","num","catalog-column"]);
       const button=add(tr.children[0],"button",defang(ip),"ip-action mono");button.type="button";
-      button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","ioc-detail");
-      button.addEventListener("click",()=>{
-        if(active?.button===button){close(true);return;}
-        close();active={button,tr};button.setAttribute("aria-expanded","true");root.hidden=false;empty.hidden=true;
+      button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","ioc-detail");byButton.set(button,ip);
+      const open=(focus,scroll)=>{
+        close();active={button,tr,ip};button.setAttribute("aria-expanded","true");root.hidden=false;empty.hidden=true;
         fillDetail(root,{ip,n,meta,member,ctx},()=>close(true));place();
-        root.focus?.({preventScroll:true});root.scrollIntoView?.({block:"nearest"});
-      });shown++;
+        if(focus)root.focus?.({preventScroll:true});if(scroll)root.scrollIntoView?.({block:"nearest"});
+      };
+      button.addEventListener("click",()=>{if(active?.button===button)close(true);else open(true,true);});
+      if(ip===keep)open(refocus,false);
+      if(ip===focusedIP)button.focus?.({preventScroll:true});
+      shown++;
     }
     if(!shown)add(add(body,"tr",""),"td",rows.length?"No sources match this filter.":"No displayed source rows. This does not imply zero alerts.","dim").colSpan=4;
     byId("source-scope").textContent=shown?`${shown} of ${rows.length} public source rows from the 7-day top-20 buckets.`:rows.length?"No sources match this filter.":"No displayed source rows; not zero alerts.";
   }
   filter.addEventListener("input",()=>{close();draw();});
-  narrow?.addEventListener?.("change",()=>{if(active)place();});draw();
+  narrow?.addEventListener?.("change",()=>{if(active)place();});updateCoverage();draw();
+  return (next,nextRows)=>{
+    const ip=active?.ip, focused=document.activeElement;
+    const refocus=focused===root||root.contains?.(focused);
+    const focusedIP=byButton.get(focused);
+    close();d=next;rows=nextRows;updateCoverage();draw(ip,refocus,focusedIP);
+    if(ip&&!active)empty.textContent="The previously selected source is not in this batch's displayed rows.";
+    if((ip&&!active&&refocus)||(focusedIP&&!table.contains?.(document.activeElement)))filter.focus?.({preventScroll:true});
+  };
 }
 function renderDetails(d){
+  for(const id of ["misp","runs","feeds"])byId(id).replaceChildren();
   const m=addHeading(byId("misp"),["Source","Updated (UTC)"]);
   const recent=Array.isArray(d.misp?.recent_14d)?d.misp.recent_14d:[];
   for(const item of recent.slice(0,12))if(validIP(item.ip))row(m,[defang(item.ip),item.date||"unknown"],["mono"]);
@@ -171,24 +189,30 @@ function reveal(){
     byId(hash)?.closest?.("details")?.setAttribute("open","");byId(hash)?.scrollIntoView?.();
   }
 }
-async function main(){
-  try{
-    const load=async path=>{const res=await fetch(path,{cache:"no-store"});if(!res.ok)throw Error("Unavailable");return res.json();};
-    const [d,report]=await Promise.all([load("data.json"),load("status.json").catch(()=>null)]);
-    if(!Array.isArray(d?.wazuh?.top_src)||!d.misp?.top_source_membership||!d.wazuh?.source_context)throw Error("Missing batch fields");
-    const model=PublicView.status(d.generated,report),pill=byId("status-pill"),note=byId("snapshot-note");
+function main(){
+  let updateSources=null, diffReady=false;
+  const refresh=publishedRefresh({accept:d=>Array.isArray(d?.wazuh?.top_src)&&d.wazuh.top_src.length<=20&&
+    Boolean(d.misp?.top_source_membership&&d.wazuh?.source_context),paint:async({data:d,report,changed,complete})=>{
+    if(!d){
+      byId("gen").textContent="Snapshot unavailable";byId("status-pill").textContent="UNAVAILABLE";byId("status-pill").className="pill bad";
+      byId("snapshot-note").textContent="Public snapshot unavailable. No counts or source conclusions can be drawn.";
+      byId("snapshot-note").className="readout warn";return;
+    }
+    const model=PublicView.status(d.generated,report,Date.now(),complete),pill=byId("status-pill"),note=byId("snapshot-note");
     byId("gen").textContent=model.batchText;byId("agents").textContent=model.latest;
     pill.textContent=model.pill;pill.className=model.pill==="LAST RUN OK"?"pill":"pill bad";
-    note.textContent=model.note;note.className=model.pill==="LAST RUN OK"?"readout":"readout warn";
-    if(d.public_revision?.kind==="projection_correction")add(note,"span",` Display correction ${d.public_revision.corrected_utc}; not a new run.`);
-    const rows=d.wazuh.top_src.filter(x=>Array.isArray(x)&&x.length===2&&validIP(x[0]));
-    renderCards(d,rows);renderDaily(d);renderRanking(rows,d.enrich_meta);renderSources(d,rows);renderDetails(d);
-    reveal();globalThis.addEventListener?.("hashchange",reveal);
-    if(typeof renderSnapshotDiff==="function")await renderSnapshotDiff(byId("changes"),d);
-  }catch(_){
-    byId("gen").textContent="Snapshot unavailable";byId("status-pill").textContent="UNAVAILABLE";byId("status-pill").className="pill bad";
-    byId("snapshot-note").textContent="Public snapshot unavailable. No counts or source conclusions can be drawn.";
-    byId("snapshot-note").className="readout warn";
-  }
+    const revision=d.public_revision?.kind==="projection_correction"?` Display correction ${d.public_revision.corrected_utc}; not a new run.`:"";
+    if(note.textContent!==model.note+revision)note.textContent=model.note+revision;
+    note.className=model.pill==="LAST RUN OK"?"readout":"readout warn";
+    if(changed){
+      const rows=d.wazuh.top_src.filter(x=>Array.isArray(x)&&x.length===2&&validIP(x[0]));
+      renderCards(d,rows);renderDaily(d);renderRanking(rows,d.enrich_meta);renderDetails(d);
+      if(updateSources)updateSources(d,rows);
+      else {updateSources=renderSources(d,rows);reveal();}
+      diffReady=false;
+    }
+    if(!diffReady&&typeof renderSnapshotDiff==="function")diffReady=await renderSnapshotDiff(byId("changes"),d);
+  }});
+  globalThis.addEventListener?.("hashchange",reveal);return refresh.start();
 }
 main();

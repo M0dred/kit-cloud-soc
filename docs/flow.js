@@ -95,6 +95,7 @@
   }
   function trend(wazuh,batch) {
     const root=get("overall-series"), note=get("overall-trend-note"), day=86400000;
+    root.replaceChildren();get("overall-trend").hidden=false;
     const buckets=wazuh?.by_day, end=Math.floor(batch/day)*day;
     const days=new Map(Array.from({length:8},(_,i)=>[new Date(end-(7-i)*day).toISOString().slice(0,10),null]));
     const noData=()=>{get("overall-trend").hidden=true;note.textContent="UTC daily trend unavailable.";};
@@ -116,17 +117,9 @@
     svg(root,"path",{d:line,class:"atlas-trend-line"});
     note.textContent=`UTC daily totals, not by country. First/last days may be partial.${known.length<8?" Missing days are gaps.":""}`;
   }
-  function render(snapshot,report) {
-    const now=Date.now(), batch=PublicView.utc(snapshot?.generated);
-    if (!Number.isFinite(batch) || batch>now+600000) throw Error("invalid batch time");
+  function layout() {
     const grouping=get("country-grouping");
-    let {groups,subset,labelled,rows}=aggregate(snapshot,grouping.value!=="separate");
-    const status=PublicView.status(snapshot.generated,report,now);
-    get("country-batch").textContent=status.batchText;
-    get("country-heartbeat").textContent=`${status.latest} ${status.note}`;
-    get("total-alerts").textContent=fmt(snapshot.wazuh.total_7d);trend(snapshot.wazuh,batch);
-    get("selected-alerts").textContent=fmt(subset);
-    get("labelled-rows").textContent=`${fmt(labelled)} / ${fmt(rows)}`;
+    let snapshot=null,groups=new Map(),subset=0,labelled=0,rows=0;
     const sort=get("measure"), toggle=get("toggle-depth"), chart=get("chart-depth");
     let selected=null, visible=[], metric="alerts";
     const buttons=new Map();
@@ -193,7 +186,7 @@
       }
       toggle.hidden=coverage||!visible.length;
       get("share-strip").hidden=coverage;
-      if (coverage) {
+      if (coverage||!visible.length) {
         chart.hidden=true;get("chart-flat").hidden=false;
         toggle.setAttribute("aria-pressed","false");toggle.textContent="3D view";
       }
@@ -225,7 +218,6 @@
       if (!chart.hidden) drawDepth(visible,metric);
     });
     for (const id of ["country-angle","country-tilt"]) get(id).addEventListener("input",()=>drawDepth(visible,metric));
-    rerank();get("workspace").hidden=false;
     // Open deep links into collapsed drawers, including when clicked after load.
     const reveal=()=>{
       const section=globalThis.location?.hash?.slice(1);
@@ -234,12 +226,20 @@
       if (section!=="pulse-map") target.open=true;
       target.scrollIntoView();
     };
-    reveal();globalThis.addEventListener?.("hashchange",reveal);
+    globalThis.addEventListener?.("hashchange",reveal);
+    return data=>{
+      const first=snapshot===null;snapshot=data;
+      ({groups,subset,labelled,rows}=aggregate(snapshot,grouping.value!=="separate"));
+      get("total-alerts").textContent=fmt(snapshot.wazuh.total_7d);trend(snapshot.wazuh,PublicView.utc(snapshot.generated));
+      get("selected-alerts").textContent=fmt(subset);get("labelled-rows").textContent=`${fmt(labelled)} / ${fmt(rows)}`;
+      rerank();get("workspace").hidden=false;if(first)reveal();
+    };
   }
-  async function json(path) {
-    const res=await fetch(path,{cache:"no-store"});if (!res.ok) throw Error("missing public file");return res.json();
-  }
-  return Promise.all([json("data.json"),json("status.json").catch(()=>null)])
-    .then(([snapshot,status])=>render(snapshot,status))
-    .catch(()=>{get("workspace").hidden=true;get("country-batch").textContent="No verified public country comparison is available. Missing is not zero activity.";});
+  let update;
+  return publishedRefresh({accept:d=>{aggregate(d,true);return true;},paint:({data,report,changed,complete})=>{
+    if(!data){get("country-batch").textContent="No verified public country comparison is available. Missing is not zero activity.";return;}
+    const status=PublicView.status(data.generated,report,Date.now(),complete);
+    get("country-batch").textContent=status.batchText;get("country-heartbeat").textContent=`${status.latest} ${status.note}`;
+    if(changed){if(!update)update=layout();update(data);}
+  }}).start();
 })();

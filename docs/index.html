@@ -6,15 +6,16 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
   <title>Evidence Brief · kit-cloud SoC</title>
   <link rel="stylesheet" href="design.css"><link rel="stylesheet" href="brief.css">
-  <script src="public-view.js" defer></script><script src="tree.js" defer></script><script src="app.js" defer></script>
+  <script src="public-view.js" defer></script><script src="published-refresh.js" defer></script><script src="tree.js" defer></script><script src="app.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-  <header class="masthead"><a href="./" aria-label="kit-cloud SoC home">kit-cloud <b>SoC</b></a><nav aria-label="Views"><a href="#sources">Sources</a><a href="flow.html#pulse-map">Country pulse map</a><a href="#changes">Batch changes</a></nav></header>
+  <header class="masthead"><a href="./" aria-label="kit-cloud SoC home">kit-cloud <b>SoC</b></a><nav aria-label="Views"><a href="#sources">Sources</a><a href="flow.html#pulse-map">Country pulse map</a><a href="#changes">Batch changes</a><a href="classic.html">Classic dashboard</a></nav></header>
   <main id="main-content" class="container" tabindex="-1">
     <div class="brief-title"><div><p class="eyebrow">Public observations</p><h1>Evidence brief</h1></div><span id="status-pill" class="pill">READING SNAPSHOT</span></div>
     <div class="data-times"><span id="gen">Snapshot time pending</span><span id="agents">Last attempt pending</span></div>
     <p id="snapshot-note" class="readout" role="status" aria-label="Snapshot interpretation">Checking the published batch.</p>
+    <div class="refresh-line"><span id="refresh-status">Checking published files every minute while open; not live telemetry.</span><button type="button" id="refresh-now" aria-describedby="refresh-status">Check now</button></div>
     <noscript><p>JavaScript is required for the interactive brief. <a href="data.json">Public JSON</a>.</p></noscript>
     <section id="overview" aria-label="Batch in numbers">
       <div class="kpis" id="kpis"></div>

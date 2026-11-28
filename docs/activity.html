@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="flow.css">
   <link rel="stylesheet" href="activity.css">
   <script src="public-view.js" defer></script>
+  <script src="published-refresh.js" defer></script>
   <script src="activity.js" defer></script>
 </head>
 <body>
@@ -25,6 +26,7 @@
       <div class="panel-head"><h2 id="heat-heading">Daily volume heatmap · UTC</h2><button type="button" id="show-columns" aria-controls="columns" aria-expanded="false" hidden>Show 3D columns</button></div>
       <p id="batch-status" role="status">Reading the public batch…</p>
       <p id="heartbeat" class="note"></p>
+      <div class="refresh-line"><span id="refresh-status">Checking published files every minute; not live telemetry.</span><button type="button" id="refresh-now" aria-describedby="refresh-status">Check now</button></div>
       <p id="coverage" class="note"></p>
       <ul id="heat-grid" class="heat-grid" aria-label="Alert counts by UTC date"></ul>
       <p id="heat-scale" class="note"></p>

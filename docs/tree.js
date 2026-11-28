@@ -19,7 +19,7 @@ async function renderSnapshotDiff(root, snapshot) {
   };
   if (snapshot.public_revision) {
     state.textContent = "Comparison unavailable for a display-only correction. No new data batch is implied.";
-    return;
+    return true;
   }
   const groups = [
     ["Telemetry", [
@@ -32,14 +32,14 @@ async function renderSnapshotDiff(root, snapshot) {
     ]],
   ];
   try {
-    const response = await fetch("snapshot-diff.json", {cache: "no-store"});
+    const response = await fetch("snapshot-diff.json", {cache: "no-store", signal: globalThis.AbortSignal?.timeout?.(12000)});
     if (!response.ok) throw Error("comparison unavailable");
     const diff = await response.json();
     if (diff?.schema_version !== 1 || diff.current_utc !== snapshot.generated || !Number.isFinite(utc(diff.current_utc)))
       throw Error("comparison batch does not match");
     if (diff.previous_utc === null && diff.metrics === null && diff.sources === null) {
       state.textContent = "No previous comparable batch is available. An unavailable comparison does not mean no change.";
-      return;
+      return true;
     }
     if (!(utc(diff.previous_utc) < utc(diff.current_utc))) throw Error("invalid previous batch");
     for (const [, rows] of groups) {
@@ -76,8 +76,10 @@ async function renderSnapshotDiff(root, snapshot) {
     add(rows, "li", `Entered displayed set: ${fmt(s.entered)} · Left displayed set: ${fmt(s.left)}`);
     add(rows, "li", `Retained: ${fmt(s.retained)} · Retained with changed alert count: ${fmt(s.changed_alert_counts)}`);
     add(rows, "li", "These are changes to the ranked, privacy-filtered view; leaving it does not mean a source disappeared or was cleared.");
+    return true;
   } catch (_) {
     tree.replaceChildren();
     state.textContent = "No matching batch comparison could be verified. Current snapshot remains available above.";
+    return false;
   }
 }
