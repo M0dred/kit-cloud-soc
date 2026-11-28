@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Security Command Center · kit-cloud SoC</title>
+  <link rel="stylesheet" href="design.css"><link rel="stylesheet" href="command-center.css">
+  <script src="command-center.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="masthead"><a href="./" aria-label="kit-cloud SoC home">kit-cloud <b>SoC</b></a><nav aria-label="Views"><a href="index.html">Evidence brief</a><a href="classic.html">Classic dashboard</a><a href="data-flow.html">Data flow</a><a href="command-center.html" aria-current="page">Command center</a></nav></header>
+  <main id="main-content" class="container" tabindex="-1">
+    <div class="brief-title"><div><p class="eyebrow">Public-safe aggregate snapshot</p><h1>Security command center</h1></div><span id="overall-status" class="pill">READING SNAPSHOT</span></div>
+    <div class="data-times"><span id="generated">Snapshot time pending</span><span id="freshness">Static GitHub Pages snapshot</span></div>
+    <p id="snapshot-note" class="readout" role="status" aria-live="polite">Loading aggregate platform health.</p>
+    <div class="refresh-line"><span id="refresh-status">Checks the published JSON every five minutes while open; not live telemetry.</span><button type="button" id="refresh-now" aria-describedby="refresh-status">Check now</button></div>
+    <noscript><p>JavaScript is required for the interactive view. <a href="command-center-data.json">Public JSON</a>.</p></noscript>
+
+    <section aria-label="Platform key metrics"><div id="kpis" class="cc-kpis"></div></section>
+
+    <section id="cluster" class="panel cc-section" aria-labelledby="cluster-title">
+      <div class="cc-section-head"><div><p class="eyebrow">Kubernetes</p><h2 id="cluster-title">Cluster health</h2></div><span id="cluster-status" class="cc-badge">pending</span></div>
+      <div id="cluster-metrics" class="cc-metrics"></div>
+      <div class="cc-progress"><div><span>Nodes ready</span><strong id="cluster-nodes-label">—</strong></div><meter id="cluster-nodes-meter" max="1" value="0">—</meter></div>
+      <div class="cc-progress"><div><span>System Pods ready</span><strong id="cluster-pods-label">—</strong></div><meter id="cluster-pods-meter" max="1" value="0">—</meter></div>
+    </section>
+
+    <section id="security" class="panel cc-section" aria-labelledby="security-title">
+      <div class="cc-section-head"><div><p class="eyebrow">Network detection</p><h2 id="security-title">Security logs</h2></div><span id="security-status" class="cc-badge">pending</span></div>
+      <div id="security-metrics" class="cc-metrics"></div>
+      <div class="cc-progress"><div><span>Top signature share</span><strong id="security-noise-label">—</strong></div><meter id="security-noise-meter" max="100" value="0">—</meter></div>
+      <p id="security-note" class="minor"></p>
+    </section>
+
+    <section id="rag" class="panel cc-section" aria-labelledby="rag-title">
+      <div class="cc-section-head"><div><p class="eyebrow">Retrieval and cases</p><h2 id="rag-title">Security RAG</h2></div><span id="rag-status" class="cc-badge">pending</span></div>
+      <div id="rag-metrics" class="cc-metrics"></div>
+      <div class="cc-progress"><div><span>Embedding coverage</span><strong id="rag-embedding-label">—</strong></div><meter id="rag-embedding-meter" max="100" value="0">—</meter></div>
+      <div class="cc-progress"><div><span>Retrieval Recall@5</span><strong id="rag-recall-label">—</strong></div><meter id="rag-recall-meter" max="1" value="0">—</meter></div>
+      <p id="rag-note" class="minor"></p>
+    </section>
+
+    <section id="ai" class="panel cc-section" aria-labelledby="ai-title">
+      <div class="cc-section-head"><div><p class="eyebrow">Gateway and agents</p><h2 id="ai-title">AI operations</h2></div><span id="ai-status" class="cc-badge">pending</span></div>
+      <div id="ai-metrics" class="cc-metrics"></div>
+      <div class="cc-progress"><div><span>Audit success rate</span><strong id="ai-success-label">—</strong></div><meter id="ai-success-meter" max="100" value="0">—</meter></div>
+      <p id="ai-note" class="minor"></p>
+    </section>
+
+    <section id="assets" class="panel cc-section" aria-labelledby="assets-title">
+      <div class="cc-section-head"><div><p class="eyebrow">Internet asset intelligence</p><h2 id="assets-title">Asset intelligence</h2></div><span id="assets-status" class="cc-badge">pending</span></div>
+      <div id="asset-metrics" class="cc-metrics"></div>
+      <p id="asset-note" class="minor"></p>
+    </section>
+
+    <section class="panel cc-section" aria-labelledby="gates-title">
+      <div class="cc-section-head"><div><p class="eyebrow">Release gates</p><h2 id="gates-title">Data quality status</h2></div></div>
+      <ul id="quality-gates" class="cc-gates" aria-live="polite"></ul>
+    </section>
+
+    <details class="drawer"><summary>Method and privacy</summary>
+      <p>This page is a read-only projection generated from aggregate platform metrics. It does not contain raw logs, source addresses, hostnames, credentials, business records, or per-agent data.</p>
+      <p>A green component does not prove complete telemetry, absence of compromise, or successful automated response. Missing coverage remains distinct from zero events.</p>
+      <p><a href="command-center-data.json">Public aggregate JSON</a> · <a href="index.html">Evidence brief</a> · <a href="data-flow.html">Data flow</a></p>
+    </details>
+  </main>
+  <footer>Kit-cloud SoC · Public-safe command center · <a href="command-center-data.json">Aggregate JSON</a></footer>
+</body>
+</html>

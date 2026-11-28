@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-11-28 05:41 UTC",
+  "public_safe": true,
+  "cluster": {
+    "nodes_total": 3,
+    "nodes_ready": 3,
+    "etcd_voters": 3,
+    "pods_total": 9,
+    "pods_ready": 9,
+    "allocatable_cpu_cores": 12.0,
+    "allocatable_memory_gib": 77.8,
+    "version": "v1.36.4+k3s1",
+    "latest_snapshot_utc": "2026-11-28T01:00:05Z",
+    "retained_warning_events": 40,
+    "status": "healthy"
+  },
+  "security_logs": {
+    "indexed_documents": 63513111,
+    "alert_documents": 15174762,
+    "anomaly_documents": 132657,
+    "arkime_sessions": 6885221,
+    "top_signature_share_pct": 96.66,
+    "coverage_gap_days": 23,
+    "arkime_capture_active": false,
+    "status": "attention"
+  },
+  "rag": {
+    "events": 211722,
+    "cases": 4768,
+    "assets": 16,
+    "feedback": 4,
+    "poc_alerts": 1186,
+    "embedding_coverage_pct": 99.75,
+    "asset_coverage_pct": 100.0,
+    "triaged_pct": 0.21,
+    "case_status": {
+      "closed": 4724,
+      "active": 41,
+      "historical": 3
+    },
+    "recall_at5": 0.964,
+    "duplicates_at5": 0.203,
+    "dlq_unresolved": 2518,
+    "case_backlog": 1837,
+    "status": "attention"
+  },
+  "ai": {
+    "audit_requests": 121248,
+    "success_requests": 96021,
+    "success_rate_pct": 79.19,
+    "gateway_error_requests": 21646,
+    "gateway_error_rate_pct": 17.85,
+    "status": "attention"
+  },
+  "asset_intel": {
+    "host_records": 28308133,
+    "unique_ips": 28308133,
+    "stale_days": 213,
+    "status": "stale"
+  },
+  "agent_sessions": {
+    "sessions": 321,
+    "messages": 169951,
+    "unique_message_ids": 169813,
+    "input_tokens": 175083393,
+    "output_tokens": 11646397,
+    "recorded_cost": 29.6521
+  },
+  "notes": [
+    "Aggregate public snapshot; not live telemetry.",
+    "No raw logs, IP addresses, hostnames, credentials, or business records are published.",
+    "A healthy status does not prove complete coverage or absence of compromise."
+  ]
+}
