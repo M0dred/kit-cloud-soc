@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Security Data Flow Observatory · kit-cloud SoC</title>
+  <link rel="stylesheet" href="design.css"><link rel="stylesheet" href="command-center.css"><link rel="stylesheet" href="observatory.css">
+  <script src="vendor/three.min.js" defer></script><script src="observatory.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="masthead"><a href="./" aria-label="kit-cloud SoC home">kit-cloud <b>SoC</b></a><nav aria-label="Views"><a href="index.html">Evidence brief</a><a href="classic.html">Classic dashboard</a><a href="data-flow.html">Data flow</a><a href="command-center.html">Command center</a><a href="observatory.html" aria-current="page">3D observatory</a></nav></header>
+  <main id="main-content" class="container" tabindex="-1">
+    <div class="brief-title"><div><p class="eyebrow">Three.js · public-safe topology</p><h1>Security data flow observatory</h1></div><span id="overall-status" class="pill">READING SNAPSHOT</span></div>
+    <div class="data-times"><span id="generated">Snapshot time pending</span><span id="render-status">Initializing WebGL</span></div>
+    <p id="snapshot-note" class="readout" role="status" aria-live="polite">Loading aggregate platform topology.</p>
+    <div class="refresh-line"><span>Drag to rotate · scroll to zoom · select a node for evidence context.</span><button type="button" id="toggle-motion" aria-pressed="false">Pause motion</button><button type="button" id="toggle-labels" aria-pressed="true">Hide labels</button><button type="button" id="reset-view">Reset view</button></div>
+    <noscript><p>JavaScript and WebGL are required for the 3D view. <a href="command-center-data.json">Public aggregate JSON</a>.</p></noscript>
+
+    <section class="observatory-shell" aria-label="Interactive security data flow">
+      <div id="scene" class="observatory-canvas" role="img" aria-label="3D graph of security data sources, stores, RAG, AI and analyst workflow"></div>
+      <div id="labels" class="observatory-labels" aria-hidden="true"></div>
+      <div class="observatory-legend" aria-label="Status legend"><span><i class="legend-dot healthy"></i>healthy</span><span><i class="legend-dot attention"></i>attention</span><span><i class="legend-dot stale"></i>stale</span><span><i class="legend-dot unknown"></i>unknown</span></div>
+      <div id="webgl-error" class="observatory-error" hidden>WebGL is unavailable. The accessible node list and detail panel remain usable.</div>
+    </section>
+
+    <section class="observatory-layout" aria-label="Topology details">
+      <div class="panel"><div class="cc-section-head"><div><p class="eyebrow">Selected node</p><h2 id="detail-title">Select a node</h2></div><span id="detail-status" class="cc-badge">pending</span></div><p id="detail-description" class="minor">Choose a node in the graph or from the accessible list.</p><div id="detail-metrics" class="cc-metrics"></div><p id="detail-connections" class="minor"></p></div>
+      <div class="panel"><div class="cc-section-head"><div><p class="eyebrow">Accessible view</p><h2>Platform nodes</h2></div></div><div id="node-list" class="observatory-node-list" aria-live="polite"></div></div>
+    </section>
+
+    <details class="drawer"><summary>Method and privacy</summary>
+      <p>This visualisation is generated from the same public-safe aggregate snapshot as the command center. It shows logical data flow and health, not live traffic or network topology.</p>
+      <p>No raw logs, IP addresses, hostnames, credentials or business records are loaded. Particle motion is illustrative and does not represent event counts.</p>
+      <p><a href="command-center.html">Command center</a> · <a href="command-center-data.json">Public aggregate JSON</a> · <a href="data-flow.html">2D data flow</a></p>
+    </details>
+  </main>
+  <footer>Kit-cloud SoC · Three.js observatory · Aggregate topology only</footer>
+</body>
+</html>

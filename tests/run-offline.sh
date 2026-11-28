@@ -16,7 +16,9 @@ node --check docs/country-map.js
 node --check docs/country-globe.js
 node --check docs/activity.js
 node --check docs/command-center.js
+node --check docs/observatory.js
 node tests/test_command_center.js
+node tests/test_observatory.js
 node tests/test_public_ui.js
 node tests/test_public_ui_ux.js
 node tests/test_published_refresh.js
